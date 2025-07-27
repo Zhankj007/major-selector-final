@@ -29,15 +29,31 @@ body {
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 
-#search-container { margin-bottom: 10px; }
+#search-container { 
+    display: flex; 
+    gap: 8px;
+    margin-bottom: 10px; 
+}
 #search-input {
-    width: 100%;
+    flex-grow: 1; /* Take up remaining space */
     padding: 8px 12px;
     font-size: 14px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-sizing: border-box;
 }
+#query-button {
+    padding: 8px 18px;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#query-button:hover { background-color: #0056b3; }
+
 .hidden { display: none; }
 
 #major-tree-container {
