@@ -1,26 +1,38 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const switcher = document.querySelector('.switcher');
+    // --- DOM Element References ---
+    const catalogSwitcher = document.querySelector('input[name="catalog-type"]')?.parentElement;
+    const modeSwitcher = document.querySelector('input[name="mode-type"]')?.parentElement;
+    const searchContainer = document.getElementById('search-container');
+    const searchInput = document.getElementById('search-input');
     const treeContainer = document.getElementById('major-tree-container');
     const outputTextarea = document.getElementById('output-textarea');
     const detailsContent = document.getElementById('details-content');
     const copyButton = document.getElementById('copy-button');
 
-    // --- 1. DATA FETCHING LOGIC ---
+    // --- Application State ---
+    let fullMajorData = null; // To store the complete data from API
+    let currentCatalogType = 'bachelor';
+
+    // --- 1. DATA FETCHING & INITIALIZATION ---
     async function fetchData(type = 'bachelor') {
+        currentCatalogType = type;
         treeContainer.innerHTML = '<p>正在从云端加载专业数据，请稍候...</p>';
         detailsContent.innerHTML = '<p>请选择一个目录，然后将鼠标悬停或轻点具体专业名称以查看详情。</p>';
         outputTextarea.value = '';
+        fullMajorData = null; // Reset data on fetch
 
         try {
             const response = await fetch(`/api/getMajors?type=${type}`);
             if (!response.ok) throw new Error(`网络请求失败: ${response.statusText}`);
-            const data = await response.json();
-            if (Object.keys(data).length === 0) {
+            
+            fullMajorData = await response.json(); // Store full data
+
+            if (Object.keys(fullMajorData).length === 0) {
                 treeContainer.innerHTML = '<p>加载数据为空或解析失败，请检查数据源或后台日志。</p>';
                 return;
             }
-            treeContainer.innerHTML = renderTree(data, type);
-            attachEventListeners();
+            // Initial render
+            renderAndFilterTree();
         } catch (error) {
             console.error('Fetch error:', error);
             treeContainer.innerHTML = `<p>加载数据时发生错误: ${error.message}。</p>`;
@@ -28,28 +40,108 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- 2. EVENT LISTENERS ---
-    switcher.addEventListener('change', (e) => {
-        fetchData(e.target.value);
+    catalogSwitcher.addEventListener('change', (e) => fetchData(e.target.value));
+    modeSwitcher.addEventListener('change', (e) => {
+        searchContainer.classList.toggle('hidden', e.target.value !== 'query');
+        renderAndFilterTree();
     });
-    
+    searchInput.addEventListener('input', () => renderAndFilterTree());
     copyButton.addEventListener('click', () => {
-        const textToCopy = outputTextarea.value;
-        if (!textToCopy) {
-            alert('没有内容可以复制！');
-            return;
-        }
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            const originalText = copyButton.textContent;
+        if (!outputTextarea.value) return alert('没有内容可以复制！');
+        navigator.clipboard.writeText(outputTextarea.value).then(() => {
             copyButton.textContent = '已复制!';
-            setTimeout(() => {
-                copyButton.textContent = originalText;
-            }, 1500);
-        }).catch(err => {
-            console.error('复制失败:', err);
-            alert('复制失败，请手动复制。');
+            setTimeout(() => { copyButton.textContent = '复制'; }, 1500);
         });
     });
 
+    // --- 3. RENDERING & FILTERING ---
+
+    /**
+     * Main function to decide whether to render the full tree or a filtered one.
+     */
+    function renderAndFilterTree() {
+        if (!fullMajorData) return; // Don't render if data isn't loaded
+
+        const mode = document.querySelector('input[name="mode-type"]:checked').value;
+        const keyword = searchInput.value.trim().toLowerCase();
+        
+        // First, always render the full tree structure into the container
+        treeContainer.innerHTML = renderTreeHTML(fullMajorData, currentCatalogType);
+        attachEventListeners(); // Re-attach listeners to the new HTML
+
+        // Then, apply filtering if in query mode
+        if (mode === 'query' && keyword) {
+            filterTree(keyword);
+        }
+    }
+    
+    /**
+     * Renders the complete HTML for the tree from data.
+     */
+    function renderTreeHTML(hierarchy, type) {
+        const majorNameKey = '专业名';
+        const majorCodeKey = '专业码';
+        let html = '<ul id="major-tree">';
+        for (const level1Key in hierarchy) {
+            html += `<li class="level-1-li"><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
+            for (const level2Key in hierarchy[level1Key]) {
+                const majors = hierarchy[level1Key][level2Key];
+                html += `<li class="level-2-li"><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
+                majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || ''));
+                majors.forEach(major => {
+                    const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major)));
+                    const majorName = major[majorNameKey] || '未知专业';
+                    const majorCode = major[majorCodeKey] || '';
+                    html += `<li class="level-3-li" data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
+                });
+                html += `</ul></li>`;
+            }
+            html += `</ul></li>`;
+        }
+        html += `</ul>`;
+        return html;
+    }
+
+    /**
+     * Filters the currently rendered tree based on a keyword by adding/removing a 'hidden' class.
+     */
+    function filterTree(keyword) {
+        const majorNameKey = '专业名';
+
+        // Hide all nodes initially
+        document.querySelectorAll('#major-tree li').forEach(li => li.classList.add('hidden'));
+
+        // Find and show matching majors and their ancestors
+        document.querySelectorAll('.level-3-li').forEach(li => {
+            const detailsJson = decodeURIComponent(atob(li.dataset.details));
+            const majorData = JSON.parse(detailsJson);
+            const majorName = (majorData[majorNameKey] || '').toLowerCase();
+
+            if (majorName.includes(keyword)) {
+                // Show the major itself
+                li.classList.remove('hidden');
+                
+                // Show its parents and expand them
+                const parentL2 = li.closest('.level-2-li');
+                if (parentL2) {
+                    parentL2.classList.remove('hidden');
+                    parentL2.querySelector('.nested')?.classList.add('active');
+                    parentL2.querySelector('.caret')?.classList.add('caret-down');
+                }
+
+                const parentL1 = li.closest('.level-1-li');
+                if (parentL1) {
+                    parentL1.classList.remove('hidden');
+                    parentL1.querySelector('.nested')?.classList.add('active');
+                    parentL1.querySelector('.caret')?.classList.add('caret-down');
+                }
+            }
+        });
+    }
+
+
+    // --- 4. ATTACHING LISTENERS & UTILITY FUNCTIONS ---
+    // (These functions are mostly the same, but now live inside attachEventListeners or are called from it)
     function attachEventListeners() {
         const tree = document.getElementById('major-tree');
         if (!tree) return;
@@ -67,47 +159,12 @@ document.addEventListener('DOMContentLoaded', function () {
         tree.addEventListener('mouseover', function(e) { if (e.target.classList.contains('major-label')) { showDetails(e.target.closest('li')); }});
     }
 
-    // --- 3. RENDERING & CORE LOGIC ---
-    function renderTree(hierarchy, type) {
-        // *** FIX: Corrected the keys to match your Google Sheet headers ***
-        const majorNameKey = '专业名'; 
-        const majorCodeKey = '专业码'; 
-
-        let html = '<ul id="major-tree">';
-        for (const level1Key in hierarchy) {
-            html += `<li><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
-            for (const level2Key in hierarchy[level1Key]) {
-                const majors = hierarchy[level1Key][level2Key];
-                html += `<li><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
-                
-                majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || ''));
-                
-                majors.forEach(major => {
-                    const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major)));
-                    const majorName = major[majorNameKey] || '未知专业'; // This should now work correctly
-                    const majorCode = major[majorCodeKey] || '';     // This should now work correctly
-                    html += `<li data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
-                });
-                html += `</ul></li>`;
-            }
-            html += `</ul></li>`;
-        }
-        html += `</ul>`;
-        return html;
-    }
-    
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
             const detailsBase64 = targetLi.getAttribute('data-details');
-            const detailsJson = decodeURIComponent(atob(detailsBase64));
-            const d = JSON.parse(detailsJson);
+            const d = JSON.parse(decodeURIComponent(atob(detailsBase64)));
             let detailsHtml = '';
-            
-            // *** FIX: The loop already shows all fields, this logic is correct. ***
-            // The previous issue was that the data object itself was incomplete due to parsing errors.
-            // Now with the robust parser, all fields should be present in 'd'.
             for (const key in d) {
-                // We only show a row if the key and its value are not empty.
                 if (d.hasOwnProperty(key) && d[key]) {
                     let value = d[key];
                     if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
@@ -120,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // The other two functions are unchanged
     function handleCheckboxChange(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
@@ -137,18 +193,17 @@ document.addEventListener('DOMContentLoaded', function () {
             parentLi = parentLi.parentElement.closest('li');
         }
     }
+    
     function updateOutput() {
         const selectedMajors = [];
         const tree = document.getElementById('major-tree');
         if (!tree) return;
-        const selectedCheckboxes = tree.querySelectorAll('.level-3:checked');
-        // *** FIX: Use the correct key to get the name for the output textarea ***
+        const selectedCheckboxes = tree.querySelectorAll('.level-3-li input[type="checkbox"]:checked');
         const majorNameKey = '专业名';
         selectedCheckboxes.forEach(cb => {
             const detailsLi = cb.closest('li');
             if (detailsLi && detailsLi.hasAttribute('data-details')) {
-                const detailsJson = decodeURIComponent(atob(detailsLi.getAttribute('data-details')));
-                const majorData = JSON.parse(detailsJson);
+                const majorData = JSON.parse(decodeURIComponent(atob(detailsLi.getAttribute('data-details'))));
                 selectedMajors.push(majorData[majorNameKey] || cb.value);
             } else {
                  selectedMajors.push(cb.value);
@@ -157,6 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         outputTextarea.value = selectedMajors.join(' ');
     }
 
-    // Initial data load
+    // --- Initial data load ---
     fetchData('bachelor');
 });
