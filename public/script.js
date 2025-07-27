@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const copyButton = document.getElementById('copy-button');
 
     // --- Application State ---
-    let fullMajorData = null; // To store the complete data from API
     let currentCatalogType = 'bachelor';
 
     // --- 1. DATA FETCHING & INITIALIZATION ---
@@ -19,20 +18,22 @@ document.addEventListener('DOMContentLoaded', function () {
         treeContainer.innerHTML = '<p>正在从云端加载专业数据，请稍候...</p>';
         detailsContent.innerHTML = '<p>请选择一个目录，然后将鼠标悬停或轻点具体专业名称以查看详情。</p>';
         outputTextarea.value = '';
-        fullMajorData = null; // Reset data on fetch
 
         try {
             const response = await fetch(`/api/getMajors?type=${type}`);
             if (!response.ok) throw new Error(`网络请求失败: ${response.statusText}`);
             
-            fullMajorData = await response.json(); // Store full data
+            const fullMajorData = await response.json();
 
             if (Object.keys(fullMajorData).length === 0) {
                 treeContainer.innerHTML = '<p>加载数据为空或解析失败，请检查数据源或后台日志。</p>';
                 return;
             }
-            // Initial render
-            renderAndFilterTree();
+            
+            // --- FIX: Render the full tree HTML ONCE after fetching data ---
+            treeContainer.innerHTML = renderTreeHTML(fullMajorData, type);
+            attachEventListeners(); // Attach listeners to the newly created tree
+
         } catch (error) {
             console.error('Fetch error:', error);
             treeContainer.innerHTML = `<p>加载数据时发生错误: ${error.message}。</p>`;
@@ -41,11 +42,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 2. EVENT LISTENERS ---
     catalogSwitcher.addEventListener('change', (e) => fetchData(e.target.value));
+    
+    // --- FIX: More explicit logic for showing/hiding the search box ---
     modeSwitcher.addEventListener('change', (e) => {
-        searchContainer.classList.toggle('hidden', e.target.value !== 'query');
-        renderAndFilterTree();
+        const mode = e.target.value;
+        if (mode === 'query') {
+            searchContainer.classList.remove('hidden');
+        } else {
+            searchContainer.classList.add('hidden');
+            searchInput.value = ''; // Clear search input when switching back
+            filterTree(); // Call with no keyword to reset/show the full tree
+        }
     });
-    searchInput.addEventListener('input', () => renderAndFilterTree());
+
+    // --- FIX: The input event now ONLY calls the filter function ---
+    searchInput.addEventListener('input', () => {
+        const keyword = searchInput.value.trim().toLowerCase();
+        filterTree(keyword);
+    });
+
     copyButton.addEventListener('click', () => {
         if (!outputTextarea.value) return alert('没有内容可以复制！');
         navigator.clipboard.writeText(outputTextarea.value).then(() => {
@@ -57,26 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 3. RENDERING & FILTERING ---
 
     /**
-     * Main function to decide whether to render the full tree or a filtered one.
-     */
-    function renderAndFilterTree() {
-        if (!fullMajorData) return; // Don't render if data isn't loaded
-
-        const mode = document.querySelector('input[name="mode-type"]:checked').value;
-        const keyword = searchInput.value.trim().toLowerCase();
-        
-        // First, always render the full tree structure into the container
-        treeContainer.innerHTML = renderTreeHTML(fullMajorData, currentCatalogType);
-        attachEventListeners(); // Re-attach listeners to the new HTML
-
-        // Then, apply filtering if in query mode
-        if (mode === 'query' && keyword) {
-            filterTree(keyword);
-        }
-    }
-    
-    /**
-     * Renders the complete HTML for the tree from data.
+     * Renders the complete HTML for the tree from data. This is called only once per data load.
      */
     function renderTreeHTML(hierarchy, type) {
         const majorNameKey = '专业名';
@@ -104,44 +100,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * Filters the currently rendered tree based on a keyword by adding/removing a 'hidden' class.
+     * This function manipulates the existing DOM and does NOT re-render HTML.
      */
-    function filterTree(keyword) {
+    function filterTree(keyword = '') {
         const majorNameKey = '专业名';
 
-        // Hide all nodes initially
-        document.querySelectorAll('#major-tree li').forEach(li => li.classList.add('hidden'));
-
-        // Find and show matching majors and their ancestors
         document.querySelectorAll('.level-3-li').forEach(li => {
             const detailsJson = decodeURIComponent(atob(li.dataset.details));
             const majorData = JSON.parse(detailsJson);
             const majorName = (majorData[majorNameKey] || '').toLowerCase();
+            
+            // Show/hide based on keyword match
+            const isMatch = keyword ? majorName.includes(keyword) : true;
+            li.classList.toggle('hidden', !isMatch);
+        });
 
-            if (majorName.includes(keyword)) {
-                // Show the major itself
-                li.classList.remove('hidden');
-                
-                // Show its parents and expand them
-                const parentL2 = li.closest('.level-2-li');
-                if (parentL2) {
-                    parentL2.classList.remove('hidden');
-                    parentL2.querySelector('.nested')?.classList.add('active');
-                    parentL2.querySelector('.caret')?.classList.add('caret-down');
-                }
+        // After filtering L3, update visibility of L2 and L1 parents
+        document.querySelectorAll('.level-2-li').forEach(li => {
+            // A level 2 item is visible if it has any non-hidden children
+            const hasVisibleChildren = li.querySelector('.level-3-li:not(.hidden)');
+            li.classList.toggle('hidden', !hasVisibleChildren);
+            // Auto-expand if visible due to search
+            if (hasVisibleChildren && keyword) {
+                 li.querySelector('.nested')?.classList.add('active');
+                 li.querySelector('.caret')?.classList.add('caret-down');
+            }
+        });
 
-                const parentL1 = li.closest('.level-1-li');
-                if (parentL1) {
-                    parentL1.classList.remove('hidden');
-                    parentL1.querySelector('.nested')?.classList.add('active');
-                    parentL1.querySelector('.caret')?.classList.add('caret-down');
-                }
+        document.querySelectorAll('.level-1-li').forEach(li => {
+            const hasVisibleChildren = li.querySelector('.level-2-li:not(.hidden)');
+            li.classList.toggle('hidden', !hasVisibleChildren);
+            if (hasVisibleChildren && keyword) {
+                 li.querySelector('.nested')?.classList.add('active');
+                 li.querySelector('.caret')?.classList.add('caret-down');
             }
         });
     }
 
 
     // --- 4. ATTACHING LISTENERS & UTILITY FUNCTIONS ---
-    // (These functions are mostly the same, but now live inside attachEventListeners or are called from it)
     function attachEventListeners() {
         const tree = document.getElementById('major-tree');
         if (!tree) return;
@@ -161,8 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
-            const detailsBase64 = targetLi.getAttribute('data-details');
-            const d = JSON.parse(decodeURIComponent(atob(detailsBase64)));
+            const d = JSON.parse(decodeURIComponent(atob(targetLi.getAttribute('data-details'))));
             let detailsHtml = '';
             for (const key in d) {
                 if (d.hasOwnProperty(key) && d[key]) {
@@ -176,7 +172,8 @@ document.addEventListener('DOMContentLoaded', function () {
             detailsContent.innerHTML = detailsHtml;
         }
     }
-
+    
+    // Unchanged utility functions
     function handleCheckboxChange(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
@@ -193,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
             parentLi = parentLi.parentElement.closest('li');
         }
     }
-    
     function updateOutput() {
         const selectedMajors = [];
         const tree = document.getElementById('major-tree');
