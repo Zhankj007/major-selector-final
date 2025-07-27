@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchData(e.target.value);
     });
     
-    // *** NEW: Copy button functionality ***
     copyButton.addEventListener('click', () => {
         const textToCopy = outputTextarea.value;
         if (!textToCopy) {
@@ -70,19 +69,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 3. RENDERING & CORE LOGIC ---
     function renderTree(hierarchy, type) {
-        const majorNameKey = '专业名称';
-        const majorCodeKey = (type === 'bachelor') ? '代码' : '专业代码';
+        // *** FIX: Corrected the keys to match your Google Sheet headers ***
+        const majorNameKey = '专业名'; 
+        const majorCodeKey = '专业码'; 
+
         let html = '<ul id="major-tree">';
         for (const level1Key in hierarchy) {
             html += `<li><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
             for (const level2Key in hierarchy[level1Key]) {
                 const majors = hierarchy[level1Key][level2Key];
                 html += `<li><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
+                
                 majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || ''));
+                
                 majors.forEach(major => {
                     const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major)));
-                    const majorName = major[majorNameKey] || '未知专业';
-                    const majorCode = major[majorCodeKey] || '';
+                    const majorName = major[majorNameKey] || '未知专业'; // This should now work correctly
+                    const majorCode = major[majorCodeKey] || '';     // This should now work correctly
                     html += `<li data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
                 });
                 html += `</ul></li>`;
@@ -93,17 +96,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return html;
     }
     
-    // *** NEW: showDetails now auto-links URLs ***
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
             const detailsBase64 = targetLi.getAttribute('data-details');
             const detailsJson = decodeURIComponent(atob(detailsBase64));
             const d = JSON.parse(detailsJson);
             let detailsHtml = '';
+            
+            // *** FIX: The loop already shows all fields, this logic is correct. ***
+            // The previous issue was that the data object itself was incomplete due to parsing errors.
+            // Now with the robust parser, all fields should be present in 'd'.
             for (const key in d) {
+                // We only show a row if the key and its value are not empty.
                 if (d.hasOwnProperty(key) && d[key]) {
                     let value = d[key];
-                    // Check if the value is a URL and create a hyperlink
                     if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
                         value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
                     }
@@ -136,7 +142,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const tree = document.getElementById('major-tree');
         if (!tree) return;
         const selectedCheckboxes = tree.querySelectorAll('.level-3:checked');
-        selectedCheckboxes.forEach(cb => { selectedMajors.push(cb.value); });
+        // *** FIX: Use the correct key to get the name for the output textarea ***
+        const majorNameKey = '专业名';
+        selectedCheckboxes.forEach(cb => {
+            const detailsLi = cb.closest('li');
+            if (detailsLi && detailsLi.hasAttribute('data-details')) {
+                const detailsJson = decodeURIComponent(atob(detailsLi.getAttribute('data-details')));
+                const majorData = JSON.parse(detailsJson);
+                selectedMajors.push(majorData[majorNameKey] || cb.value);
+            } else {
+                 selectedMajors.push(cb.value);
+            }
+        });
         outputTextarea.value = selectedMajors.join(' ');
     }
 
