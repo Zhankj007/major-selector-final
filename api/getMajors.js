@@ -25,34 +25,25 @@ function parseCSV(csvText) {
  */
 function buildHierarchy(data, type) {
     const hierarchy = {};
-    const isBachelor = type === 'bachelor';
 
-    // Define keys based on the file type
-    const level1Key = isBachelor ? '门类' : '专业大类';
-    const level2Key = isBachelor ? '专业类' : '专业类'; // Note: Bachelor has two levels, associate has one main level.
-    const majorNameKey = isBachelor ? '专业名称' : '专业名称';
+    // *** FIX: Define keys explicitly for clarity ***
+    const level1Key = (type === 'bachelor') ? '门类' : '专业大类';
+    const level2Key = '专业类'; // This key is shared
 
     data.forEach(item => {
         const level1Value = item[level1Key];
         const level2Value = item[level2Key];
 
-        if (!level1Value) return;
+        if (!level1Value || !level2Value) return; // Skip rows with missing category info
 
         if (!hierarchy[level1Value]) {
             hierarchy[level1Value] = {};
         }
-        // For associate degrees, the hierarchy is simpler.
-        // We use the same value for level 1 and level 2 for a consistent structure.
-        const effectiveLevel2Value = isBachelor ? level2Value : level1Value;
-
-        if (!hierarchy[level1Value][effectiveLevel2Value]) {
-            hierarchy[level1Value][effectiveLevel2Value] = [];
+        if (!hierarchy[level1Value][level2Value]) {
+            hierarchy[level1Value][level2Value] = [];
         }
-
-        // Ensure there's a major name to be added
-        if (item[majorNameKey]) {
-            hierarchy[level1Value][effectiveLevel2Value].push(item);
-        }
+        
+        hierarchy[level1Value][level2Value].push(item);
     });
     return hierarchy;
 }
