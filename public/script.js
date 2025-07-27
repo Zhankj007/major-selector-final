@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modeSwitcher = document.querySelector('input[name="mode-type"]')?.parentElement;
     const searchContainer = document.getElementById('search-container');
     const searchInput = document.getElementById('search-input');
+    const queryButton = document.getElementById('query-button');
     const treeContainer = document.getElementById('major-tree-container');
     const outputTextarea = document.getElementById('output-textarea');
     const detailsContent = document.getElementById('details-content');
@@ -30,10 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             
-            // --- FIX: Render the full tree HTML ONCE after fetching data ---
             treeContainer.innerHTML = renderTreeHTML(fullMajorData, type);
-            attachEventListeners(); // Attach listeners to the newly created tree
-
+            attachEventListeners();
         } catch (error) {
             console.error('Fetch error:', error);
             treeContainer.innerHTML = `<p>加载数据时发生错误: ${error.message}。</p>`;
@@ -43,40 +42,49 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 2. EVENT LISTENERS ---
     catalogSwitcher.addEventListener('change', (e) => fetchData(e.target.value));
     
-    // --- FIX: More explicit logic for showing/hiding the search box ---
     modeSwitcher.addEventListener('change', (e) => {
         const mode = e.target.value;
         if (mode === 'query') {
             searchContainer.classList.remove('hidden');
         } else {
             searchContainer.classList.add('hidden');
-            searchInput.value = ''; // Clear search input when switching back
-            filterTree(); // Call with no keyword to reset/show the full tree
+            searchInput.value = '';
+            filterTree(); // Reset the tree to show all items
         }
     });
 
-    // --- FIX: The input event now ONLY calls the filter function ---
-    searchInput.addEventListener('input', () => {
+    queryButton.addEventListener('click', () => {
         const keyword = searchInput.value.trim().toLowerCase();
         filterTree(keyword);
     });
 
+    searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            queryButton.click();
+        }
+    });
+
     copyButton.addEventListener('click', () => {
-        if (!outputTextarea.value) return alert('没有内容可以复制！');
+        if (!outputTextarea.value) {
+            alert('没有内容可以复制！');
+            return;
+        }
         navigator.clipboard.writeText(outputTextarea.value).then(() => {
+            const originalText = copyButton.textContent;
             copyButton.textContent = '已复制!';
-            setTimeout(() => { copyButton.textContent = '复制'; }, 1500);
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 1500);
+        }).catch(err => {
+            console.error('复制失败:', err);
+            alert('复制失败，请手动复制。');
         });
     });
 
     // --- 3. RENDERING & FILTERING ---
-
-    /**
-     * Renders the complete HTML for the tree from data. This is called only once per data load.
-     */
     function renderTreeHTML(hierarchy, type) {
-        const majorNameKey = '专业名';
-        const majorCodeKey = '专业码';
+        const majorNameKey = '专业名'; 
+        const majorCodeKey = '专业码'; 
         let html = '<ul id="major-tree">';
         for (const level1Key in hierarchy) {
             html += `<li class="level-1-li"><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
@@ -90,53 +98,40 @@ document.addEventListener('DOMContentLoaded', function () {
                     const majorCode = major[majorCodeKey] || '';
                     html += `<li class="level-3-li" data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
                 });
-                html += `</ul></li>`;
+                html += '</ul></li>';
             }
-            html += `</ul></li>`;
+            html += '</ul></li>';
         }
-        html += `</ul>`;
+        html += '</ul>';
         return html;
     }
 
-    /**
-     * Filters the currently rendered tree based on a keyword by adding/removing a 'hidden' class.
-     * This function manipulates the existing DOM and does NOT re-render HTML.
-     */
     function filterTree(keyword = '') {
         const majorNameKey = '专业名';
-
         document.querySelectorAll('.level-3-li').forEach(li => {
             const detailsJson = decodeURIComponent(atob(li.dataset.details));
             const majorData = JSON.parse(detailsJson);
             const majorName = (majorData[majorNameKey] || '').toLowerCase();
-            
-            // Show/hide based on keyword match
             const isMatch = keyword ? majorName.includes(keyword) : true;
             li.classList.toggle('hidden', !isMatch);
         });
 
-        // After filtering L3, update visibility of L2 and L1 parents
         document.querySelectorAll('.level-2-li').forEach(li => {
-            // A level 2 item is visible if it has any non-hidden children
             const hasVisibleChildren = li.querySelector('.level-3-li:not(.hidden)');
             li.classList.toggle('hidden', !hasVisibleChildren);
-            // Auto-expand if visible due to search
-            if (hasVisibleChildren && keyword) {
-                 li.querySelector('.nested')?.classList.add('active');
-                 li.querySelector('.caret')?.classList.add('caret-down');
-            }
+            const shouldBeActive = !!(hasVisibleChildren && keyword);
+            li.querySelector('.nested')?.classList.toggle('active', shouldBeActive);
+            li.querySelector('.caret')?.classList.toggle('caret-down', shouldBeActive);
         });
 
         document.querySelectorAll('.level-1-li').forEach(li => {
             const hasVisibleChildren = li.querySelector('.level-2-li:not(.hidden)');
             li.classList.toggle('hidden', !hasVisibleChildren);
-            if (hasVisibleChildren && keyword) {
-                 li.querySelector('.nested')?.classList.add('active');
-                 li.querySelector('.caret')?.classList.add('caret-down');
-            }
+            const shouldBeActive = !!(hasVisibleChildren && keyword);
+            li.querySelector('.nested')?.classList.toggle('active', shouldBeActive);
+            li.querySelector('.caret')?.classList.toggle('caret-down', shouldBeActive);
         });
     }
-
 
     // --- 4. ATTACHING LISTENERS & UTILITY FUNCTIONS ---
     function attachEventListeners() {
@@ -173,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Unchanged utility functions
     function handleCheckboxChange(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
@@ -190,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
             parentLi = parentLi.parentElement.closest('li');
         }
     }
+
     function updateOutput() {
         const selectedMajors = [];
         const tree = document.getElementById('major-tree');
@@ -208,6 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
         outputTextarea.value = selectedMajors.join(' ');
     }
 
-    // --- Initial data load ---
+    // Initial data load
     fetchData('bachelor');
 });
