@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (Object.keys(data).length === 0) {
-                treeContainer.innerHTML = '<p>加载数据为空，请检查数据源。</p>';
+                treeContainer.innerHTML = '<p>加载数据为空，请检查数据源或后台日志。</p>';
                 return;
             }
             treeContainer.innerHTML = renderTree(data, type);
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function attachEventListeners() {
         const tree = document.getElementById('major-tree');
         if (!tree) return;
-        // Event listeners are the same as before, no changes needed here
         tree.addEventListener('click', function(e) {
             if (e.target.classList.contains('tree-label')) {
                 const parentLi = e.target.closest('li');
@@ -53,24 +52,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 3. RENDERING & CORE LOGIC ---
     function renderTree(hierarchy, type) {
-        const isBachelor = type === 'bachelor';
-        const majorNameKey = isBachelor ? '专业名称' : '专业名称';
-        const majorCodeKey = isBachelor ? '代码' : '专业代码';
+        const majorNameKey = '专业名称';
+        const majorCodeKey = (type === 'bachelor') ? '代码' : '专业代码';
 
         let html = '<ul id="major-tree">';
         for (const level1Key in hierarchy) {
-            // For associate degrees, the level 1 key is the only parent, so don't show a caret if there's no deeper nesting
-            const level1Children = hierarchy[level1Key];
-            const hasLevel2Nesting = isBachelor && Object.keys(level1Children).length > 0;
-
-            html += `<li><input type="checkbox" class="level-1"> <span class="${hasLevel2Nesting ? 'caret ' : ''}tree-label">${level1Key}</span><ul class="nested">`;
-
-            for (const level2Key in level1Children) {
-                const majors = level1Children[level2Key];
-                // If it's bachelor, render the level 2. If associate, level2Key is same as level1Key, so we just render majors.
-                if (isBachelor) {
-                    html += `<li><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
-                }
+            html += `<li><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
+            
+            for (const level2Key in hierarchy[level1Key]) {
+                const majors = hierarchy[level1Key][level2Key];
+                
+                // *** FIX: Always render the level-2 (专业类) container ***
+                html += `<li><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
+                
+                // *** NEW: Sort majors by code before rendering ***
+                majors.sort((a, b) => {
+                    const codeA = a[majorCodeKey] || '';
+                    const codeB = b[majorCodeKey] || '';
+                    return codeA.localeCompare(codeB);
+                });
 
                 majors.forEach(major => {
                     const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major)));
@@ -79,23 +79,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     html += `<li data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
                 });
 
-                if (isBachelor) {
-                    html += `</ul></li>`;
-                }
+                html += `</ul></li>`; // Close level-2 li
             }
-            html += `</ul></li>`;
+            html += `</ul></li>`; // Close level-1 li
         }
         html += `</ul>`;
         return html;
     }
-
+    
+    // (The rest of the functions are unchanged but included for completeness)
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
             const detailsBase64 = targetLi.getAttribute('data-details');
             const detailsJson = decodeURIComponent(atob(detailsBase64));
             const d = JSON.parse(detailsJson);
             let detailsHtml = '';
-            // Dynamically display all non-empty fields
             for (const key in d) {
                 if (d.hasOwnProperty(key) && d[key]) {
                     detailsHtml += `<p><strong>${key}:</strong> <span>${d[key]}</span></p>`;
@@ -105,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Other core functions (handleCheckboxChange, updateOutput) are the same as the previous Vercel version
     function handleCheckboxChange(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
