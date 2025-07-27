@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const treeContainer = document.getElementById('major-tree-container');
     const outputTextarea = document.getElementById('output-textarea');
     const detailsContent = document.getElementById('details-content');
+    const copyButton = document.getElementById('copy-button');
 
     // --- 1. DATA FETCHING LOGIC ---
     async function fetchData(type = 'bachelor') {
@@ -14,14 +15,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(`/api/getMajors?type=${type}`);
             if (!response.ok) throw new Error(`网络请求失败: ${response.statusText}`);
             const data = await response.json();
-
             if (Object.keys(data).length === 0) {
-                treeContainer.innerHTML = '<p>加载数据为空，请检查数据源或后台日志。</p>';
+                treeContainer.innerHTML = '<p>加载数据为空或解析失败，请检查数据源或后台日志。</p>';
                 return;
             }
             treeContainer.innerHTML = renderTree(data, type);
             attachEventListeners();
-
         } catch (error) {
             console.error('Fetch error:', error);
             treeContainer.innerHTML = `<p>加载数据时发生错误: ${error.message}。</p>`;
@@ -31,6 +30,25 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 2. EVENT LISTENERS ---
     switcher.addEventListener('change', (e) => {
         fetchData(e.target.value);
+    });
+    
+    // *** NEW: Copy button functionality ***
+    copyButton.addEventListener('click', () => {
+        const textToCopy = outputTextarea.value;
+        if (!textToCopy) {
+            alert('没有内容可以复制！');
+            return;
+        }
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = copyButton.textContent;
+            copyButton.textContent = '已复制!';
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 1500);
+        }).catch(err => {
+            console.error('复制失败:', err);
+            alert('复制失败，请手动复制。');
+        });
     });
 
     function attachEventListeners() {
@@ -54,40 +72,28 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderTree(hierarchy, type) {
         const majorNameKey = '专业名称';
         const majorCodeKey = (type === 'bachelor') ? '代码' : '专业代码';
-
         let html = '<ul id="major-tree">';
         for (const level1Key in hierarchy) {
             html += `<li><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
-            
             for (const level2Key in hierarchy[level1Key]) {
                 const majors = hierarchy[level1Key][level2Key];
-                
-                // *** FIX: Always render the level-2 (专业类) container ***
                 html += `<li><input type="checkbox" class="level-2"> <span class="caret tree-label">${level2Key}</span><ul class="nested">`;
-                
-                // *** NEW: Sort majors by code before rendering ***
-                majors.sort((a, b) => {
-                    const codeA = a[majorCodeKey] || '';
-                    const codeB = b[majorCodeKey] || '';
-                    return codeA.localeCompare(codeB);
-                });
-
+                majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || ''));
                 majors.forEach(major => {
                     const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major)));
                     const majorName = major[majorNameKey] || '未知专业';
                     const majorCode = major[majorCodeKey] || '';
                     html += `<li data-details="${detailsBase64}"><input type="checkbox" class="level-3" value="${majorName}"><span class="major-label" title="${majorName} (${majorCode})">${majorName} (${majorCode})</span></li>`;
                 });
-
-                html += `</ul></li>`; // Close level-2 li
+                html += `</ul></li>`;
             }
-            html += `</ul></li>`; // Close level-1 li
+            html += `</ul></li>`;
         }
         html += `</ul>`;
         return html;
     }
     
-    // (The rest of the functions are unchanged but included for completeness)
+    // *** NEW: showDetails now auto-links URLs ***
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
             const detailsBase64 = targetLi.getAttribute('data-details');
@@ -96,13 +102,19 @@ document.addEventListener('DOMContentLoaded', function () {
             let detailsHtml = '';
             for (const key in d) {
                 if (d.hasOwnProperty(key) && d[key]) {
-                    detailsHtml += `<p><strong>${key}:</strong> <span>${d[key]}</span></p>`;
+                    let value = d[key];
+                    // Check if the value is a URL and create a hyperlink
+                    if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                        value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                    }
+                    detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
                 }
             }
             detailsContent.innerHTML = detailsHtml;
         }
     }
 
+    // The other two functions are unchanged
     function handleCheckboxChange(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
@@ -128,6 +140,6 @@ document.addEventListener('DOMContentLoaded', function () {
         outputTextarea.value = selectedMajors.join(' ');
     }
 
-    // Initial data load for the default selection
+    // Initial data load
     fetchData('bachelor');
 });
