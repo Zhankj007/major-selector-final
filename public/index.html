@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专业目录查阅选择器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app-container">
+    <div id="left-panel">
+        <div class="header-controls">
+            <h2>专业目录选择</h2>
+            <div class="switcher">
+                <input type="radio" name="catalog-type" value="bachelor" id="bachelor" checked>
+                <label for="bachelor">本科专业</label>
+                <input type="radio" name="catalog-type" value="associate" id="associate">
+                <label for="associate">专科专业</label>
+            </div>
+        </div>
+        <div id="major-tree-container">
+            <p>正在从云端加载专业数据，请稍候...</p>
+        </div>
+        <div id="output-container">
+            <h3>实时输出结果</h3>
+            <textarea id="output-textarea" readonly placeholder="这里将实时显示您勾选的专业名称..."></textarea>
+        </div>
+    </div>
+    <div id="right-panel">
+        <h3>专业详情</h3>
+        <div id="details-content">
+            <p>请选择一个目录，然后将鼠标悬停或轻点具体专业名称以查看详情。</p>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
