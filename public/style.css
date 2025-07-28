@@ -1,6 +1,7 @@
 :root {
     --primary-color: #007bff; --border-color: #dee2e6;
     --background-light: #f8f9fa; --text-color: #212529;
+    --button-disabled-bg: #adb5bd; --button-disabled-color: #f8f9fa;
 }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -28,40 +29,21 @@ body {
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 
-#search-container { 
-    display: flex; 
-    gap: 8px;
-    flex-grow: 1;
-}
+#search-container { display: flex; gap: 8px; flex-grow: 1; }
 #search-input {
-    flex-grow: 1;
-    min-width: 150px;
-    padding: 8px 12px;
-    font-size: 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-sizing: border-box;
+    flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px;
+    border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;
 }
 #query-button {
-    padding: 8px 18px;
-    font-size: 14px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    white-space: nowrap;
+    padding: 8px 18px; font-size: 14px; background-color: var(--primary-color);
+    color: white; border: none; border-radius: 8px; cursor: pointer;
+    transition: background-color 0.2s; white-space: nowrap;
 }
 #query-button:hover { background-color: #0056b3; }
 
-.hidden { display: none; }
-
 #major-tree-container {
     border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
-    flex-grow: 1;
-    overflow-y: auto;
-    min-height: 200px;
+    flex-grow: 1; overflow-y: auto; min-height: 200px;
 }
 ul { list-style-type: none; padding-left: 20px; }
 li { padding: 4px 0; }
@@ -75,17 +57,23 @@ li { padding: 4px 0; }
 .nested { display: none; }
 .active { display: block; }
 #output-container { 
-    margin-top: 20px; /* NEW: 为新位置调整了间距 */
-    border-top: 1px solid var(--border-color); /* NEW: 增加一个顶部分隔线 */
-    padding-top: 15px; /* NEW: 增加顶部内边距 */
+    margin-top: 20px; border-top: 1px solid var(--border-color);
+    padding-top: 15px;
 }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .output-header h3 { margin: 0; }
-#copy-button {
-    padding: 4px 12px; font-size: 12px; background-color: #6c757d; color: white;
+.button-group { display: flex; gap: 8px; }
+.output-button {
+    padding: 4px 12px; font-size: 12px; background-color: var(--primary-color); color: white;
     border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s;
 }
-#copy-button:hover { background-color: #5a6268; }
+.output-button:hover { background-color: #0056b3; }
+.output-button.disabled {
+    background-color: var(--button-disabled-bg);
+    color: var(--button-disabled-color);
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
 #output-textarea {
     width: 100%; box-sizing: border-box; height: 120px; font-size: 13px;
