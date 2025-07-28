@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>詹老师的专业目录查询工具</title>
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,25 +14,18 @@
     <div id="left-panel">
         <div class="header-controls">
             <h2>专业目录</h2>
-            <div class="switcher-group">
-                <div class="switcher">
-                    <input type="radio" name="catalog-type" value="bachelor" id="bachelor" checked>
-                    <label for="bachelor">本科</label>
-                    <input type="radio" name="catalog-type" value="associate" id="associate">
-                    <label for="associate">专科</label>
-                </div>
-                <div class="switcher">
-                    <input type="radio" name="mode-type" value="select" id="select" checked>
-                    <label for="select">选择</label>
-                    <input type="radio" name="mode-type" value="query" id="query">
-                    <label for="query">查询</label>
-                </div>
+            <div class="switcher">
+                <input type="radio" name="catalog-type" value="bachelor" id="bachelor" checked>
+                <label for="bachelor">本科</label>
+                <input type="radio" name="catalog-type" value="associate" id="associate">
+                <label for="associate">专科</label>
+            </div>
+            <div id="search-container">
+                <input type="search" id="search-input" placeholder="输入专业名关键字...">
+                <button id="query-button">查询</button>
             </div>
         </div>
-        <div id="search-container" class="hidden">
-            <input type="search" id="search-input" placeholder="输入专业名关键字...">
-            <button id="query-button">查询</button>
-        </div>
+
         <div id="major-tree-container">
             <p>正在从云端加载专业数据，请稍候...</p>
         </div>
