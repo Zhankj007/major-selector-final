@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const detailsContent = document.getElementById('details-content');
     const copyButton = document.getElementById('copy-button');
     const clearButton = document.getElementById('clear-button');
-    
+
     // --- Application State ---
     let fullMajorData = null;
     let currentCatalogType = 'bachelor';
@@ -77,36 +77,26 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 3. STATE MANAGEMENT & UI SYNC ---
 
     function handleCheckboxChange(checkbox) {
-        const majorNameKey = '专业名';
         const majorCodeKey = '专业码';
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
 
-        // Find all affected L3 majors
-        const affectedMajors = [];
-        currentLi.querySelectorAll('.level-3-li').forEach(li => {
-            const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
-            affectedMajors.push(majorData);
-        });
-        // If the clicked checkbox is an L3 itself
-        if (affectedMajors.length === 0 && currentLi.classList.contains('level-3-li')) {
-             const majorData = JSON.parse(decodeURIComponent(atob(currentLi.dataset.details)));
-             affectedMajors.push(majorData);
-        }
+        const affectedL3Lis = currentLi.classList.contains('level-3-li')
+            ? [currentLi]
+            : Array.from(currentLi.querySelectorAll('.level-3-li'));
 
-        // Update the selection state map
-        affectedMajors.forEach(major => {
-            const code = major[majorCodeKey];
+        affectedL3Lis.forEach(li => {
+            const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
+            const code = majorData[majorCodeKey];
             if (isChecked) {
                 if (!selectedMajors.has(code)) {
-                    selectedMajors.set(code, major);
+                    selectedMajors.set(code, majorData);
                 }
             } else {
                 selectedMajors.delete(code);
             }
         });
         
-        // Cascade visual changes and update output
         cascadeCheckboxVisuals(checkbox);
         updateOutput();
     }
@@ -131,20 +121,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const code = majorData[majorCodeKey];
             li.querySelector('input').checked = selectedMajors.has(code);
         });
-        // After syncing L3, update all parent states
         document.querySelectorAll('.level-1-li, .level-2-li').forEach(parentLi => {
-            cascadeCheckboxVisuals(parentLi.querySelector('input'));
+            cascadeCheckboxVisuals(parentLi.querySelector('input[type="checkbox"]'));
         });
     }
-
+    
     // --- 4. UTILITY & HELPER FUNCTIONS ---
     
     function cascadeCheckboxVisuals(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
-        currentLi.querySelectorAll('input[type="checkbox"]').forEach(childCb => {
-            if (childCb !== checkbox) childCb.checked = isChecked;
-        });
+        currentLi.querySelectorAll('input[type="checkbox"]').forEach(childCb => { if (childCb !== checkbox) childCb.checked = isChecked; });
         let parentLi = currentLi.parentElement.closest('li');
         while (parentLi) {
             const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]');
@@ -164,20 +151,9 @@ document.addEventListener('DOMContentLoaded', function () {
             parentLi = parentLi.parentElement.closest('li');
         }
     }
-    
-    function generateFilteredData(sourceData, keyword) { /* ... same as before ... */ }
-    function renderTreeHTML(hierarchy, type, autoExpand = false) { /* ... same as before ... */ }
-    function attachEventListeners() { /* ... same as before, BUT with a change in the 'change' listener */ }
-    function showDetails(targetLi) { /* ... same as before ... */ }
-    
-    // --- Final Initialization ---
-    fetchData('bachelor');
-    updateButtonsState(); // Initial button state
-    
-    // --- Full function definitions for copy-paste convenience ---
+
     function generateFilteredData(sourceData, keyword) {
-        const filteredHierarchy = {};
-        const majorNameKey = '专业名';
+        const filteredHierarchy = {}; const majorNameKey = '专业名';
         for (const l1Value in sourceData) {
             for (const l2Value in sourceData[l1Value]) {
                 const majors = sourceData[l1Value][l2Value];
@@ -190,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return filteredHierarchy;
     }
+
     function renderTreeHTML(hierarchy, type, autoExpand = false) {
         const majorNameKey = '专业名'; const majorCodeKey = '专业码'; let html = '<ul id="major-tree">';
         if (Object.keys(hierarchy).length === 0) { html += '<li>没有找到匹配的专业。</li>'; }
@@ -212,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         html += '</ul>'; return html;
     }
+
     function attachEventListeners() {
         const tree = document.getElementById('major-tree');
         if (!tree) return;
@@ -228,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tree.addEventListener('change', function (e) { if (e.target.type === 'checkbox') { handleCheckboxChange(e.target); } });
         tree.addEventListener('mouseover', function (e) { if (e.target.classList.contains('major-label')) { showDetails(e.target.closest('li')); } });
     }
+
     function showDetails(targetLi) {
         if (targetLi && targetLi.hasAttribute('data-details')) {
             const d = JSON.parse(decodeURIComponent(atob(targetLi.getAttribute('data-details'))));
@@ -244,4 +223,8 @@ document.addEventListener('DOMContentLoaded', function () {
             detailsContent.innerHTML = detailsHtml;
         }
     }
+    
+    // --- Final Initialization ---
+    fetchData('bachelor');
+    updateButtonsState();
 });
