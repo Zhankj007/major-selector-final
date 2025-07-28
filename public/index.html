@@ -6,7 +6,9 @@
 <title>詹老师的专业目录查询工具</title>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png"> <link rel="stylesheet" href="style.css">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -27,7 +29,7 @@
         </div>
 
         <div id="major-tree-container">
-            <p>正在从云端加载专业数据，请稍候...</p>
+            <p>正在加载...</p>
         </div>
         <div id="output-container">
             <div class="output-header">
@@ -36,11 +38,13 @@
             </div>
             <textarea id="output-textarea" readonly placeholder="这里将实时显示您勾选的专业名称..."></textarea>
         </div>
+        
+        <div id="debug-info"></div>
     </div>
     <div id="right-panel">
         <h3>专业详情</h3>
         <div id="details-content">
-            <p>请选择一个目录，然后将鼠标悬停或轻点具体专业名称以查看详情。</p>
+            <p>请选择目录后进行操作。</p>
         </div>
     </div>
 </div>
