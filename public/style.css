@@ -103,3 +103,16 @@ li { padding: 4px 0; }
     #right-panel { position: static; height: auto; margin-top: 20px; }
     .header-controls { flex-direction: column; align-items: stretch; }
 }
+/* 将下面这段新样式，添加到您 style.css 文件的末尾即可 */
+
+#debug-info {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: pre-wrap; /* 保留换行和空格 */
+    display: none; /* 默认隐藏，有错误时再显示 */
+}
