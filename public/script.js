@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // --- VERSION IDENTIFIER ---
+    console.log("--- SCRIPT VERSION: FINAL_V2 ---"); // This is our 'fingerprint'
+
     // --- DOM Element References ---
     const catalogSwitcher = document.querySelector('input[name="catalog-type"]')?.parentElement;
     const searchInput = document.getElementById('search-input');
@@ -8,19 +11,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const detailsContent = document.getElementById('details-content');
     const copyButton = document.getElementById('copy-button');
     const clearButton = document.getElementById('clear-button');
+    const selectionCounter = document.getElementById('selection-counter');
+    const debugInfo = document.getElementById('debug-info');
 
     // --- Application State ---
     let fullMajorData = null;
     let currentCatalogType = 'bachelor';
-    // NEW: Use a Map to store selections. It preserves insertion order and handles uniqueness.
-    // Key: major code (string), Value: major object
     let selectedMajors = new Map();
 
-    // --- 1. CORE LOGIC ---
+    function showError(message) {
+        console.error(message);
+        debugInfo.textContent = `发生错误: ${message}`;
+        debugInfo.style.display = 'block';
+    }
+
     async function fetchData(type = 'bachelor') {
         currentCatalogType = type;
         treeContainer.innerHTML = '<p>正在从云端加载专业数据，请稍候...</p>';
+        detailsContent.innerHTML = '<p>请选择目录后进行操作。</p>';
+        outputTextarea.value = '';
         fullMajorData = null;
+        debugInfo.style.display = 'none';
+
         try {
             const response = await fetch(`/api/getMajors?type=${type}`);
             if (!response.ok) throw new Error(`网络请求失败 (状态码: ${response.status})`);
@@ -30,30 +42,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             renderTree(fullMajorData, type);
         } catch (error) {
-            console.error(error);
+            showError(error.message);
             treeContainer.innerHTML = `<p style="color: red;">${error.message}</p>`;
         }
     }
 
     function renderTree(hierarchy, type, autoExpand = false) {
+        console.log("RenderTree: 开始渲染树状图...");
         treeContainer.innerHTML = renderTreeHTML(hierarchy, type, autoExpand);
-        syncCheckboxesWithState(); // Sync UI with our stored selections
+        syncCheckboxesWithState();
         attachEventListeners();
+        console.log("RenderTree: 渲染和事件绑定完成。");
     }
 
-    // --- 2. EVENT LISTENERS ---
     catalogSwitcher.addEventListener('change', (e) => {
         searchInput.value = '';
         fetchData(e.target.value);
     });
 
     queryButton.addEventListener('click', () => {
+        console.log("Query button clicked.");
         if (!fullMajorData) return alert("数据尚未加载完成，请稍候。");
         const keyword = searchInput.value.trim().toLowerCase();
         const dataToRender = keyword ? generateFilteredData(fullMajorData, keyword) : fullMajorData;
         renderTree(dataToRender, currentCatalogType, !!keyword);
     });
-    
+
     searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') queryButton.click(); });
 
     copyButton.addEventListener('click', () => {
@@ -71,41 +85,42 @@ document.addEventListener('DOMContentLoaded', function () {
             cb.checked = false;
             cb.indeterminate = false;
         });
-        updateOutput();
+        updateOutputUI();
     });
 
-    // --- 3. STATE MANAGEMENT & UI SYNC ---
-
     function handleCheckboxChange(checkbox) {
+        console.log("Checkbox change detected.");
         const majorCodeKey = '专业码';
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
-
-        const affectedL3Lis = currentLi.classList.contains('level-3-li')
-            ? [currentLi]
-            : Array.from(currentLi.querySelectorAll('.level-3-li'));
-
+        const affectedL3Lis = currentLi.classList.contains('level-3-li') ? [currentLi] : Array.from(currentLi.querySelectorAll('.level-3-li'));
         affectedL3Lis.forEach(li => {
             const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
             const code = majorData[majorCodeKey];
             if (isChecked) {
-                if (!selectedMajors.has(code)) {
-                    selectedMajors.set(code, majorData);
-                }
+                if (!selectedMajors.has(code)) selectedMajors.set(code, majorData);
             } else {
                 selectedMajors.delete(code);
             }
         });
-        
         cascadeCheckboxVisuals(checkbox);
-        updateOutput();
+        updateOutputUI();
     }
-    
-    function updateOutput() {
+
+    function updateOutputUI() {
         const majorNameKey = '专业名';
         const names = Array.from(selectedMajors.values()).map(major => major[majorNameKey]);
         outputTextarea.value = names.join(' ');
+        const count = selectedMajors.size;
+        if (count > 0) {
+            selectionCounter.textContent = `${count}个`;
+            selectionCounter.classList.remove('hidden');
+        } else {
+            selectionCounter.textContent = '';
+            selectionCounter.classList.add('hidden');
+        }
         updateButtonsState();
+        console.log(`UI Updated: ${count} items selected.`);
     }
 
     function updateButtonsState() {
@@ -115,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function syncCheckboxesWithState() {
+        console.log("Syncing checkbox UI with stored state...");
         const majorCodeKey = '专业码';
         document.querySelectorAll('.level-3-li').forEach(li => {
             const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
@@ -125,9 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cascadeCheckboxVisuals(parentLi.querySelector('input[type="checkbox"]'));
         });
     }
-    
-    // --- 4. UTILITY & HELPER FUNCTIONS ---
-    
+
     function cascadeCheckboxVisuals(checkbox) {
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
@@ -224,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --- Final Initialization ---
     fetchData('bachelor');
-    updateButtonsState();
+    updateOutputUI();
 });
