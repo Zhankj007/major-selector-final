@@ -43,9 +43,12 @@
         <div id="output-container">
             <div class="output-header">
                 <h3>所选专业</h3>
-                <button id="copy-button" title="复制结果到剪贴板">复制</button>
+                <div class="button-group">
+                    <button id="copy-button" class="output-button" title="复制结果到剪贴板">复制</button>
+                    <button id="clear-button" class="output-button" title="清空所有选择">清空</button>
+                </div>
             </div>
-            <textarea id="output-textarea" readonly placeholder="这里将实时显示您勾选的专业名称..."></textarea>
+            <textarea id="output-textarea" readonly placeholder="您勾选的专业将按选择顺序列在这里..."></textarea>
         </div>
     </div>
 </div>
