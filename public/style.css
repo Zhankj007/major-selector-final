@@ -8,23 +8,22 @@ body {
     color: var(--text-color); font-size: 14px;
 }
 #app-container { display: flex; flex-direction: row; gap: 20px; }
-#left-panel { flex: 1; min-width: 300px; }
+#left-panel { flex: 1; min-width: 300px; display: flex; flex-direction: column; }
 #right-panel {
     flex: 1; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;
     background-color: var(--background-light); position: sticky; top: 15px; align-self: flex-start;
     height: calc(100vh - 40px); overflow-y: auto;
 }
 .header-controls {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; align-items: center;
     margin-bottom: 10px; flex-wrap: wrap; gap: 15px;
 }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
-.switcher-group { display: flex; gap: 15px; flex-wrap: wrap; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 20px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
 .switcher label {
     padding: 6px 15px; cursor: pointer; transition: all 0.2s ease-in-out;
-    color: var(--primary-color); user-select: none;
+    color: var(--primary-color); user-select: none; white-space: nowrap;
 }
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
@@ -32,10 +31,11 @@ body {
 #search-container { 
     display: flex; 
     gap: 8px;
-    margin-bottom: 10px; 
+    flex-grow: 1; /* 让搜索框占据剩余空间 */
 }
 #search-input {
-    flex-grow: 1; /* Take up remaining space */
+    flex-grow: 1;
+    min-width: 150px;
     padding: 8px 12px;
     font-size: 14px;
     border: 1px solid var(--border-color);
@@ -45,20 +45,21 @@ body {
 #query-button {
     padding: 8px 18px;
     font-size: 14px;
-    background-color: var(--primary-color);
+    background-color: var(--primary-color); /* 蓝色按钮 */
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
+    white-space: nowrap;
 }
 #query-button:hover { background-color: #0056b3; }
 
-.hidden { display: none; }
-
 #major-tree-container {
     border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
-    height: 50vh; overflow-y: auto;
+    flex-grow: 1; /* 占据剩余的垂直空间 */
+    overflow-y: auto;
+    min-height: 200px; /* 保证一个最小高度 */
 }
 ul { list-style-type: none; padding-left: 20px; }
 li { padding: 4px 0; }
@@ -79,7 +80,6 @@ li { padding: 4px 0; }
     border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s;
 }
 #copy-button:hover { background-color: #5a6268; }
-#copy-button:active { background-color: #4e555b; }
 
 #output-textarea {
     width: 100%; box-sizing: border-box; height: 120px; font-size: 13px;
@@ -101,6 +101,5 @@ li { padding: 4px 0; }
     body { padding: 10px; font-size: 15px; }
     #app-container { flex-direction: column; }
     #right-panel { position: static; height: auto; margin-top: 20px; }
-    .header-controls { flex-direction: column; align-items: flex-start; }
-    .switcher-group { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .header-controls { flex-direction: column; align-items: stretch; }
 }
