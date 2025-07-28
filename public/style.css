@@ -84,19 +84,7 @@ li { padding: 4px 0; }
     padding-top: 15px;
 }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.output-header h3 { margin: 0; display: flex; align-items: center; }
-
-/* NEW: Styles for the selection counter */
-#selection-counter {
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-left: 8px;
-    background-color: #e7f1ff;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-}
-
+.output-header h3 { margin: 0; }
 .button-group { display: flex; gap: 8px; }
 .output-button {
     padding: 4px 12px; font-size: 12px; background-color: var(--primary-color); color: white;
@@ -109,6 +97,7 @@ li { padding: 4px 0; }
     cursor: not-allowed;
     pointer-events: none;
 }
+
 #output-textarea {
     width: 100%; box-sizing: border-box; height: 120px; font-size: 13px;
     padding: 10px; border-radius: 5px; border: 1px solid var(--border-color);
