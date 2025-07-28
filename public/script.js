@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     // --- DOM Element References ---
     const catalogSwitcher = document.querySelector('input[name="catalog-type"]')?.parentElement;
-    const modeSwitcher = document.querySelector('input[name="mode-type"]')?.parentElement;
-    const searchContainer = document.getElementById('search-container');
     const searchInput = document.getElementById('search-input');
     const queryButton = document.getElementById('query-button');
     const treeContainer = document.getElementById('major-tree-container');
@@ -10,12 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const detailsContent = document.getElementById('details-content');
     const copyButton = document.getElementById('copy-button');
 
-    // --- Application State ---
-    let currentCatalogType = 'bachelor';
-
     // --- 1. DATA FETCHING & INITIALIZATION ---
     async function fetchData(type = 'bachelor') {
-        currentCatalogType = type;
         treeContainer.innerHTML = '<p>正在从云端加载专业数据，请稍候...</p>';
         detailsContent.innerHTML = '<p>请选择一个目录，然后将鼠标悬停或轻点具体专业名称以查看详情。</p>';
         outputTextarea.value = '';
@@ -27,12 +21,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const fullMajorData = await response.json();
 
             if (Object.keys(fullMajorData).length === 0) {
-                treeContainer.innerHTML = '<p>加载数据为空或解析失败，请检查数据源或后台日志。</p>';
+                treeContainer.innerHTML = '<p>加载数据为空或解析失败，请检查数据源。</p>';
                 return;
             }
             
             treeContainer.innerHTML = renderTreeHTML(fullMajorData, type);
             attachEventListeners();
+
         } catch (error) {
             console.error('Fetch error:', error);
             treeContainer.innerHTML = `<p>加载数据时发生错误: ${error.message}。</p>`;
@@ -40,19 +35,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- 2. EVENT LISTENERS ---
-    catalogSwitcher.addEventListener('change', (e) => fetchData(e.target.value));
-    
-    modeSwitcher.addEventListener('change', (e) => {
-        const mode = e.target.value;
-        if (mode === 'query') {
-            searchContainer.classList.remove('hidden');
-        } else {
-            searchContainer.classList.add('hidden');
-            searchInput.value = '';
-            filterTree(); // Reset the tree to show all items
-        }
+    catalogSwitcher.addEventListener('change', (e) => {
+        searchInput.value = ''; // 清空搜索框
+        fetchData(e.target.value);
     });
-
+    
     queryButton.addEventListener('click', () => {
         const keyword = searchInput.value.trim().toLowerCase();
         filterTree(keyword);
@@ -65,26 +52,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     copyButton.addEventListener('click', () => {
-        if (!outputTextarea.value) {
-            alert('没有内容可以复制！');
-            return;
-        }
+        if (!outputTextarea.value) return alert('没有内容可以复制！');
         navigator.clipboard.writeText(outputTextarea.value).then(() => {
-            const originalText = copyButton.textContent;
             copyButton.textContent = '已复制!';
-            setTimeout(() => {
-                copyButton.textContent = originalText;
-            }, 1500);
-        }).catch(err => {
-            console.error('复制失败:', err);
-            alert('复制失败，请手动复制。');
+            setTimeout(() => { copyButton.textContent = '复制'; }, 1500);
         });
     });
 
     // --- 3. RENDERING & FILTERING ---
     function renderTreeHTML(hierarchy, type) {
-        const majorNameKey = '专业名'; 
-        const majorCodeKey = '专业码'; 
+        const majorNameKey = '专业名';
+        const majorCodeKey = '专业码';
         let html = '<ul id="major-tree">';
         for (const level1Key in hierarchy) {
             html += `<li class="level-1-li"><input type="checkbox" class="level-1"> <span class="caret tree-label">${level1Key}</span><ul class="nested">`;
@@ -203,6 +181,6 @@ document.addEventListener('DOMContentLoaded', function () {
         outputTextarea.value = selectedMajors.join(' ');
     }
 
-    // Initial data load
+    // --- Initial data load ---
     fetchData('bachelor');
 });
