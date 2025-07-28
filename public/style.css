@@ -9,7 +9,24 @@ body {
     color: var(--text-color); font-size: 14px;
 }
 #app-container { display: flex; flex-direction: row; gap: 20px; }
-#left-panel { flex: 1; min-width: 300px; display: flex; flex-direction: column; }
+
+/* --- CORE FIX START --- */
+#left-panel {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    /* NEW: Give the left panel a fixed height based on the viewport */
+    height: calc(100vh - 30px);
+}
+#major-tree-container {
+    border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
+    overflow-y: auto; /* Allow this container to scroll vertically */
+    flex-grow: 1; /* NEW: Allow this container to fill all available vertical space */
+    min-height: 0; /* NEW: A flexbox fix to ensure proper scrolling with large content */
+}
+/* --- CORE FIX END --- */
+
 #right-panel {
     flex: 1; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px;
     background-color: var(--background-light); position: sticky; top: 15px; align-self: flex-start;
@@ -18,6 +35,7 @@ body {
 .header-controls {
     display: flex; align-items: center;
     margin-bottom: 10px; flex-wrap: wrap; gap: 15px;
+    flex-shrink: 0; /* Prevent the header from shrinking */
 }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 20px; overflow: hidden; }
@@ -29,7 +47,11 @@ body {
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 
-#search-container { display: flex; gap: 8px; flex-grow: 1; }
+#search-container { 
+    display: flex; 
+    gap: 8px;
+    flex-grow: 1;
+}
 #search-input {
     flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px;
     border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;
@@ -41,10 +63,8 @@ body {
 }
 #query-button:hover { background-color: #0056b3; }
 
-#major-tree-container {
-    border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
-    flex-grow: 1; overflow-y: auto; min-height: 200px;
-}
+.hidden { display: none; }
+
 ul { list-style-type: none; padding-left: 20px; }
 li { padding: 4px 0; }
 .tree-label { cursor: pointer; user-select: none; transition: color 0.2s; }
@@ -98,6 +118,8 @@ li { padding: 4px 0; }
 @media (max-width: 768px) {
     body { padding: 10px; font-size: 15px; }
     #app-container { flex-direction: column; }
+    /* NEW: Give panels a height on mobile too */
+    #left-panel, #right-panel { height: auto; max-height: 80vh; }
     #right-panel { position: static; height: auto; margin-top: 20px; }
     .header-controls { flex-direction: column; align-items: stretch; }
 }
