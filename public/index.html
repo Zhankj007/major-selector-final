@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>詹老师的专业目录查询工具</title>
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/zhan.ico" type="image/x-icon">
+<link rel="shortcut icon" href="/zhan.ico" type="image/x-icon">
 
 <link rel="stylesheet" href="style.css">
 </head>
@@ -31,13 +31,6 @@
         <div id="major-tree-container">
             <p>正在加载...</p>
         </div>
-        <div id="output-container">
-            <div class="output-header">
-                <h3>实时输出结果</h3>
-                <button id="copy-button" title="复制结果到剪贴板">复制</button>
-            </div>
-            <textarea id="output-textarea" readonly placeholder="这里将实时显示您勾选的专业名称..."></textarea>
-        </div>
         
         <div id="debug-info"></div>
     </div>
@@ -45,6 +38,14 @@
         <h3>专业详情</h3>
         <div id="details-content">
             <p>请选择目录后进行操作。</p>
+        </div>
+
+        <div id="output-container">
+            <div class="output-header">
+                <h3>所选专业</h3>
+                <button id="copy-button" title="复制结果到剪贴板">复制</button>
+            </div>
+            <textarea id="output-textarea" readonly placeholder="这里将实时显示您勾选的专业名称..."></textarea>
         </div>
     </div>
 </div>
