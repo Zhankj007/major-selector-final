@@ -31,7 +31,7 @@ body {
 #search-container { 
     display: flex; 
     gap: 8px;
-    flex-grow: 1; /* 让搜索框占据剩余空间 */
+    flex-grow: 1;
 }
 #search-input {
     flex-grow: 1;
@@ -45,7 +45,7 @@ body {
 #query-button {
     padding: 8px 18px;
     font-size: 14px;
-    background-color: var(--primary-color); /* 蓝色按钮 */
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 8px;
@@ -55,11 +55,13 @@ body {
 }
 #query-button:hover { background-color: #0056b3; }
 
+.hidden { display: none; }
+
 #major-tree-container {
     border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
-    flex-grow: 1; /* 占据剩余的垂直空间 */
+    flex-grow: 1;
     overflow-y: auto;
-    min-height: 200px; /* 保证一个最小高度 */
+    min-height: 200px;
 }
 ul { list-style-type: none; padding-left: 20px; }
 li { padding: 4px 0; }
@@ -72,7 +74,11 @@ li { padding: 4px 0; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
-#output-container { margin-top: 20px; }
+#output-container { 
+    margin-top: 20px; /* NEW: 为新位置调整了间距 */
+    border-top: 1px solid var(--border-color); /* NEW: 增加一个顶部分隔线 */
+    padding-top: 15px; /* NEW: 增加顶部内边距 */
+}
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .output-header h3 { margin: 0; }
 #copy-button {
@@ -96,23 +102,14 @@ li { padding: 4px 0; }
 
 .major-label { cursor: pointer; transition: background-color 0.2s; padding: 2px 4px; border-radius: 3px; }
 .major-label:hover { background-color: #e9f5ff; }
-
+#debug-info {
+    margin-top: 15px; padding: 10px; background-color: #fff3cd; color: #856404;
+    border: 1px solid #ffeeba; border-radius: 5px; font-size: 12px;
+    white-space: pre-wrap; display: none;
+}
 @media (max-width: 768px) {
     body { padding: 10px; font-size: 15px; }
     #app-container { flex-direction: column; }
     #right-panel { position: static; height: auto; margin-top: 20px; }
     .header-controls { flex-direction: column; align-items: stretch; }
-}
-/* 将下面这段新样式，添加到您 style.css 文件的末尾即可 */
-
-#debug-info {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    border-radius: 5px;
-    font-size: 12px;
-    white-space: pre-wrap; /* 保留换行和空格 */
-    display: none; /* 默认隐藏，有错误时再显示 */
 }
