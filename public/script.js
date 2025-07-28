@@ -1,4 +1,51 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // DOM references, fetchData, event listeners for switchers/buttons...
+    // All of the above part remains the same as the last version.
+    
+    // The key change is in this function:
+    function handleCheckboxChange(checkbox) {
+        const currentLi = checkbox.closest('li');
+        const isChecked = checkbox.checked;
+
+        // 1. First, cascade the check/uncheck to all children
+        currentLi.querySelectorAll('input[type="checkbox"]').forEach(childCb => {
+            if (childCb !== checkbox) {
+                childCb.checked = isChecked;
+                childCb.indeterminate = false;
+            }
+        });
+
+        // 2. Then, update the state of all parents
+        let parentLi = currentLi.parentElement.closest('li');
+        while (parentLi) {
+            const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]');
+            const childCheckboxes = Array.from(parentLi.querySelectorAll(':scope > ul > li > input[type="checkbox"]'));
+            const allChecked = childCheckboxes.every(cb => cb.checked);
+            const someChecked = childCheckboxes.some(cb => cb.checked || cb.indeterminate);
+
+            if (allChecked) {
+                parentCheckbox.checked = true;
+                parentCheckbox.indeterminate = false;
+            } else if (someChecked) {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = true;
+            } else {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = false;
+            }
+            parentLi = parentLi.parentElement.closest('li');
+        }
+        
+        // --- FIX: Update the output text area LAST, after all changes are made ---
+        updateOutput();
+    }
+
+    // The rest of the script (updateOutput, renderTreeHTML, etc.) remains the same.
+    // For convenience, the full script is below for copy-pasting.
+});
+
+// Full script for easy copy-paste
+document.addEventListener('DOMContentLoaded', function () {
     // --- DOM Element References ---
     const catalogSwitcher = document.querySelector('input[name="catalog-type"]')?.parentElement;
     const searchInput = document.getElementById('search-input');
@@ -130,7 +177,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 showDetails(e.target.closest('li'));
             }
         });
-        tree.addEventListener('change', function (e) { if (e.target.type === 'checkbox') { handleCheckboxChange(e.target); } });
+        tree.addEventListener('change', function (e) { 
+            if (e.target.type === 'checkbox') {
+                handleCheckboxChange(e.target); 
+            }
+        });
         tree.addEventListener('mouseover', function (e) { if (e.target.classList.contains('major-label')) { showDetails(e.target.closest('li')); } });
     }
 
@@ -151,22 +202,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- THIS IS THE CORE FIX FOR THE CHECKBOX BUG ---
     function handleCheckboxChange(checkbox) {
-        updateOutput(); // Update output on any checkbox change
         const currentLi = checkbox.closest('li');
         const isChecked = checkbox.checked;
-        currentLi.querySelectorAll('input[type="checkbox"]').forEach(childCb => { if (childCb !== checkbox) { childCb.checked = isChecked; childCb.indeterminate = false; } });
+
+        // 1. First, cascade the check/uncheck to all children
+        currentLi.querySelectorAll('input[type="checkbox"]').forEach(childCb => {
+            if (childCb !== checkbox) {
+                childCb.checked = isChecked;
+                childCb.indeterminate = false;
+            }
+        });
+
+        // 2. Then, update the state of all parents
         let parentLi = currentLi.parentElement.closest('li');
         while (parentLi) {
             const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]');
             const childCheckboxes = Array.from(parentLi.querySelectorAll(':scope > ul > li > input[type="checkbox"]'));
             const allChecked = childCheckboxes.every(cb => cb.checked);
             const someChecked = childCheckboxes.some(cb => cb.checked || cb.indeterminate);
-            if (allChecked) { parentCheckbox.checked = true; parentCheckbox.indeterminate = false; }
-            else if (someChecked) { parentCheckbox.checked = false; parentCheckbox.indeterminate = true; }
-            else { parentCheckbox.checked = false; parentCheckbox.indeterminate = false; }
+            if (allChecked) {
+                parentCheckbox.checked = true;
+                parentCheckbox.indeterminate = false;
+            } else if (someChecked) {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = true;
+            } else {
+                parentCheckbox.checked = false;
+                parentCheckbox.indeterminate = false;
+            }
             parentLi = parentLi.parentElement.closest('li');
         }
+        
+        // 3. FINALLY, update the output text area after all changes are made
+        updateOutput();
     }
 
     function updateOutput() {
