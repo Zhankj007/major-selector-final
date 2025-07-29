@@ -1,5 +1,8 @@
 {
   "name": "major-selector-final",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  }
 }
