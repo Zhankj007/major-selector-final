@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>詹老师的高考志愿工具箱</title>
+<title>詹老师的高考志愿工具箱 - 诊断测试</title>
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -19,7 +19,7 @@
     </header>
 
     <nav class="tab-navigation">
-        <button class="tab-button active" data-tab="universities">高校库</button>
+        <button class="tab-button active" data-tab="universities">高校库 (基础测试)</button>
         <button class="tab-button" data-tab="majors">专业目录</button>
     </nav>
 
@@ -28,49 +28,16 @@
             <div class="app-container">
                 <div class="left-panel">
                     <div class="header-controls">
-                        <div class="switcher-group">
-                            <div class="switcher">
-                                <input type="radio" name="uni-group-by" value="region" id="group-by-region" checked>
-                                <label for="group-by-region">按地域</label>
-                                <input type="radio" name="uni-group-by" value="department" id="group-by-department">
-                                <label for="group-by-department">按主管部门</label>
-                            </div>
-                        </div>
-                        <div id="uni-search-container" class="search-container">
-                            <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
-                            <button id="uni-query-button" class="query-button">查询</button>
-                        </div>
-                    </div>
-                    <div class="filter-controls">
-                        <details class="filter-group">
-                            <summary>院校水平</summary>
-                            <div id="uni-level-filter" class="filter-options"><p>加载中...</p></div>
-                        </details>
-                        <details class="filter-group">
-                            <summary>院校类型</summary>
-                            <div id="uni-type-filter" class="filter-options"><p>加载中...</p></div>
-                        </details>
-                        <details class="filter-group">
-                            <summary>城市评级</summary>
-                            <div id="uni-city-tier-filter" class="filter-options"><p>加载中...</p></div>
-                        </details>
-                         <details class="filter-group">
-                            <summary>办学性质</summary>
-                            <div id="uni-ownership-filter" class="filter-options"><p>加载中...</p></div>
-                        </details>
-                         <details class="filter-group">
-                            <summary>办学层次</summary>
-                            <div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div>
-                        </details>
+                        <h2>高校列表 (按地域)</h2>
                     </div>
                     <div id="uni-tree-container" class="major-tree-container">
-                        <p>请点击“查询”按钮开始。</p>
+                        <p>正在加载高校数据...</p>
                     </div>
                 </div>
                 <div class="right-panel">
                     <h3>院校详情</h3>
                     <div id="uni-details-content" class="details-content">
-                        <p>请在左侧选择或查询院校，将鼠标悬停在院校名称上即可查看详情。</p>
+                        <p>请将鼠标悬停在院校名称上查看详情。</p>
                     </div>
                     <div id="uni-output-container" class="output-container">
                         <div class="output-header">
