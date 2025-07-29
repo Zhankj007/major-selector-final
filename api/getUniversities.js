@@ -1,3 +1,6 @@
+import path from 'path';
+import fs from 'fs/promises';
+
 /**
  * A robust CSV parser that handles quoted fields containing commas.
  */
@@ -35,27 +38,25 @@ function parseCSV(csvText) {
 }
 
 export default async function handler(request, response) {
-    const universitySheetUrl = process.env.SHEET_URL_UNIVERSITIES;
-
-    if (!universitySheetUrl) {
-        return response.status(500).json({ error: 'Server configuration error: SHEET_URL_UNIVERSITIES is not set.' });
-    }
-
     try {
-        const fetchResponse = await fetch(universitySheetUrl);
-        if (!fetchResponse.ok) {
-            throw new Error(`Failed to fetch from Google Sheets: ${fetchResponse.statusText}`);
-        }
-        const csvText = await fetchResponse.text();
+        // Construct the path to the CSV file within the project.
+        const filePath = path.join(process.cwd(), '_data', 'universities.csv');
+        
+        // Read the file from the filesystem. This is extremely fast.
+        const csvText = await fs.readFile(filePath, 'utf-8');
+        
         const jsonData = parseCSV(csvText);
 
         response.status(200)
             .setHeader('Content-Type', 'application/json')
-            .setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate') // Cache for 1 hour
+            .setHeader('Cache-Control', 's-maxage=31536000, stale-while-revalidate')
             .json(jsonData);
 
     } catch (error) {
         console.error("API Error (getUniversities):", error);
-        response.status(500).json({ error: error.message });
+        if (error.code === 'ENOENT') {
+            return response.status(500).json({ error: 'Data file not found on the server. Make sure universities.csv is in the _data folder.' });
+        }
+        response.status(500).json({ error: 'An error occurred while processing the data file.' });
     }
 }
