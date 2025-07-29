@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- UNIVERSITY TAB (BASIC TEST VERSION) ---
     function initializeUniversitiesTab() {
         const treeContainer = document.getElementById('uni-tree-container');
-        // We are keeping the right panel logic for now to see details on hover
         const detailsContent = document.getElementById('uni-details-content');
 
         async function fetchData() {
@@ -73,10 +72,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     html += `<li class="level-1-li"><input type="checkbox"> <span class="caret tree-label">${l1Key}</span><ul class="nested">`;
                     for(const l2Key in hierarchy[l1Key]) {
                         html += `<li class="level-2-li"><input type="checkbox"> <span class="caret tree-label">${l2Key}</span><ul class="nested">`;
+                        
+                        // --- CORE FIX START ---
                         hierarchy[l1Key][l2Key].forEach(uni => {
+                             // Add a "guard clause" to skip any invalid or incomplete data rows
+                             if (!uni || !uni['院校名称']) {
+                                 console.warn("Skipping invalid university data row:", uni);
+                                 return; // Skip this iteration and continue with the next
+                             }
+
                              const details = btoa(encodeURIComponent(JSON.stringify(uni)));
                              html += `<li class="level-3-li" data-details="${details}"><input type="checkbox" value="${uni['院校名称']}"><span class="uni-label">${uni['院校名称']}</span></li>`;
                         });
+                        // --- CORE FIX END ---
+
                         html += `</ul></li>`;
                     }
                     html += `</ul></li>`;
@@ -118,16 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // --- MAJORS TAB LOGIC (self-contained and unchanged) ---
     function initializeMajorsTab() {
-        // This function remains exactly the same as the last version,
-        // it will be pasted in full below for your convenience.
-    }
-    
-    // --- KICKSTART THE APP ---
-    initializeGlobal();
-    initializeUniversitiesTab();
-
-    // --- PASTE FULL MAJORS TAB LOGIC HERE ---
-    function initializeMajorsTab() {
+        // (This function remains exactly the same as the last version)
         const majorsTab = document.getElementById('majors-tab');
         if (majorsTab.dataset.initialized) return;
         majorsTab.dataset.initialized = 'true';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
         async function fetchData(type) { currentCatalogType = type; treeContainer.innerHTML = '<p>正在加载...</p>'; fullMajorData = null; try { const response = await fetch(`/api/getMajors?type=${type}`); if (!response.ok) throw new Error(`Network error: ${response.statusText}`); fullMajorData = await response.json(); if (!fullMajorData || Object.keys(fullMajorData).length === 0) throw new Error("获取的专业数据为空。"); renderTree(fullMajorData, type); } catch (error) { console.error("Failed to fetch major data:", error); treeContainer.innerHTML = `<p style="color:red;">${error.message}</p>`; } }
         function renderTree(hierarchy, type, autoExpand = false) { treeContainer.innerHTML = renderTreeHTML(hierarchy, type, autoExpand); syncCheckboxesWithState(); attachEventListeners(); }
         function generateFilteredData(sourceData, keyword) { const filteredHierarchy = {}; const majorNameKey = '专业名'; for (const l1Value in sourceData) { for (const l2Value in sourceData[l1Value]) { const majors = sourceData[l1Value][l2Value]; const matchingMajors = majors.filter(major => (major[majorNameKey] || '').toLowerCase().includes(keyword)); if (matchingMajors.length > 0) { if (!filteredHierarchy[l1Value]) filteredHierarchy[l1Value] = {}; filteredHierarchy[l1Value][l2Value] = matchingMajors; } } } return filteredHierarchy; }
-        function renderTreeHTML(hierarchy, type, autoExpand = false) { const majorNameKey = '专业名'; const majorCodeKey = '专业码'; let html = '<ul>'; if (Object.keys(hierarchy).length === 0) { html += '<li>没有找到匹配的专业。</li>'; } else { for (const level1Key in hierarchy) { html += `<li class="level-1-li"><input type="checkbox"> <span class="caret ${autoExpand ? 'caret-down' : ''} tree-label">${level1Key}</span><ul class="nested ${autoExpand ? 'active' : ''}">`; for (const level2Key in hierarchy[level1Key]) { const majors = hierarchy[level1Key][level2Key]; html += `<li class="level-2-li"><input type="checkbox"> <span class="caret ${autoExpand ? 'caret-down' : ''} tree-label">${level2Key}</span><ul class="nested ${autoExpand ? 'active' : ''}">`; majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || '')); majors.forEach(major => { const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major))); const majorName = major[majorNameKey] || '未知专业'; const majorCode = major[majorCodeKey] || ''; html += `<li class="level-3-li" data-details="${detailsBase64}"><input type="checkbox" value="${majorName}"><span class="major-label">${majorName} (${majorCode})</span></li>`; }); html += '</ul></li>'; } html += '</ul></li>'; } } html += '</ul>'; return html; }
+        function renderTreeHTML(hierarchy, type, autoExpand = false) { const majorNameKey = '专业名'; const majorCodeKey = '专业码'; let html = '<ul>'; if (Object.keys(hierarchy).length === 0) { html += '<li>没有找到匹配的专业。</li>'; } else { for (const level1Key in hierarchy) { html += `<li class="level-1-li"><input type="checkbox"> <span class="caret ${autoExpand ? 'caret-down' : ''} tree-label">${level1Key}</span><ul class="nested ${autoExpand ? 'active' : ''}">`; for (const level2Key in hierarchy[level1Key]) { const majors = hierarchy[level1Key][l2Value]; html += `<li class="level-2-li"><input type="checkbox"> <span class="caret ${autoExpand ? 'caret-down' : ''} tree-label">${level2Key}</span><ul class="nested ${autoExpand ? 'active' : ''}">`; majors.sort((a, b) => (a[majorCodeKey] || '').localeCompare(b[majorCodeKey] || '')); majors.forEach(major => { const detailsBase64 = btoa(encodeURIComponent(JSON.stringify(major))); const majorName = major[majorNameKey] || '未知专业'; const majorCode = major[majorCodeKey] || ''; html += `<li class="level-3-li" data-details="${detailsBase64}"><input type="checkbox" value="${majorName}"><span class="major-label">${majorName} (${majorCode})</span></li>`; }); html += '</ul></li>'; } html += '</ul></li>'; } } html += '</ul>'; return html; }
         function attachEventListeners() { const tree = majorsTab.querySelector('#major-tree-container > ul'); if (!tree) return; tree.addEventListener('click', e => { if (e.target.classList.contains('tree-label')) { const parentLi = e.target.closest('li'); parentLi.querySelector('.nested')?.classList.toggle('active'); e.target.classList.toggle('caret-down'); } if (e.target.classList.contains('major-label')) showDetails(e.target.closest('li')); }); tree.addEventListener('change', e => { if (e.target.type === 'checkbox') handleCheckboxChange(e.target); }); tree.addEventListener('mouseover', e => { if (e.target.classList.contains('major-label')) showDetails(e.target.closest('li')); }); }
         function handleCheckboxChange(checkbox) { const codeKey = '专业码'; const currentLi = checkbox.closest('li'); const isChecked = checkbox.checked; const affectedLis = currentLi.matches('.level-3-li') ? [currentLi] : Array.from(currentLi.querySelectorAll('.level-3-li')); affectedLis.forEach(li => { const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); const code = majorData[codeKey]; if (isChecked && !selectedMajors.has(code)) selectedMajors.set(code, majorData); else if (!isChecked) selectedMajors.delete(code); }); cascadeCheckboxVisuals(checkbox); updateOutputUI(); }
         function updateOutputUI() { const nameKey = '专业名'; const names = Array.from(selectedMajors.values()).map(major => major[nameKey]); outputTextarea.value = names.join(' '); const count = selectedMajors.size; selectionCounter.textContent = count > 0 ? `${count}个` : ''; updateButtonsState(); }
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchData('bachelor');
         updateOutputUI();
     }
-
+    
     // --- KICKSTART THE APP ---
     initializeGlobal();
     initializeUniversitiesTab();
