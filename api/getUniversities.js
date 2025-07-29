@@ -1,106 +1,46 @@
 import path from 'path';
 import fs from 'fs/promises';
+import Papa from 'papaparse';
 
 export default async function handler(request, response) {
-    const report = {
-        testRunTime: new Date().toISOString(),
-        status: "pending",
-        stages: {}
-    };
-
     try {
-        // --- Stage 1: File Reading ---
+        // 1. 定位文件路径
         const filePath = path.join(process.cwd(), '_data', 'universities.csv');
+        
+        // 2. 读取文件内容
         const csvText = await fs.readFile(filePath, 'utf-8');
-        report.stages.fileReading = {
-            status: "成功",
-            filePath: filePath,
-            fileSizeBytes: Buffer.byteLength(csvText, 'utf-8'),
-            rawContentSample: csvText.substring(0, 500) + '...'
-        };
-
-        // --- Stage 2: Line Splitting ---
-        const lines = csvText.trim().replace(/\r\n/g, '\n').split('\n');
-        report.stages.lineSplitting = {
-            status: "成功",
-            totalLinesFound: lines.length
-        };
-
-        if (lines.length < 2) {
-            throw new Error("CSV文件行数不足，至少需要表头和一行数据。");
-        }
-
-        // --- Stage 3: Header Parsing ---
-        const headerLine = lines[0];
-        const headers = headerLine.split(',').map((h, i) => {
-            const header = h.trim();
-            // Remove BOM character from the very first header if it exists
-            return i === 0 ? header.replace(/^\uFEFF/, '') : header;
+        
+        // 3. 使用 Papaparse 进行专业解析
+        const result = Papa.parse(csvText, {
+            header: true,         // 将第一行作为标题行
+            skipEmptyLines: true, // 自动跳过空行
+            dynamicTyping: true,  // 自动转换数字等类型
         });
-        report.stages.headerParsing = {
-            status: "成功",
-            rawHeader: headerLine,
-            parsedHeaders: headers,
-            headerCount: headers.length
-        };
 
-        // --- Stage 4: Row Parsing ---
-        const parsingReport = {
-            totalDataRows: lines.length - 1,
-            successfullyParsedRows: 0,
-            failedRows: 0,
-            firstFailedRow: null
-        };
-        
-        const data = [];
-        const csvRegex = /(?:,|^)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+        // 4. 获取解析后的数据
+        const jsonData = result.data;
 
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') {
-                parsingReport.totalDataRows--;
-                continue;
-            }
-
-            let values = [];
-            let match;
-            while (match = csvRegex.exec(lines[i])) {
-                let value = match[1] !== undefined ? match[1].replace(/""/g, '"') : match[2];
-                values.push(value.trim());
-            }
-
-            if (values.length === headers.length) {
-                parsingReport.successfullyParsedRows++;
-                const entry = {};
-                for (let j = 0; j < headers.length; j++) {
-                    entry[headers[j]] = values[j];
-                }
-                data.push(entry);
-            } else {
-                parsingReport.failedRows++;
-                if (!parsingReport.firstFailedRow) {
-                    parsingReport.firstFailedRow = {
-                        lineNumber: i + 1,
-                        expectedColumns: headers.length,
-                        foundColumns: values.length,
-                        rawData: lines[i]
-                    };
-                }
-            }
+        // 检查解析过程中是否有错误
+        if (result.errors.length > 0) {
+            console.error("CSV Parsing Errors:", result.errors);
+            // 即使有错，我们依然尝试返回解析成功的部分
         }
-        report.stages.rowParsing = { status: "完成", report: parsingReport };
-        
-        // --- Final Report ---
-        report.status = "诊断完成";
-        report.finalDataSample = data.slice(0, 3); // Show a sample of 3 successfully parsed rows
 
-        return response.status(200).json(report);
+        if (!jsonData || jsonData.length === 0) {
+            throw new Error("CSV文件虽已读取，但解析后数据为空。请检查CSV文件格式是否正确。");
+        }
+
+        // 5. 返回成功的结果
+        response.status(200)
+            .setHeader('Content-Type', 'application/json')
+            .setHeader('Cache-Control', 's-maxage=31536000, stale-while-revalidate')
+            .json(jsonData);
 
     } catch (error) {
-        report.status = "诊断失败";
-        report.error = {
-            message: error.message,
-            stage: report.stages.rowParsing ? "Row Parsing" : (report.stages.headerParsing ? "Header Parsing" : (report.stages.fileReading ? "File Reading" : "Unknown"))
-        };
-        return response.status(500).json(report);
+        console.error("API Error (getUniversities):", error);
+        if (error.code === 'ENOENT') {
+            return response.status(500).json({ error: '数据文件未找到。请确认 universities.csv 文件在 _data 文件夹中。' });
+        }
+        response.status(500).json({ error: `处理数据文件时发生错误: ${error.message}` });
     }
 }
