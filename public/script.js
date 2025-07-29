@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 allUniversities = await response.json();
                 if (!allUniversities.length) throw new Error("获取的高校数据为空。");
                 generateFilterOptions();
-                runQuery();
+                runQuery(); // Initial display
             } catch (error) {
                 console.error("高校数据加载失败:", error);
                 treeContainer.innerHTML = `<p style="color:red;">数据加载失败: ${error.message}<br>请检查 /_data/universities.csv 文件是否存在且格式正确。</p>`;
@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const checked = Array.from(filterUIs[key].querySelectorAll('input:checked')).map(cb => cb.value);
                 if (checked.length) activeFilters[key] = new Set(checked);
             });
+
             let filteredList = allUniversities.filter(uni => {
                 if (!uni) return false;
                 if (keyword && !(uni[UNI_NAME_KEY] || '').toLowerCase().includes(keyword)) return false;
@@ -220,14 +221,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let html = '';
             
             const shortFieldsHtml = shortFields.map(key => {
-                 const value = d[key];
-                 if(!value) return '';
+                 const value = d[key]; if(!value) return '';
                  return `<p class="compact-row"><strong>${key}:</strong> <span>${value}</span></p>`;
             }).join('');
 
             const longFieldsHtml = longFields.map(key => {
-                let value = d[key];
-                if(!value) return '';
+                let value = d[key]; if(!value) return '';
                 if(typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
                     value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
                 }
