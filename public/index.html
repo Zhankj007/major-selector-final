@@ -28,11 +28,17 @@
             <div class="app-container">
                 <div class="left-panel">
                     <div class="header-controls">
-                        <div class="switcher">
-                            <input type="radio" name="uni-group-by" value="region" id="group-by-region" checked>
-                            <label for="group-by-region">按地域</label>
-                            <input type="radio" name="uni-group-by" value="department" id="group-by-department">
-                            <label for="group-by-department">按主管部门</label>
+                        <div class="switcher-group">
+                            <div class="switcher">
+                                <input type="radio" name="uni-group-by" value="region" id="group-by-region" checked>
+                                <label for="group-by-region">按地域</label>
+                                <input type="radio" name="uni-group-by" value="department" id="group-by-department">
+                                <label for="group-by-department">按主管部门</label>
+                            </div>
+                        </div>
+                        <div id="uni-search-container" class="search-container">
+                            <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
+                            <button id="uni-query-button" class="query-button">查询</button>
                         </div>
                     </div>
                     <div class="filter-controls">
@@ -56,10 +62,6 @@
                             <summary>办学层次</summary>
                             <div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div>
                         </details>
-                    </div>
-                    <div class="search-container">
-                        <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
-                        <button id="uni-query-button" class="query-button">查询</button>
                     </div>
                     <div id="uni-tree-container" class="major-tree-container">
                         <p>请点击“查询”按钮开始。</p>

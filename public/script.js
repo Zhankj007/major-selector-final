@@ -28,15 +28,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- UNIVERSITY TAB LOGIC ---
     function initializeUniversitiesTab() {
-        const groupBySwitcher = document.querySelector('input[name="uni-group-by"]')?.parentElement;
-        const searchInput = document.getElementById('uni-search-input');
-        const queryButton = document.getElementById('uni-query-button');
-        const treeContainer = document.getElementById('uni-tree-container');
-        const detailsContent = document.getElementById('uni-details-content');
-        const outputTextarea = document.getElementById('uni-output-textarea');
-        const copyButton = document.getElementById('uni-copy-button');
-        const clearButton = document.getElementById('uni-clear-button');
-        const selectionCounter = document.getElementById('uni-selection-counter');
+        // ... (大部分代码与上一版相同) ...
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/getUniversities');
+                if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
+                allUniversities = await response.json();
+                if (!allUniversities.length) throw new Error("获取的高校数据为空。");
+
+                generateFilterOptions();
+                runQuery();
+            } catch (error) {
+                console.error("高校数据加载失败:", error);
+                // --- FIX: Improved error message for timeouts ---
+                let friendlyMessage = `数据加载失败: ${error.message}。`;
+                if (error.message.toLowerCase().includes('network error') || error.message.toLowerCase().includes('failed to fetch')) {
+                    friendlyMessage += "<br><br><b>提示</b>：高校库数据量较大，首次加载可能因网络超时而失败。<b>请稍后刷新页面重试</b>。成功加载一次后，结果将被缓存一小时。";
+                }
+                treeContainer.innerHTML = `<p style="color:red;">${friendlyMessage}</p>`;
+            }
+        }
+
+        // ... (所有其他函数与上一版完全相同) ...
+    }
+    
+    // --- MAJORS TAB LOGIC (self-contained) ---
+    function initializeMajorsTab() {
+        // ... (这部分代码与上一版完全相同) ...
+    }
+    
+    // --- KICKSTART THE APP ---
+    initializeGlobal();
+    initializeUniversitiesTab();
+
+    // For convenience, the full script is below for copy-pasting
+});
+
+
+// Full script for easy copy-paste
+document.addEventListener('DOMContentLoaded', function () {
+    // --- GLOBAL APP INITIALIZATION ---
+    function initializeGlobal() {
+        const versionInfo = document.getElementById('version-info');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        versionInfo.textContent = `v${year}${month}${day}`;
+
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabPanels.forEach(panel => {
+                    panel.classList.toggle('active', panel.id === `${target}-tab`);
+                    if (panel.id === 'majors-tab' && !panel.dataset.initialized && panel.classList.contains('active')) {
+                        initializeMajorsTab();
+                    }
+                });
+            });
+        });
+    }
+
+    // --- UNIVERSITY TAB LOGIC ---
+    function initializeUniversitiesTab() {
+        const uniGroupBySwitcher = document.querySelector('input[name="uni-group-by"]')?.parentElement;
+        const uniSearchInput = document.getElementById('uni-search-input');
+        const uniQueryButton = document.getElementById('uni-query-button');
+        const uniTreeContainer = document.getElementById('uni-tree-container');
+        const uniDetailsContent = document.getElementById('uni-details-content');
+        const uniOutputTextarea = document.getElementById('uni-output-textarea');
+        const uniCopyButton = document.getElementById('uni-copy-button');
+        const uniClearButton = document.getElementById('uni-clear-button');
+        const uniSelectionCounter = document.getElementById('uni-selection-counter');
+
         const filterUIs = { '院校水平': document.getElementById('uni-level-filter'), '院校类型': document.getElementById('uni-type-filter'), '城市评级': document.getElementById('uni-city-tier-filter'), '办学性质': document.getElementById('uni-ownership-filter'), '办学层次': document.getElementById('uni-edu-level-filter') };
         
         let allUniversities = [];
@@ -49,16 +119,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
                 allUniversities = await response.json();
                 if (!allUniversities.length) throw new Error("获取的高校数据为空。");
+
                 generateFilterOptions();
                 runQuery();
             } catch (error) {
                 console.error("高校数据加载失败:", error);
-                treeContainer.innerHTML = `<p style="color:red;">${error.message}</p>`;
+                let friendlyMessage = `数据加载失败: ${error.message}。`;
+                if (error.message.toLowerCase().includes('network error') || error.message.toLowerCase().includes('failed to fetch')) {
+                    friendlyMessage += "<br><br><b>提示</b>：高校库数据量较大，首次加载可能因网络超时而失败。<b>请稍后刷新页面重试</b>。成功加载一次后，结果将被缓存一小时。";
+                }
+                uniTreeContainer.innerHTML = `<p style="color:red; padding: 10px;">${friendlyMessage}</p>`;
             }
         }
 
         function generateFilterOptions() {
-            const filters = { '院校水平': new Set(), '院校类型': new Set(), '城市评级': new Set(), '办学性质': new Set(), '办学层次': new Set() };
+            const filters = {'院校水平': new Set(), '院校类型': new Set(), '城市评级': new Set(), '办学性质': new Set(), '办学层次': new Set()};
             allUniversities.forEach(uni => {
                 (uni['院校水平'] || '').split('/').forEach(level => level.trim() && filters['院校水平'].add(level.trim()));
                 Object.keys(filters).forEach(key => { if (key !== '院校水平' && uni[key]) filters[key].add(uni[key]); });
@@ -70,9 +145,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 container.innerHTML = sortedValues.map(value => `<label><input type="checkbox" value="${value}"> ${value}</label>`).join('');
             });
         }
-
+        
         function runQuery() {
-            const keyword = searchInput.value.trim().toLowerCase();
+            const keyword = uniSearchInput.value.trim().toLowerCase();
             const activeFilters = {};
             Object.keys(filterUIs).forEach(key => {
                 const checked = Array.from(filterUIs[key].querySelectorAll('input:checked')).map(cb => cb.value);
@@ -93,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             renderUniversityTree(filteredList);
         }
-
+        
         function buildHierarchy(list, key1, key2) {
              const hierarchy = {};
              list.forEach(item => {
@@ -119,10 +194,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!list.length) html += '<li>没有找到匹配的院校。</li>';
             else {
                 for(const l1Key in hierarchy) {
-                    html += `<li class="level-1-li"><input type="checkbox"> <span class="caret tree-label">${l1Key}</span><ul class="nested active">`; // Auto-expand
+                    html += `<li class="level-1-li"><input type="checkbox"> <span class="caret tree-label">${l1Key}</span><ul class="nested active">`;
                     if(groupBy === 'region') {
                         for(const l2Key in hierarchy[l1Key]) {
-                            html += `<li class="level-2-li"><input type="checkbox"> <span class="caret tree-label">${l2Key}</span><ul class="nested active">`; // Auto-expand
+                            html += `<li class="level-2-li"><input type="checkbox"> <span class="caret tree-label">${l2Key}</span><ul class="nested active">`;
                             hierarchy[l1Key][l2Key].forEach(uni => html += renderUniLi(uni));
                             html += `</ul></li>`;
                         }
@@ -133,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             html += '</ul>';
-            treeContainer.innerHTML = html;
+            uniTreeContainer.innerHTML = html;
             syncUniCheckboxesWithState();
             attachUniEventListeners();
         }
@@ -142,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const details = btoa(encodeURIComponent(JSON.stringify(uni)));
             return `<li class="${liClass}" data-details="${details}"><input type="checkbox" value="${uni['院校名称']}"><span class="uni-label">${uni['院校名称']}</span></li>`;
         }
-
+        
         function attachUniEventListeners() {
             const tree = document.getElementById('uni-tree');
             if(!tree) return;
@@ -176,11 +251,11 @@ document.addEventListener('DOMContentLoaded', function () {
         function updateUniOutputUI() {
             const nameKey = '院校名称';
             const names = Array.from(selectedUniversities.values()).map(uni => uni[nameKey]);
-            outputTextarea.value = names.join(' ');
+            uniOutputTextarea.value = names.join(' ');
             const count = selectedUniversities.size;
-            selectionCounter.textContent = count > 0 ? `${count}个` : '';
-            copyButton.classList.toggle('disabled', count === 0);
-            clearButton.classList.toggle('disabled', count === 0);
+            uniSelectionCounter.textContent = count > 0 ? `${count}个` : '';
+            uniCopyButton.classList.toggle('disabled', count === 0);
+            uniClearButton.classList.toggle('disabled', count === 0);
         }
 
         function syncUniCheckboxesWithState() {
@@ -237,11 +312,11 @@ document.addEventListener('DOMContentLoaded', function () {
             detailsContent.innerHTML = `<div class="compact-row-container">${shortFieldsHtml}</div>${longFieldsHtml}`;
         }
         
-        groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
+        uniGroupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
         queryButton.addEventListener('click', runQuery);
         searchInput.addEventListener('keyup', e => { if(e.key === 'Enter') runQuery(); });
         Object.values(filterUIs).forEach(container => container.addEventListener('click', e => { if(e.target.type === 'checkbox') container.parentElement.open = false; }));
-        copyButton.addEventListener('click', () => { if(!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
+        copyButton.addEventListener('click', () => { if(!uniOutputTextarea.value) return; navigator.clipboard.writeText(uniOutputTextarea.value).then(() => { uniCopyButton.textContent = '已复制!'; setTimeout(() => { uniCopyButton.textContent = '复制'; }, 1500); }); });
         clearButton.addEventListener('click', () => { if(selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); });
 
         fetchData();
@@ -258,18 +333,17 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="app-container" id="app-container-majors">
                 <div class="left-panel">
                     <div class="header-controls">
-                        <div class="switcher-group">
-                             <div class="switcher">
-                                <input type="radio" name="major-catalog-type" value="bachelor" id="bachelor-major" checked>
-                                <label for="bachelor-major">本科</label>
-                                <input type="radio" name="major-catalog-type" value="associate" id="associate-major">
-                                <label for="associate-major">专科</label>
-                            </div>
+                         <h2>专业目录</h2>
+                        <div class="switcher">
+                            <input type="radio" name="major-catalog-type" value="bachelor" id="bachelor-major" checked>
+                            <label for="bachelor-major">本科</label>
+                            <input type="radio" name="major-catalog-type" value="associate" id="associate-major">
+                            <label for="associate-major">专科</label>
                         </div>
-                    </div>
-                    <div class="search-container">
-                        <input type="search" id="major-search-input" placeholder="输入专业名关键字...">
-                        <button id="major-query-button" class="query-button">查询</button>
+                        <div class="search-container" style="flex-grow: 1;">
+                            <input type="search" id="major-search-input" placeholder="输入专业名关键字...">
+                            <button id="major-query-button" class="query-button">查询</button>
+                        </div>
                     </div>
                     <div id="major-tree-container" class="major-tree-container"><p>正在加载...</p></div>
                 </div>
@@ -289,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>`;
         
-        const container = majorsTab.querySelector('#app-container-majors');
+        const container = majorsTab;
         const catalogSwitcher = container.querySelector('input[name="major-catalog-type"]')?.parentElement;
         const searchInput = container.querySelector('#major-search-input');
         const queryButton = container.querySelector('#major-query-button');
@@ -304,8 +378,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let currentCatalogType = 'bachelor';
         let selectedMajors = new Map();
         
-        // This is a direct copy of the final, working script from our previous conversation,
-        // namespaced to the "majors" tab elements.
         async function fetchData(type) { currentCatalogType = type; treeContainer.innerHTML = '<p>正在加载...</p>'; fullMajorData = null; try { const response = await fetch(`/api/getMajors?type=${type}`); if (!response.ok) throw new Error(`Network error: ${response.statusText}`); fullMajorData = await response.json(); if (!fullMajorData || Object.keys(fullMajorData).length === 0) throw new Error("获取的专业数据为空。"); renderTree(fullMajorData, type); } catch (error) { console.error("Failed to fetch major data:", error); treeContainer.innerHTML = `<p style="color:red;">${error.message}</p>`; } }
         function renderTree(hierarchy, type, autoExpand = false) { treeContainer.innerHTML = renderTreeHTML(hierarchy, type, autoExpand); syncCheckboxesWithState(); attachEventListeners(); }
         function generateFilteredData(sourceData, keyword) { const filteredHierarchy = {}; const majorNameKey = '专业名'; for (const l1Value in sourceData) { for (const l2Value in sourceData[l1Value]) { const majors = sourceData[l1Value][l2Value]; const matchingMajors = majors.filter(major => (major[majorNameKey] || '').toLowerCase().includes(keyword)); if (matchingMajors.length > 0) { if (!filteredHierarchy[l1Value]) filteredHierarchy[l1Value] = {}; filteredHierarchy[l1Value][l2Value] = matchingMajors; } } } return filteredHierarchy; }
@@ -315,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function updateOutputUI() { const nameKey = '专业名'; const names = Array.from(selectedMajors.values()).map(major => major[nameKey]); outputTextarea.value = names.join(' '); const count = selectedMajors.size; selectionCounter.textContent = count > 0 ? `${count}个` : ''; updateButtonsState(); }
         function updateButtonsState() { const hasContent = selectedMajors.size > 0; copyButton.classList.toggle('disabled', !hasContent); clearButton.classList.toggle('disabled', !hasContent); }
         function syncCheckboxesWithState() { const codeKey = '专业码'; majorsTab.querySelectorAll('.level-3-li').forEach(li => { const majorData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); li.querySelector('input').checked = selectedMajors.has(majorData[codeKey]); }); majorsTab.querySelectorAll('.level-1-li, .level-2-li').forEach(parentLi => cascadeCheckboxVisuals(parentLi.querySelector(':scope > input[type="checkbox"]'))); }
-        function cascadeCheckboxVisuals(checkbox) { const currentLi = checkbox.closest('li'); const isChecked = checkbox.checked; currentLi.querySelectorAll(':scope > ul input[type="checkbox"]').forEach(childCb => childCb.checked = isChecked); let parentLi = currentLi.parentElement.closest('li'); while (parentLi) { const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]'); const childCheckboxes = Array.from(parentLi.querySelectorAll(':scope > ul > li > input[type="checkbox"]')); if(!childCheckboxes.length) break; const allChecked = childCheckboxes.every(cb => cb.checked); const someChecked = childCheckboxes.some(cb => cb.checked || cb.indeterminate); if(allChecked) { parentCheckbox.checked = true; parentCheckbox.indeterminate = false; } else if(someChecked) { parentCheckbox.checked = false; parentCheckbox.indeterminate = true; } else { parentCheckbox.checked = false; parentCheckbox.indeterminate = false; } parentLi = parentLi.parentElement.closest('li'); } }
+        function cascadeCheckboxVisuals(checkbox) { const currentLi = checkbox.closest('li'); const isChecked = checkbox.checked; currentLi.querySelectorAll(':scope > ul input[type="checkbox"]').forEach(childCb => childCb.checked = isChecked); let parentLi = currentLi.parentElement.closest('li'); while (parentLi) { const parentCheckbox = parentLi.querySelector(':scope > input[type="checkbox"]'); const childCheckboxes = Array.from(parentLi.querySelectorAll(':scope > ul > li > input[type="checkbox"]')); if(!childCheckboxes.length) break; const allChecked = childCheckboxes.every(cb => cb.checked); const someChecked = childCheckboxes.some(cb => cb.checked || cb.indeterminate); if (allChecked) { parentCheckbox.checked = true; parentCheckbox.indeterminate = false; } else if (someChecked) { parentCheckbox.checked = false; parentCheckbox.indeterminate = true; } else { parentCheckbox.checked = false; parentCheckbox.indeterminate = false; } parentLi = parentLi.parentElement.closest('li'); } }
         function showDetails(targetLi) { if (!targetLi || !targetLi.dataset.details) return; const d = JSON.parse(decodeURIComponent(atob(targetLi.dataset.details))); let detailsHtml = ''; for (const key in d) { if (d.hasOwnProperty(key) && d[key]) { let value = d[key]; if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) { value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`; } detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`; } } detailsContent.innerHTML = detailsHtml; }
         
         catalogSwitcher.addEventListener('change', (e) => { searchInput.value = ''; fetchData(e.target.value); });
