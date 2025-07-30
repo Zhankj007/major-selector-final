@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (checked.length) activeFilters[key] = new Set(checked);
             });
 
-            const sortedList = [...allUniversities].sort((a,b) => {
+            const sortedList = [...allUniversities].sort((a, b) => {
                 const levelA = a['办学层次'] === '本科' ? 1 : 2;
                 const levelB = b['办学层次'] === '本科' ? 1 : 2;
                 if (levelA !== levelB) return levelA - levelB;
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             renderUniversityTree(filteredList);
         }
-        
+
         function buildHierarchy(list, key1, key2) {
              const hierarchy = {};
              list.forEach(item => {
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
             treeContainer.innerHTML = html;
             syncUniCheckboxesWithState();
             attachUniEventListeners();
-            // After rendering, check the state of the expand/collapse toggle
+            
             const expandValue = expandCollapseSwitcher.querySelector('input:checked').value;
             toggleAllNodes(expandValue === 'expand');
         }
@@ -251,6 +251,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['主管部门', '院校来历', '建校时间'],
                 ['招生电话', '院校地址'],
                 ['软科校排', '校硕点', '校博点'],
+                ['第四轮学科评估统计'],
+                ['第四轮学科评估结果'],
+                ['一流学科数量', '一流学科'],
             ];
             const handledKeys = new Set(layout.flat());
             let html = '';
@@ -299,17 +302,9 @@ document.addEventListener('DOMContentLoaded', function () {
         groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
         queryButton.addEventListener('click', runQuery);
         searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
-        Object.values(filterUIs).forEach(container => {
-            const filterGroup = container.closest('.filter-group');
-            filterGroup.addEventListener('change', () => {
-                const hasSelection = filterGroup.querySelector('input:checked');
-                filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
-                runQuery();
-            });
-        });
-        copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
-        clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); });
         expandCollapseSwitcher.addEventListener('change', e => toggleAllNodes(e.target.value === 'expand'));
+        copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
+        clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); updateUniOutputUI(); });
 
         fetchData();
         updateUniOutputUI();
