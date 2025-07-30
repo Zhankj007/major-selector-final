@@ -213,7 +213,7 @@ window.initializeMajorsTab = function() {
         }
         detailsContent.innerHTML = detailsHtml;
     }
-
+    
     catalogSwitcher.addEventListener('change', (e) => {
         searchInput.value = '';
         fetchData(e.target.value);
