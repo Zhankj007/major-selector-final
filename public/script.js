@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const day = now.getDate().toString().padStart(2, '0');
         versionInfo.textContent = `v${year}${month}${day}`;
 
+        const header = document.querySelector('.toolbox-header');
+        const titleVersion = header.querySelector('.title-version');
+        const description = header.querySelector('.description');
+        if (titleVersion && description) {
+            titleVersion.appendChild(description);
+        }
+
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
@@ -77,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 filterGroup.addEventListener('change', () => {
                     const hasSelection = filterGroup.querySelector('input:checked');
                     filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
+                    runQuery(); // Instant filtering
                 });
             });
         }
@@ -88,7 +96,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const checked = Array.from(filterUIs[key].querySelectorAll('input:checked')).map(cb => cb.value);
                 if (checked.length) activeFilters[key] = new Set(checked);
             });
-            let filteredList = allUniversities.filter(uni => {
+
+            // Pre-sort the entire list based on the uni code
+            const sortedList = [...allUniversities].sort((a,b) => {
+                const codeA = a[UNI_CODE_KEY] || '99999'; // Put empty codes at the end
+                const codeB = b[UNI_CODE_KEY] || '99999';
+                return String(codeA).localeCompare(String(codeB));
+            });
+
+            let filteredList = sortedList.filter(uni => {
                 if (!uni) return false;
                 if (keyword && !(uni[UNI_NAME_KEY] || '').toLowerCase().includes(keyword)) return false;
                 for (const [key, valueSet] of Object.entries(activeFilters)) {
@@ -122,10 +138,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function renderUniversityTree(list) {
-            const sortFn = (a, b) => (String(a[UNI_CODE_KEY] || '').localeCompare(String(b[UNI_CODE_KEY] || '')));
             let hierarchy;
-            if (groupBy === 'region') hierarchy = buildHierarchy(list.sort(sortFn), '省份', '城市');
-            else hierarchy = buildHierarchy(list.sort(sortFn), '主管部门');
+            if (groupBy === 'region') hierarchy = buildHierarchy(list, '省份', '城市');
+            else hierarchy = buildHierarchy(list, '主管部门');
 
             let html = '<ul id="uni-tree">';
             if (!list.length) html += '<li>没有找到匹配的院校。</li>';
@@ -222,57 +237,57 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!li || !li.dataset.details) return;
             const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
             
-            const groupedFields = {
-                'flags': ['985', '211', '双一流'],
-                'type': ['办学性质', '办学层次', '院校类型', '城市评级'],
-                'rates': [] // Dynamically find rate fields
-            };
-            const allFields = Object.keys(d);
-            allFields.forEach(key => {
-                if(key.includes('推免率')) groupedFields.rates.push(key);
-            });
+            const layout = [
+                ['办学性质', '办学层次', '院校类型'],
+                ['省份', '城市', '城市评级'],
+                ['院校名', '院校编码'],
+                ['院校水平'],
+                ['主管部门', '院校来历', '建校时间'],
+                ['招生电话', '院校地址'],
+                ['软科校排', '校硕点', '校博点'],
+                ['第四轮学科评估统计'],
+                ['第四轮学科评估结果'],
+                ['一流学科数量', '一流学科'],
+                // Dynamic rows will be added below
+            ];
             
-            const handledKeys = new Set([].concat(...Object.values(groupedFields)));
+            const handledKeys = new Set(layout.flat());
             let html = '';
 
-            // Render grouped fields
-            const flagsHtml = groupedFields.flags.map(key => d[key] ? `<p class="compact-row"><strong>${key}:</strong> <span>${d[key]}</span></p>` : '').join('');
-            if(flagsHtml) html += `<div class="compact-row-container">${flagsHtml}</div>`;
-            
-            const typeHtml = groupedFields.type.map(key => d[key] ? `<p class="compact-row"><strong>${key}:</strong> <span>${d[key]}</span></p>` : '').join('');
-            if(typeHtml) html += `<div class="compact-row-container">${typeHtml}</div>`;
-
-            const ratesHtml = groupedFields.rates.sort().reverse().map(key => d[key] ? `${key.substring(0,2)}年: ${d[key]}`: '').filter(Boolean).join(' | ');
-            if(ratesHtml) html += `<p><strong>推免率:</strong> <span>${ratesHtml}</span></p>`;
-
-            // Render all other fields
-            allFields.forEach(key => {
-                if (handledKeys.has(key) || !d[key]) return;
-                let value = d[key];
-                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                    value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
-                }
-                html += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
+            layout.forEach(row => {
+                const rowHtml = row.map(key => {
+                    const value = d[key];
+                    if (!value) return '';
+                    return `<p class="compact-row"><strong>${key}:</strong> <span>${value}</span></p>`;
+                }).join('');
+                if (rowHtml) html += `<div class="compact-row-container">${rowHtml}</div>`;
             });
-            
+
+            const rates = Object.keys(d).filter(k => k.includes('推免率')).sort().reverse();
+            if (rates.length > 0) {
+                const ratesHtml = rates.map(key => d[key] ? `${key.substring(0, 2)}年:${d[key]}` : '').filter(Boolean).join(' | ');
+                html += `<p><strong>历年推免率:</strong> <span>${ratesHtml}</span></p>`;
+                rates.forEach(key => handledKeys.add(key));
+            }
+
+            const links = ['招生章程', '学校招生信息', '校园VR', '院校百科', '就业质量'];
+            links.forEach(key => {
+                let value = d[key];
+                if (value) {
+                    if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                         value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                    }
+                    html += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
+                    handledKeys.add(key);
+                }
+            });
+
             detailsContent.innerHTML = html;
         }
         
         groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
         queryButton.addEventListener('click', runQuery);
         searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
-        Object.values(filterUIs).forEach(container => {
-            const filterGroup = container.closest('.filter-group');
-            filterGroup.addEventListener('change', () => {
-                const hasSelection = filterGroup.querySelector('input:checked');
-                filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
-            });
-            container.addEventListener('click', e => {
-                if(e.target.type === 'checkbox') {
-                     setTimeout(() => { filterGroup.open = false; }, 100);
-                }
-            });
-        });
         copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
         clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); });
 
@@ -297,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="radio" name="major-catalog-type" value="associate" id="associate-major">
                             <label for="associate-major">专科</label>
                         </div>
-                        <div class="search-container" style="flex-grow: 1;">
+                        <div class="search-container">
                             <input type="search" id="major-search-input" placeholder="输入专业名关键字...">
                             <button id="major-query-button" class="query-button">查询</button>
                         </div>
