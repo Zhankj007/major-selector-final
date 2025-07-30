@@ -65,12 +65,9 @@ body {
 .header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 20px; overflow: hidden; }
-
-/* --- FIX 1: Removed extra space in selector to restore button color --- */
 .switcher input[type="radio"] { display: none; }
-.switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
-
 .switcher label { padding: 6px 15px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
+.switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 .search-container { display: flex; gap: 8px; flex-grow: 1; }
 .search-container input { flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
@@ -103,10 +100,16 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
 .details-content p span {
     display: inline-block;
     width: calc(100% - 95px);
-    /* --- FIX 2: More intelligent word wrapping strategy --- */
+    /* --- CORE FIX: Reverted to default wrapping behavior --- */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* This class, added by JS, will now be the ONLY one that allows wrapping */
+.details-content p span.long-text {
     white-space: normal;
-    overflow-wrap: break-word;
-    word-break: normal;
+    overflow: visible;
+    text-overflow: clip;
 }
 .details-content .compact-row-container { line-height: 1.8; }
 .details-content .compact-row { display: inline-block; margin-right: 20px; white-space: nowrap; }
