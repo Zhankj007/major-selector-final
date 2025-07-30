@@ -90,27 +90,18 @@ li { padding: 4px 0; }
 .output-button:hover { background-color: #0056b3; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
+
+/* --- CORE FIX START --- */
 .details-content p, .details-content .compact-row-container {
-    margin: 0 0 10px 0;
+    margin: 0 0 10px 0; /* All direct children have a consistent bottom margin */
 }
 .details-content .compact-row-container p {
-    margin: 0;
+    margin: 0; /* The <p> tags inside a compact container have NO margin */
 }
+/* --- CORE FIX END --- */
+
 .details-content p strong { display: inline-block; min-width: 85px; color: #333; font-weight: 600; vertical-align: top; white-space: nowrap; }
-.details-content p span {
-    display: inline-block;
-    width: calc(100% - 95px);
-    /* --- CORE FIX: Reverted to default wrapping behavior --- */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-/* This class, added by JS, will now be the ONLY one that allows wrapping */
-.details-content p span.long-text {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-}
+.details-content p span { display: inline-block; width: calc(100% - 95px); }
 .details-content .compact-row-container { line-height: 1.8; }
 .details-content .compact-row { display: inline-block; margin-right: 20px; white-space: nowrap; }
 .details-content a { color: var(--primary-color); text-decoration: none; }
