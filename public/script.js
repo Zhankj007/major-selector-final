@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateUniOutputUI();
     }
     
-    // --- MAJORS TAB LOGIC (self-contained) ---
+    // --- MAJORS TAB LOGIC (self-contained and unchanged) ---
     function initializeMajorsTab() {
         const majorsTab = document.getElementById('majors-tab');
         if (majorsTab.dataset.initialized) return;
