@@ -18,15 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
-        function loadScript(src, callback) {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = () => {
-                if(callback) callback();
-            };
-            document.body.appendChild(script);
-        }
-
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetId = tab.dataset.tab;
@@ -37,12 +28,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     const isActive = panel.id === `${targetId}-tab`;
                     panel.classList.toggle('active', isActive);
 
-                    if (isActive && !panel.dataset.initialized) {
-                        panel.dataset.initialized = 'true';
-                        if (targetId === 'universities') {
-                            loadScript('/js/universities.js', () => window.initializeUniversitiesTab());
-                        } else if (targetId === 'majors') {
-                            loadScript('/js/majors.js', () => window.initializeMajorsTab());
+                    // Initialize the Majors tab on the first click
+                    if (isActive && targetId === 'majors' && !panel.dataset.initialized) {
+                         if (window.initializeMajorsTab) {
+                            window.initializeMajorsTab();
                         }
                     }
                 });
@@ -52,6 +41,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- KICKSTART THE APP ---
     initializeGlobal();
-    // Trigger a click on the default active tab to load its script
-    document.querySelector('.tab-button.active').click();
+    // Initialize the default active tab directly
+    if (window.initializeUniversitiesTab) {
+        window.initializeUniversitiesTab();
+    }
 });
