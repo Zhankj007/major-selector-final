@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- GLOBAL APP INITIALIZATION ---
+    console.log("Main.js: DOMContentLoaded event fired.");
+
     function initializeGlobal() {
         const versionInfo = document.getElementById('version-info');
         const now = new Date();
@@ -18,9 +19,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
+        function loadScript(src, callback) {
+            console.log(`Main.js: Attempting to load script: ${src}`);
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => {
+                console.log(`Main.js: Successfully loaded ${src}.`);
+                if (callback) callback();
+            };
+            script.onerror = () => {
+                console.error(`Main.js: FAILED to load script: ${src}`);
+            }
+            document.body.appendChild(script);
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetId = tab.dataset.tab;
+                console.log(`Main.js: Tab clicked: ${targetId}`);
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
@@ -28,10 +44,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     const isActive = panel.id === `${targetId}-tab`;
                     panel.classList.toggle('active', isActive);
 
-                    // Initialize the Majors tab on the first click
-                    if (isActive && targetId === 'majors' && !panel.dataset.initialized) {
-                         if (window.initializeMajorsTab) {
-                            window.initializeMajorsTab();
+                    if (isActive && !panel.dataset.initialized) {
+                        panel.dataset.initialized = 'true';
+                        console.log(`Main.js: Initializing tab for the first time: ${targetId}`);
+                        if (targetId === 'universities') {
+                            loadScript('/js/universities.js', () => window.initializeUniversitiesTab && window.initializeUniversitiesTab());
+                        } else if (targetId === 'majors') {
+                            loadScript('/js/majors.js', () => window.initializeMajorsTab && window.initializeMajorsTab());
                         }
                     }
                 });
@@ -40,9 +59,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- KICKSTART THE APP ---
+    console.log("Main.js: Initializing global components...");
     initializeGlobal();
-    // Initialize the default active tab directly
-    if (window.initializeUniversitiesTab) {
-        window.initializeUniversitiesTab();
-    }
+    
+    // Defer the initial click slightly to ensure all is ready
+    setTimeout(() => {
+        console.log("Main.js: Triggering initial click on default tab.");
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab) {
+            activeTab.click();
+        } else {
+            console.error("Main.js: No active tab found to initialize.");
+        }
+    }, 100);
 });
