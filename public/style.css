@@ -34,7 +34,6 @@ body {
 .toolbox-header .description { font-size: 14px; color: #555; margin: 8px 0 0; margin-left: 5px; }
 .title-version > .description { margin-left: 20px; }
 
-
 .tab-navigation { display: flex; gap: 5px; margin-top: 15px; margin-bottom: -1px; flex-shrink: 0; }
 .tab-button {
     padding: 10px 20px; font-size: 16px; font-weight: 500;
@@ -59,11 +58,18 @@ body {
 /* --- General App Container Styles (reusable) --- */
 .app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; }
 .left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
-.right-panel { width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light); overflow-y: auto; display: flex; flex-direction: column; }
+.right-panel {
+    width: 60%; flex-shrink: 0; border: 1px solid var(--border-color);
+    padding: 15px; border-radius: 8px; background-color: var(--background-light);
+    overflow-y: auto; display: flex; flex-direction: column;
+    box-sizing: border-box; /* FIX: Ensures padding is included in the width calculation */
+}
 .details-content { flex-grow: 1; }
 
 /* --- University Tool Specific Styles --- */
-.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; flex-shrink: 0; }
+.controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
+.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+#expand-collapse-container { flex-shrink: 0; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; }
 .filter-group summary { font-weight: 500; cursor: pointer; padding: 3px 20px 3px 5px; list-style: none; transition: all 0.2s; border-radius: 4px; }
 .filter-group summary.filter-active { background-color: var(--primary-color); color: white; }
