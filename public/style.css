@@ -15,8 +15,6 @@ body {
     color: var(--text-color); font-size: 14px;
     box-sizing: border-box;
 }
-
-/* --- Main Toolbox Layout --- */
 .toolbox-container {
     display: flex;
     flex-direction: column;
@@ -33,7 +31,6 @@ body {
 #version-info { font-size: 12px; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 5px; }
 .toolbox-header .description { font-size: 14px; color: #555; margin: 8px 0 0; margin-left: 5px; }
 .title-version > .description { margin-left: 20px; }
-
 .tab-navigation { display: flex; gap: 5px; margin-top: 15px; margin-bottom: -1px; flex-shrink: 0; }
 .tab-button {
     padding: 10px 20px; font-size: 16px; font-weight: 500;
@@ -54,19 +51,15 @@ body {
 }
 .tab-panel { display: none; width: 100%; }
 .tab-panel.active { display: block; }
-
-/* --- General App Container Styles (reusable) --- */
 .app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; }
 .left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
 .right-panel {
     width: 60%; flex-shrink: 0; border: 1px solid var(--border-color);
     padding: 15px; border-radius: 8px; background-color: var(--background-light);
     overflow-y: auto; display: flex; flex-direction: column;
-    box-sizing: border-box; /* FIX: Ensures padding is included in the width calculation */
+    box-sizing: border-box;
 }
 .details-content { flex-grow: 1; }
-
-/* --- University Tool Specific Styles --- */
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 #expand-collapse-container { flex-shrink: 0; }
@@ -89,7 +82,7 @@ body {
     border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;
     overflow-y: auto; flex-grow: 1; min-height: 200px;
 }
-.header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; flex-shrink: 0; }
+.header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 20px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
