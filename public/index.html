@@ -14,8 +14,8 @@
         <div class="title-version">
             <h1>詹老师的高考志愿工具箱</h1>
             <span id="version-info"></span>
+            <p class="description">詹老师的工具箱目前包括高校筛选、专业筛选等实用功能，后续视需求逐步添加。</p>
         </div>
-        <p class="description">詹老师的工具箱目前包括高校筛选、专业筛选等实用功能，后续视需求逐步添加。</p>
     </header>
 
     <nav class="tab-navigation">
@@ -34,17 +34,27 @@
                             <input type="radio" name="uni-group-by" value="department" id="group-by-department">
                             <label for="group-by-department">按主管部门</label>
                         </div>
-                        <div id="uni-search-container" class="search-container">
-                            <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
-                            <button id="uni-query-button" class="query-button">查询</button>
+                    </div>
+                    <div class="controls-toolbar">
+                        <div class="filter-controls">
+                            <details class="filter-group"><summary>院校水平</summary><div id="uni-level-filter" class="filter-options"><p>加载中...</p></div></details>
+                            <details class="filter-group"><summary>院校类型</summary><div id="uni-type-filter" class="filter-options"><p>加载中...</p></div></details>
+                            <details class="filter-group"><summary>城市评级</summary><div id="uni-city-tier-filter" class="filter-options"><p>加载中...</p></div></details>
+                            <details class="filter-group"><summary>办学性质</summary><div id="uni-ownership-filter" class="filter-options"><p>加载中...</p></div></details>
+                            <details class="filter-group"><summary>办学层次</summary><div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div></details>
+                        </div>
+                        <div id="expand-collapse-container" class="switcher-group">
+                             <div class="switcher">
+                                <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
+                                <label for="collapse-all">折叠</label>
+                                <input type="radio" name="expand-collapse" value="expand" id="expand-all">
+                                <label for="expand-all">展开</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="filter-controls">
-                        <details class="filter-group"><summary>院校水平</summary><div id="uni-level-filter" class="filter-options"><p>加载中...</p></div></details>
-                        <details class="filter-group"><summary>院校类型</summary><div id="uni-type-filter" class="filter-options"><p>加载中...</p></div></details>
-                        <details class="filter-group"><summary>城市评级</summary><div id="uni-city-tier-filter" class="filter-options"><p>加载中...</p></div></details>
-                        <details class="filter-group"><summary>办学性质</summary><div id="uni-ownership-filter" class="filter-options"><p>加载中...</p></div></details>
-                        <details class="filter-group"><summary>办学层次</summary><div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div></details>
+                    <div class="search-container">
+                        <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
+                        <button id="uni-query-button" class="query-button">查询</button>
                     </div>
                     <div id="uni-tree-container" class="major-tree-container"><p>请点击“查询”按钮开始。</p></div>
                 </div>
