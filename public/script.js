@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- UNIVERSITY TAB LOGIC ---
     function initializeUniversitiesTab() {
         const groupBySwitcher = document.querySelector('input[name="uni-group-by"]')?.parentElement;
+        const expandCollapseSwitcher = document.querySelector('input[name="expand-collapse"]')?.parentElement;
         const searchInput = document.getElementById('uni-search-input');
         const queryButton = document.getElementById('uni-query-button');
         const treeContainer = document.getElementById('uni-tree-container');
@@ -84,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 filterGroup.addEventListener('change', () => {
                     const hasSelection = filterGroup.querySelector('input:checked');
                     filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
-                    runQuery(); // Instant filtering
+                    runQuery();
                 });
             });
         }
@@ -97,10 +98,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (checked.length) activeFilters[key] = new Set(checked);
             });
 
-            // Pre-sort the entire list based on the uni code
             const sortedList = [...allUniversities].sort((a,b) => {
-                const codeA = a[UNI_CODE_KEY] || '99999'; // Put empty codes at the end
-                const codeB = b[UNI_CODE_KEY] || '99999';
+                const levelA = a['办学层次'] === '本科' ? 1 : 2;
+                const levelB = b['办学层次'] === '本科' ? 1 : 2;
+                if (levelA !== levelB) return levelA - levelB;
+                const codeA = a[UNI_CODE_KEY] || '999999';
+                const codeB = b[UNI_CODE_KEY] || '999999';
                 return String(codeA).localeCompare(String(codeB));
             });
 
@@ -119,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             renderUniversityTree(filteredList);
         }
-
+        
         function buildHierarchy(list, key1, key2) {
              const hierarchy = {};
              list.forEach(item => {
@@ -163,6 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
             treeContainer.innerHTML = html;
             syncUniCheckboxesWithState();
             attachUniEventListeners();
+            // After rendering, check the state of the expand/collapse toggle
+            const expandValue = expandCollapseSwitcher.querySelector('input:checked').value;
+            toggleAllNodes(expandValue === 'expand');
         }
 
         function renderUniLi(uni, liClass = 'level-3-li') {
@@ -240,17 +246,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const layout = [
                 ['办学性质', '办学层次', '院校类型'],
                 ['省份', '城市', '城市评级'],
-                ['院校名', '院校编码'],
+                [UNI_NAME_KEY, UNI_CODE_KEY],
                 ['院校水平'],
                 ['主管部门', '院校来历', '建校时间'],
                 ['招生电话', '院校地址'],
                 ['软科校排', '校硕点', '校博点'],
-                ['第四轮学科评估统计'],
-                ['第四轮学科评估结果'],
-                ['一流学科数量', '一流学科'],
-                // Dynamic rows will be added below
             ];
-            
             const handledKeys = new Set(layout.flat());
             let html = '';
 
@@ -270,7 +271,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 rates.forEach(key => handledKeys.add(key));
             }
 
-            const links = ['招生章程', '学校招生信息', '校园VR', '院校百科', '就业质量'];
+            const升本率Key = '23年升本率';
+            if (d[升本率Key]) {
+                html += `<p><strong>${升本率Key}:</strong> <span>${d[升本率Key]}</span></p>`;
+                handledKeys.add(升本率Key);
+            }
+            
+            const links = ['招生章程', '学校招生信息', '校园VR', '院校百科', '就业质量', '官网'];
             links.forEach(key => {
                 let value = d[key];
                 if (value) {
@@ -281,21 +288,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     handledKeys.add(key);
                 }
             });
-
             detailsContent.innerHTML = html;
+        }
+
+        function toggleAllNodes(shouldExpand) {
+             treeContainer.querySelectorAll('.nested').forEach(ul => ul.classList.toggle('active', shouldExpand));
+             treeContainer.querySelectorAll('.caret').forEach(caret => caret.classList.toggle('caret-down', shouldExpand));
         }
         
         groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
         queryButton.addEventListener('click', runQuery);
         searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
+        Object.values(filterUIs).forEach(container => {
+            const filterGroup = container.closest('.filter-group');
+            filterGroup.addEventListener('change', () => {
+                const hasSelection = filterGroup.querySelector('input:checked');
+                filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
+                runQuery();
+            });
+        });
         copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
         clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); });
+        expandCollapseSwitcher.addEventListener('change', e => toggleAllNodes(e.target.value === 'expand'));
 
         fetchData();
         updateUniOutputUI();
     }
     
-    // --- MAJORS TAB LOGIC (self-contained and unchanged) ---
+    // --- MAJORS TAB LOGIC (self-contained) ---
     function initializeMajorsTab() {
         const majorsTab = document.getElementById('majors-tab');
         if (majorsTab.dataset.initialized) return;
