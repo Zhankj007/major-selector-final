@@ -1,16 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- GLOBAL APP INITIALIZATION ---
     function initializeGlobal() {
         const versionInfo = document.getElementById('version-info');
-        
-        // --- CORE FIX: Use the document's last modified date ---
-        // This date is set by the Vercel server during deployment,
-        // accurately reflecting the last time the files were updated.
         const lastModified = new Date(document.lastModified);
-        
         const year = lastModified.getFullYear();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0');
-        const day = now.getDate().toString().padStart(2, '0');
+        const month = (lastModified.getMonth() + 1).toString().padStart(2, '0');
+        const day = lastModified.getDate().toString().padStart(2, '0');
         versionInfo.textContent = `v${year}${month}${day}`;
 
         const header = document.querySelector('.toolbox-header');
@@ -43,13 +37,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- KICKSTART THE APP ---
     initializeGlobal();
-    
+
     if (typeof window.initializeUniversitiesTab === 'function') {
         window.initializeUniversitiesTab();
     } else {
-        console.error("Fatal Error: initializeUniversitiesTab not found. universities.js might have failed to load or parse.");
-        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败，请检查脚本文件。</p>`;
+        console.error("Fatal Error: initializeUniversitiesTab not found.");
+        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
