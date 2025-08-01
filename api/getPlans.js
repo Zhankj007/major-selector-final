@@ -11,12 +11,11 @@ export default async function handler(request, response) {
 
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-        // For this initial test, we fetch the first 10 rows.
-        // Make sure your table name is 'plans'. If you named it '2025gkplans', change it here.
+        // --- CORE FIX: Using the correct table name '2025gkplans' ---
         const { data, error } = await supabase
-            .from('plans') // <--- 如果您的表名是 2025gkplans, 请在这里修改
+            .from('2025gkplans') // <--- 已修正为您正确的表名
             .select('*')
-            .limit(10);
+            .limit(10); // We still only fetch 10 rows for this test
 
         if (error) {
             throw new Error(`数据库查询失败: ${error.message}`);
