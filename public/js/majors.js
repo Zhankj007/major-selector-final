@@ -54,6 +54,8 @@ window.initializeMajorsTab = function() {
     let fullMajorData = null;
     let currentCatalogType = 'bachelor';
     let selectedMajors = new Map();
+    // VVV 新增的代码，创建一个全局的“信使”函数。 VVV
+    window.getSharedSelectedMajors = () => selectedMajors;
     const MAJOR_NAME_KEY = '专业名';
     const MAJOR_CODE_KEY = '专业码';
 
