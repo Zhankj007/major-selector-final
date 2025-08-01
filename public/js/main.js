@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // --- GLOBAL APP INITIALIZATION ---
     function initializeGlobal() {
         const versionInfo = document.getElementById('version-info');
-        const lastModified = new Date(document.lastModified);
-        const year = lastModified.getFullYear();
-        const month = (lastModified.getMonth() + 1).toString().padStart(2, '0');
-        const day = lastModified.getDate().toString().padStart(2, '0');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
         versionInfo.textContent = `v${year}${month}${day}`;
 
         const header = document.querySelector('.toolbox-header');
@@ -17,6 +18,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
+        function loadScript(src, callback) {
+            // Check if script already exists
+            if (document.querySelector(`script[src="${src}"]`)) {
+                if (callback) callback();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => { if (callback) callback(); };
+            script.onerror = () => console.error(`Failed to load script: ${src}`);
+            document.body.appendChild(script);
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetId = tab.dataset.tab;
@@ -28,8 +42,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     panel.classList.toggle('active', isActive);
 
                     if (isActive && !panel.dataset.initialized) {
+                        panel.dataset.initialized = 'true';
                         if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
                             window.initializeMajorsTab();
+                        }
+                        // NEW: Add logic to load the plans script
+                        if (targetId === 'plans' && typeof window.initializePlansTab === 'undefined') {
+                            loadScript('/js/plans.js', () => window.initializePlansTab && window.initializePlansTab());
                         }
                     }
                 });
@@ -37,12 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- KICKSTART THE APP ---
     initializeGlobal();
-
     if (typeof window.initializeUniversitiesTab === 'function') {
         window.initializeUniversitiesTab();
-    } else {
-        console.error("Fatal Error: initializeUniversitiesTab not found.");
-        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
