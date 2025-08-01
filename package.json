@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.44.4",
     "papaparse": "^5.4.1"
   }
 }
