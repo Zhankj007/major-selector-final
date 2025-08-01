@@ -7,34 +7,33 @@ window.initializePlansTab = function() {
         <div class="app-container">
             <div class="left-panel">
                 <div class="filter-controls" id="plans-filters-container">
-                    <details class="filter-group"><summary>科类</summary><div id="plans-type-filter" class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group"><summary>城市</summary><div id="plans-city-filter" class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group"><summary>选科</summary><div id="plans-subject-filter" class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group"><summary>院校水平</summary><div id="plans-level-filter" class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group"><summary>办学性质</summary><div id="plans-ownership-filter" class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group"><summary>本专科</summary><div id="plans-edu-level-filter" class="filter-options"><p>加载中...</p></div></details>
-                </div>
-                <div class="search-container" style="margin-top: 10px;">
-                    <input type="search" id="plans-uni-search" placeholder="院校名称关键字...">
-                </div>
-                <div class="search-container" style="margin-top: 10px;">
-                    <input type="search" id="plans-major-search" placeholder="专业名称关键字...">
-                    <button id="plans-paste-button" class="query-button" style="flex-shrink: 0;">复制意向</button>
-                </div>
-                <div style="display: flex; gap: 15px; margin: 10px 0;">
-                    <button id="plans-query-button" class="query-button" style="flex-grow: 1;">查询</button>
-                    <div class="switcher">
-                        <input type="radio" name="plans-view" value="tree" id="view-tree" checked><label for="view-tree">树状图</label>
-                        <input type="radio" name="plans-view" value="list" id="view-list"><label for="view-list">列表</label>
+                    </div>
+                <div class="plans-search-area">
+                    <div class="plans-search-row">
+                        <input type="search" id="plans-uni-search" placeholder="院校名称关键字...">
+                        <div class="switcher">
+                            <input type="radio" name="plans-view" value="tree" id="view-tree" checked><label for="view-tree">树状图</label>
+                            <input type="radio" name="plans-view" value="list" id="view-list"><label for="view-list">列表</label>
+                        </div>
+                    </div>
+                    <div class="plans-search-row">
+                        <textarea id="plans-major-search" placeholder="专业名称关键字..." rows="3"></textarea>
+                        <div class="button-stack">
+                            <button id="plans-paste-button" class="query-button">一键复制</button>
+                            <button id="plans-query-button" class="query-button">查询</button>
+                        </div>
                     </div>
                 </div>
-                <div id="plans-tree-container" class="major-tree-container"><p>请设置筛选条件后，点击“查询”。</p></div>
+                <div id="plans-tree-container" class="major-tree-container">
+                    <p>请设置筛选条件后，点击“查询”。</p>
+                </div>
             </div>
             <div class="right-panel">
                 <div id="plans-details-content" class="details-content"><p>悬停查看详情</p></div>
-                <div class="charts-area" style="display: flex; gap: 10px; flex-shrink: 0;">
-                     <div class="chart-container" style="width: 50%;" id="chart-container-left"><canvas id="plans-chart-left"></canvas></div>
-                     <div class="chart-container" style="width: 50%;" id="chart-container-right"><canvas id="plans-chart-right"></canvas></div>
+                <div class="charts-area">
+                     <div class="chart-container" id="chart-container-left">
+                        <canvas id="plans-chart-left"></canvas>
+                     </div>
                 </div>
                 <div class="output-container">
                     <div class="output-header">
@@ -47,11 +46,17 @@ window.initializePlansTab = function() {
                     <textarea id="plans-output-textarea" readonly></textarea>
                 </div>
             </div>
-        </div>`;
+        </div>
+    `;
+
+    const filterContainer = container.querySelector('#plans-filters-container');
+    const uniSearchInput = container.querySelector('#plans-uni-search');
+    const majorSearchTextarea = container.querySelector('#plans-major-search');
+    const pasteButton = container.querySelector('#plans-paste-button');
+    const queryButton = container.querySelector('#plans-query-button');
+    const treeContainer = container.querySelector('#plans-tree-container');
 
     let allPlansData = [];
-    const treeContainer = container.querySelector('#plans-tree-container');
-    const queryButton = container.querySelector('#plans-query-button');
 
     async function fetchDataAndBuildFilters() {
         try {
@@ -59,21 +64,66 @@ window.initializePlansTab = function() {
             if (!response.ok) throw new Error('无法获取初始化数据');
             allPlansData = await response.json();
             if(!allPlansData.length) throw new Error('初始化数据为空');
-            
-            // For now, we just confirm data is loaded. Filter UI build is complex and will be next.
-            treeContainer.innerHTML = `<p style="color:green;">✔ 成功从Supabase获取 ${allPlansData.length} 条计划数据！<br>下一步我们将构建筛选器和显示功能。</p>`;
+            buildFilterUI();
         } catch (error) {
             console.error(error);
-            treeContainer.innerHTML = `<p style="color:red">筛选器加载失败: ${error.message}</p>`;
+            filterContainer.innerHTML = `<p style="color:red">筛选器加载失败: ${error.message}</p>`;
         }
     }
-    
-    queryButton.addEventListener('click', fetchDataAndBuildFilters);
 
-    // Initial message
-    updateUniOutputUI();
-    function updateUniOutputUI() {
-        container.querySelector('#plans-copy-button').classList.add('disabled');
-        container.querySelector('#plans-clear-button').classList.add('disabled');
+    function buildFilterUI() {
+        const filters = {
+            '科类': { data: new Set() }, '城市': { type: 'complex_city' }, '选科': { type: 'complex_subject' },
+            '院校水平': { type: 'custom_level' }, '办学性质': { data: new Set() }, '本专科': { data: new Set() },
+        };
+        // ... (The rest of the complex filter generation will be added in the next phase)
+        filterContainer.innerHTML = Object.keys(filters).map(key => 
+            `<details class="filter-group"><summary>${key}</summary><div class="filter-options" id="filter-opts-${key.replace(/\s+/g, '-')}"><p>...</p></div></details>`
+        ).join('');
     }
+    
+    function updatePasteButtonState() {
+        if (typeof window.getSharedSelectedMajors === 'function') {
+            const selectedMajors = window.getSharedSelectedMajors();
+            pasteButton.classList.toggle('disabled', selectedMajors.size === 0);
+        } else {
+            pasteButton.classList.add('disabled');
+        }
+    }
+
+    pasteButton.addEventListener('click', () => {
+        if (typeof window.getSharedSelectedMajors === 'function') {
+            const selectedMajors = window.getSharedSelectedMajors();
+            const names = Array.from(selectedMajors.values()).map(major => major['专业名']);
+            majorSearchTextarea.value = names.join(' ');
+        }
+    });
+
+    queryButton.addEventListener('click', () => {
+        const uniKeyword = uniSearchInput.value.trim();
+        const majorKeywords = majorSearchTextarea.value.trim().split(/\s+/).filter(Boolean);
+        
+        const params = new URLSearchParams();
+        if (uniKeyword) params.append('uniKeyword', uniKeyword);
+        if (majorKeywords.length) params.append('majorKeywords', majorKeywords.join(','));
+
+        treeContainer.innerHTML = `<p>正在根据您的条件查询，请稍候...</p>`;
+        fetch(`/api/getPlans?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) throw new Error(data.error);
+                treeContainer.innerHTML = `查询到 ${data.length} 条结果。 (下一步将实现树状图渲染)`;
+                // In the next phase, we will call a renderTree function here.
+            })
+            .catch(err => {
+                treeContainer.innerHTML = `<p style="color:red;">查询失败: ${err.message}</p>`;
+            });
+    });
+
+    fetchDataAndBuildFilters();
+    // Check paste button state when this tab becomes active
+    new MutationObserver(() => {
+        if(container.classList.contains('active')) updatePasteButtonState();
+    }).observe(container, { attributes: true, attributeFilter: ['class']});
+    updatePasteButtonState();
 }
