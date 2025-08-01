@@ -18,19 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
-        function loadScript(src, callback) {
-            // Check if script already exists
-            if (document.querySelector(`script[src="${src}"]`)) {
-                if (callback) callback();
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = () => { if (callback) callback(); };
-            script.onerror = () => console.error(`Failed to load script: ${src}`);
-            document.body.appendChild(script);
-        }
-
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetId = tab.dataset.tab;
@@ -41,14 +28,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     const isActive = panel.id === `${targetId}-tab`;
                     panel.classList.toggle('active', isActive);
 
+                    // Initialize a tab's script only on the first time it's clicked
                     if (isActive && !panel.dataset.initialized) {
-                        panel.dataset.initialized = 'true';
                         if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
                             window.initializeMajorsTab();
                         }
-                        // NEW: Add logic to load the plans script
-                        if (targetId === 'plans' && typeof window.initializePlansTab === 'undefined') {
-                            loadScript('/js/plans.js', () => window.initializePlansTab && window.initializePlansTab());
+                        if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
+                            window.initializePlansTab();
                         }
                     }
                 });
@@ -58,7 +44,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- KICKSTART THE APP ---
     initializeGlobal();
+    
+    // Initialize the default active tab directly and safely
     if (typeof window.initializeUniversitiesTab === 'function') {
         window.initializeUniversitiesTab();
+    } else {
+        console.error("Fatal Error: initializeUniversitiesTab not found.");
+        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败，请检查/js/universities.js文件。</p>`;
     }
 });
