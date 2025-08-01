@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- GLOBAL APP INITIALIZATION ---
     function initializeGlobal() {
         const versionInfo = document.getElementById('version-info');
         const now = new Date();
@@ -28,11 +27,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     const isActive = panel.id === `${targetId}-tab`;
                     panel.classList.toggle('active', isActive);
 
-                    // Initialize a tab's script only on the first time it's clicked
                     if (isActive && !panel.dataset.initialized) {
                         if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
                             window.initializeMajorsTab();
                         }
+                        // NEW: Add logic for the plans tab
                         if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
                             window.initializePlansTab();
                         }
@@ -42,14 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- KICKSTART THE APP ---
     initializeGlobal();
     
-    // Initialize the default active tab directly and safely
     if (typeof window.initializeUniversitiesTab === 'function') {
         window.initializeUniversitiesTab();
     } else {
         console.error("Fatal Error: initializeUniversitiesTab not found.");
-        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败，请检查/js/universities.js文件。</p>`;
+        document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
