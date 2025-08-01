@@ -2,6 +2,7 @@
     --primary-color: #007bff; --border-color: #dee2e6;
     --background-light: #f8f9fa; --text-color: #212529;
     --button-disabled-bg: #adb5bd; --button-disabled-color: #f8f9fa;
+    --body-padding: 15px;
 }
 html, body {
     height: 100%;
@@ -10,7 +11,7 @@ html, body {
 }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 15px; background-color: #f0f2f5;
+    padding: var(--body-padding); background-color: #f0f2f5;
     color: var(--text-color); font-size: 14px;
     box-sizing: border-box;
 }
@@ -22,23 +23,39 @@ body {
 .toolbox-header .description { font-size: 14px; color: #555; margin: 8px 0 0; margin-left: 5px; }
 .title-version > .description { margin-left: 20px; }
 .tab-navigation { display: flex; gap: 5px; margin-top: 15px; margin-bottom: -1px; flex-shrink: 0; }
-.tab-button {
-    padding: 10px 20px; font-size: 16px; font-weight: 500;
-    border: 1px solid var(--border-color);
-    border-bottom: none; background-color: #f8f9fa; cursor: pointer;
-    border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out;
-}
+.tab-button { padding: 10px 20px; font-size: 16px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; }
 .tab-button.active { background-color: white; color: var(--primary-color); border-top: 3px solid var(--primary-color); padding-top: 8px;}
 .tab-content { background-color: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; }
 .tab-panel { display: none; width: 100%; }
 .tab-panel.active { display: flex; }
 .app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; width: 100%; }
 .left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
-.right-panel {
-    width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light);
-    overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box;
+.right-panel { width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light); overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box; }
+
+/* --- LAYOUT FIX & ISOLATION --- */
+/* Default layout for Tab 1 & 2 Right Panel */
+#universities-tab .right-panel .details-content, 
+#majors-tab .right-panel .details-content {
+    flex-grow: 1; /* Make details area expand */
 }
-.details-content { flex-grow: 1; }
+#universities-tab .right-panel .output-container, 
+#majors-tab .right-panel .output-container {
+    flex-shrink: 0; /* Prevent output from shrinking */
+}
+
+/* New layout SPECIFICALLY for Tab 3 Right Panel */
+#plans-tab .right-panel .details-content {
+    height: 40%; flex-shrink: 0; overflow-y: auto; padding-bottom: 10px;
+}
+#plans-tab .right-panel .bottom-panel {
+    height: 60%; display: flex; gap: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;
+}
+#plans-tab .right-panel .chart-area { width: 50%; height: 100%; flex-shrink: 0; }
+#plans-tab .right-panel .output-container { width: 50%; height: 100%; margin-top: 0; border-top: none; padding-top: 0; display: flex; flex-direction: column; }
+#plans-tab .right-panel .output-container textarea { flex-grow: 1; height: auto; }
+.chart-container { position: relative; height: 100%; width: 100%; }
+/* --- END FIX & ISOLATION --- */
+
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; }
@@ -78,39 +95,23 @@ li { padding: 4px 0; }
 .output-button { padding: 4px 12px; font-size: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
 .output-button:hover { background-color: #0056b3; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
-textarea { width: 100%; box-sizing: border-box; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
-.details-content p { margin: 0 0 10px 0; line-height: 1.6; word-break: break-word; }
+textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
+.details-content p { margin: 0 0 10px 0; line-height: 1.6; }
 .details-content p strong { display: inline-block; min-width: 85px; color: #333; font-weight: 600; vertical-align: top; white-space: nowrap; }
-.details-content p span { display: inline-block; width: calc(100% - 95px); }
+.details-content p span { display: inline-block; width: calc(100% - 95px); white-space: normal; overflow-wrap: break-word; }
 .details-content .compact-row-container { margin-bottom: 10px; line-height: 1.8; }
 .details-content .compact-row { display: inline-block; margin-right: 20px; white-space: nowrap; }
 .details-content a { color: var(--primary-color); text-decoration: none; }
 .details-content a:hover { text-decoration: underline; }
 .uni-label, .major-label, .plan-label { cursor: pointer; transition: background-color 0.2s; padding: 2px 4px; border-radius: 3px; }
 .uni-label:hover, .major-label:hover, .plan-label:hover { background-color: #e9f5ff; }
-
-/* --- Styles specifically for PLANS TAB --- */
-#plans-tab .plans-search-area { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; flex-shrink: 0; }
-#plans-tab .plans-search-row { display: flex; align-items: center; gap: 10px; }
-#plans-tab .plans-search-row input[type="search"] { width: 70%; flex-grow: 1; }
-#plans-tab .plans-search-row .switcher { flex-shrink: 0; }
-#plans-tab .plans-search-row textarea { width: 70%; flex-grow: 1; resize: vertical; font-size: 14px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
-#plans-tab .plans-search-row .button-stack { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
-#plans-tab .plans-search-row .button-stack button { width: 100%; box-sizing: border-box; }
-#plans-tab .right-panel .details-content { height: 40%; flex-shrink: 0; overflow-y: auto; padding-bottom: 10px; }
-#plans-tab .right-panel .bottom-panel { display: flex; gap: 15px; height: 60%; border-top: 1px solid var(--border-color); padding-top: 15px; }
-#plans-tab .right-panel .chart-area { width: 50%; height: 100%; }
-#plans-tab .right-panel .output-container { width: 50%; height: 100%; margin-top: 0; border-top: none; padding-top: 0; display: flex; flex-direction: column; }
-#plans-tab .right-panel .output-container textarea { flex-grow: 1; height: auto; }
-.chart-container { position: relative; height: 100%; width: 100%; }
-
 @media (max-width: 1024px) {
     body { overflow-y: auto; padding: 10px; }
     .toolbox-container { height: auto; }
     .app-container { flex-direction: column; }
     .left-panel, .right-panel { width: 100%; height: auto; max-height: none; }
     .right-panel { position: static; margin-top: 20px; }
-    .header-controls { flex-direction: column; align-items: stretch !important; }
+    #majors-tab .header-controls, #universities-tab .header-controls { flex-direction: column; align-items: stretch; }
     #plans-tab .right-panel .bottom-panel { flex-direction: column; height: auto; }
     #plans-tab .right-panel .chart-area, #plans-tab .right-panel .output-container { width: 100%; }
 }
