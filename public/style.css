@@ -20,44 +20,40 @@ body {
 .toolbox-header .title-version { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
 .toolbox-header h1 { font-size: 22px; margin: 0; color: #333; }
 #version-info { font-size: 12px; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 5px; }
-.toolbox-header .description { font-size: 14px; color: #555; margin: 8px 0 0; margin-left: 5px; }
+.toolbox-header .description { font-size: 14px; color: #555; margin: 0; padding-left: 10px; }
 .title-version > .description { margin-left: 20px; }
 .tab-navigation { display: flex; gap: 5px; margin-top: 15px; margin-bottom: -1px; flex-shrink: 0; }
-.tab-button { padding: 10px 20px; font-size: 16px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; }
+.tab-button {
+    padding: 10px 20px; font-size: 16px; font-weight: 500; border: 1px solid var(--border-color);
+    border-bottom: none; background-color: #f8f9fa; cursor: pointer;
+    border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out;
+}
 .tab-button.active { background-color: white; color: var(--primary-color); border-top: 3px solid var(--primary-color); padding-top: 8px;}
 .tab-content { background-color: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; }
 .tab-panel { display: none; width: 100%; }
 .tab-panel.active { display: flex; }
 .app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; width: 100%; }
 .left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
-.right-panel { width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light); overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box; }
-
-/* --- LAYOUT FIX & ISOLATION --- */
-/* Default layout for Tab 1 & 2 Right Panel */
-#universities-tab .right-panel .details-content, 
-#majors-tab .right-panel .details-content {
-    flex-grow: 1; /* Make details area expand */
-}
-#universities-tab .right-panel .output-container, 
-#majors-tab .right-panel .output-container {
-    flex-shrink: 0; /* Prevent output from shrinking */
+.right-panel {
+    width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light);
+    overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box;
 }
 
-/* New layout SPECIFICALLY for Tab 3 Right Panel */
-#plans-tab .right-panel .details-content {
-    height: 40%; flex-shrink: 0; overflow-y: auto; padding-bottom: 10px;
+/* --- LAYOUT ISOLATION --- */
+#universities-tab .details-content, 
+#majors-tab .details-content {
+    flex-grow: 1;
 }
-#plans-tab .right-panel .bottom-panel {
-    height: 60%; display: flex; gap: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;
-}
+
+#plans-tab .right-panel .details-content { height: 40%; flex-shrink: 0; overflow-y: auto; padding-bottom: 10px; }
+#plans-tab .right-panel .bottom-panel { display: flex; gap: 15px; height: 60%; border-top: 1px solid var(--border-color); padding-top: 15px; }
 #plans-tab .right-panel .chart-area { width: 50%; height: 100%; flex-shrink: 0; }
-#plans-tab .right-panel .output-container { width: 50%; height: 100%; margin-top: 0; border-top: none; padding-top: 0; display: flex; flex-direction: column; }
-#plans-tab .right-panel .output-container textarea { flex-grow: 1; height: auto; }
+#plans-tab .right-panel .output-container { width: 50%; height: 100%; }
 .chart-container { position: relative; height: 100%; width: 100%; }
-/* --- END FIX & ISOLATION --- */
+/* --- END LAYOUT ISOLATION --- */
 
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
-.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; }
 .filter-group summary { font-weight: 500; cursor: pointer; padding: 3px 20px 3px 5px; list-style: none; transition: all 0.2s; border-radius: 4px; }
 .filter-group summary.filter-active { background-color: var(--primary-color); color: white; }
@@ -79,6 +75,13 @@ body {
 .search-container input { flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
 .query-button { padding: 8px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .query-button:hover { background-color: #0056b3; }
+.plans-search-area { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; flex-shrink: 0; }
+.plans-search-row { display: flex; align-items: center; gap: 10px; }
+.plans-search-row input[type="search"] { flex-grow: 1; }
+.plans-search-row .switcher { flex-shrink: 0; }
+.plans-search-row textarea { flex-grow: 1; resize: vertical; font-size: 14px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+.plans-search-row .button-stack { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+.plans-search-row .button-stack button { width: 100%; box-sizing: border-box; }
 ul { list-style-type: none; padding-left: 20px; }
 li { padding: 4px 0; }
 .tree-label { cursor: pointer; user-select: none; transition: color 0.2s; }
@@ -95,7 +98,7 @@ li { padding: 4px 0; }
 .output-button { padding: 4px 12px; font-size: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
 .output-button:hover { background-color: #0056b3; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
-textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
+textarea { width: 100%; box-sizing: border-box; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
 .details-content p { margin: 0 0 10px 0; line-height: 1.6; }
 .details-content p strong { display: inline-block; min-width: 85px; color: #333; font-weight: 600; vertical-align: top; white-space: nowrap; }
 .details-content p span { display: inline-block; width: calc(100% - 95px); white-space: normal; overflow-wrap: break-word; }
@@ -111,7 +114,7 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .app-container { flex-direction: column; }
     .left-panel, .right-panel { width: 100%; height: auto; max-height: none; }
     .right-panel { position: static; margin-top: 20px; }
-    #majors-tab .header-controls, #universities-tab .header-controls { flex-direction: column; align-items: stretch; }
+    .header-controls { flex-direction: column; align-items: stretch !important; }
     #plans-tab .right-panel .bottom-panel { flex-direction: column; height: auto; }
     #plans-tab .right-panel .chart-area, #plans-tab .right-panel .output-container { width: 100%; }
 }
