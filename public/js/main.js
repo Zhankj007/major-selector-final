@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             window.initializeMajorsTab();
                         }
                         // NEW: Add logic for the plans tab
-                        if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
+                        else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
                             window.initializePlansTab();
                         }
                     }
@@ -50,3 +50,4 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
+
