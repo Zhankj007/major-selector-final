@@ -3,7 +3,7 @@ window.initializePlansTab = function() {
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
 
-    // 1. 注入新标签页的HTML结构
+    // 1. 注入新标签页的HTML结构 (已按新要求更新)
     plansTab.innerHTML = `
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
@@ -16,10 +16,19 @@ window.initializePlansTab = function() {
                     <select name="education-level"><option>本科</option></select>
                 </div>
 
-                <div class="plan-search-inputs">
-                    <input type="text" id="plan-uni-search" placeholder="院校名称关键字......">
-                    <input type="text" id="plan-major-search" placeholder="专业名称关键字 (可多个, 用空格分隔)">
-                    <button id="plan-query-button" class="query-button">查 询</button>
+                <div class="plan-controls">
+                    <input type="text" id="plan-uni-search" class="uni-input" placeholder="院校名称关键字">
+                    <input type="text" id="plan-major-search" class="major-input" placeholder="专业名称关键字 (可多个, 用空格分隔)">
+                    <div class="plan-button-group">
+                        <div class="switcher">
+                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
+                             <label for="view-tree">树状</label>
+                             <input type="radio" name="view-mode" value="list" id="view-list">
+                             <label for="view-list">列表</label>
+                        </div>
+                        <button id="plan-copy-selected-button" class="output-button">复制所选</button>
+                        <button id="plan-query-button" class="query-button">查 询</button>
+                    </div>
                 </div>
 
                 <div id="plan-tree-container" class="major-tree-container">
@@ -28,11 +37,17 @@ window.initializePlansTab = function() {
             </div>
 
             <div class="right-panel">
-                <div class="chart-display-area">
-                    图表展示区，高度占比约 30%
+                <div id="plan-details-content" class="plan-details-section">
+                    <h3>计划详情</h3>
+                    <div class="content-placeholder"><p>在此显示选中项的具体招生计划信息。</p></div>
+                </div>
+
+                <div id="plan-chart-area" class="plan-chart-section">
+                    <h3>图表展示</h3>
+                    <div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div>
                 </div>
                 
-                <div class="output-container">
+                <div id="plan-output-container" class="output-container">
                     <div class="output-header">
                         <h3>意向计划</h3>
                         <div class="button-group">
