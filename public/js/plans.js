@@ -3,18 +3,37 @@ window.initializePlansTab = function() {
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
 
-    // 1. 注入HTML结构 (无变化)
+    // 1. 注入完整的HTML结构
     plansTab.innerHTML = `
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
                 <div class="plan-filters">
-                    <details class="filter-group" id="filter-plan-type"><summary>科类</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-city"><summary>城市</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-subject"><summary>选科</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-uni-level"><summary>院校水平</summary><div class="filter-options"><p>...</p></div></details>
-                    <details class="filter-group" id="filter-ownership"><summary>办学性质</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-edu-level"><summary>本专科</summary><div class="filter-options"><p>加载中...</p></div></details>
+                    <details class="filter-group" id="filter-plan-type">
+                        <summary>科类</summary>
+                        <div class="filter-options"><p>加载中...</p></div>
+                    </details>
+                    <details class="filter-group" id="filter-city">
+                        <summary>城市</summary>
+                        <div class="filter-options"><p>加载中...</p></div>
+                    </details>
+                    <details class="filter-group" id="filter-subject">
+                        <summary>选科</summary>
+                        <div class="filter-options"><p>加载中...</p></div>
+                    </details>
+                    <details class="filter-group" id="filter-uni-level">
+                        <summary>院校水平</summary>
+                        <div class="filter-options"><p>...</p></div>
+                    </details>
+                     <details class="filter-group" id="filter-ownership">
+                        <summary>办学性质</summary>
+                        <div class="filter-options"><p>加载中...</p></div>
+                    </details>
+                     <details class="filter-group" id="filter-edu-level">
+                        <summary>本专科</summary>
+                        <div class="filter-options"><p>加载中...</p></div>
+                    </details>
                 </div>
+
                 <div class="plan-interactive-controls">
                     <div class="input-column">
                         <input type="text" id="plan-uni-search" placeholder="院校名称关键字">
@@ -24,16 +43,28 @@ window.initializePlansTab = function() {
                         <button id="plan-query-button" class="query-button">查 询</button>
                         <button id="plan-copy-selected-button" class="output-button">复制所选专业</button>
                         <div class="switcher">
-                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked><label for="view-tree">树状</label>
-                             <input type="radio" name="view-mode" value="list" id="view-list"><label for="view-list">列表</label>
+                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
+                             <label for="view-tree">树状</label>
+                             <input type="radio" name="view-mode" value="list" id="view-list">
+                             <label for="view-list">列表</label>
                         </div>
                     </div>
                 </div>
-                <div id="plan-tree-container" class="major-tree-container"><p>请设置筛选条件后, 点击“查询”。</p></div>
+
+                <div id="plan-tree-container" class="major-tree-container">
+                    <p>请设置筛选条件后, 点击“查询”。</p>
+                </div>
             </div>
+
             <div class="right-panel">
-                <div id="plan-details-content" class="plan-details-section"><h3>计划详情</h3><div class="content-placeholder"><p>在此显示选中项的具体招生计划信息。</p></div></div>
-                <div id="plan-chart-area" class="plan-chart-section"><h3>图表展示</h3><div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div></div>
+                <div id="plan-details-content" class="plan-details-section">
+                    <h3>计划详情</h3>
+                    <div class="content-placeholder"><p>在此显示选中项的具体招生计划信息。</p></div>
+                </div>
+                <div id="plan-chart-area" class="plan-chart-section">
+                    <h3>图表展示</h3>
+                    <div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div>
+                </div>
                 <div id="plan-output-container" class="output-container">
                     <div class="output-header">
                         <h3>意向计划</h3>
@@ -71,14 +102,14 @@ window.initializePlansTab = function() {
             allFilterOptions = await response.json();
             if (allFilterOptions.error) { throw new Error(allFilterOptions.error); }
 
-            // 1. 填充“科类”
+            // 填充“科类”
             const planTypeContainer = plansTab.querySelector('#filter-plan-type .filter-options');
             planTypeContainer.innerHTML = allFilterOptions.planTypes.map(o => `<label><input type="checkbox" name="planType" value="${o}"> ${o}</label>`).join('');
 
-            // 2. 填充“城市”
+            // 填充“城市”
             populateCityFilter();
 
-            // 3. 填充“选科”
+            // 填充“选科”
             const subjectContainer = plansTab.querySelector('#filter-subject .filter-options');
             let subjectHtml = '';
             for (const category in allFilterOptions.subjectTree) {
@@ -88,14 +119,14 @@ window.initializePlansTab = function() {
             }
             subjectContainer.innerHTML = `<ul>${subjectHtml}</ul>`;
 
-            // 4. 填充“院校水平”（硬编码）
+            // 填充“院校水平”（硬编码）
             plansTab.querySelector('#filter-uni-level .filter-options').innerHTML = '此功能下一步实现';
 
-            // 5. 填充“办学性质”
+            // 填充“办学性质”
             const ownershipContainer = plansTab.querySelector('#filter-ownership .filter-options');
             ownershipContainer.innerHTML = allFilterOptions.ownerships.map(o => `<label><input type="checkbox" name="ownership" value="${o}"> ${o}</label>`).join('');
 
-            // 6. 填充“本专科”
+            // 填充“本专科”
             const eduLevelContainer = plansTab.querySelector('#filter-edu-level .filter-options');
             eduLevelContainer.innerHTML = allFilterOptions.eduLevels.map(o => `<label><input type="checkbox" name="eduLevel" value="${o}"> ${o}</label>`).join('');
 
@@ -122,7 +153,6 @@ window.initializePlansTab = function() {
         for (const province of sortedProvinces) {
             const provinceData = allFilterOptions.provinceCityTree[province];
             const tiers_str = Array.from(provinceData.tier).join(',');
-            
             const sortedCities = provinceData.cities.sort((a, b) => {
                 const tierIndexA = cityTierOrder.indexOf(a.tier);
                 const tierIndexB = cityTierOrder.indexOf(b.tier);
@@ -142,13 +172,18 @@ window.initializePlansTab = function() {
         // **已修复的联动逻辑**
         container.querySelector('#city-tier-filter').addEventListener('change', () => {
             const checkedTiers = new Set(Array.from(container.querySelectorAll('input[name="cityTier"]:checked')).map(cb => cb.value));
-            container.querySelectorAll('#province-city-tree > li').forEach(li => {
-                // 如果一个省份没有任何评级信息（例如下属城市都没有评级），则只要有任意评级被选中，它就应该被隐藏。
-                const provinceTiers = li.dataset.provinceTiers ? li.dataset.provinceTiers.split(',') : [];
-                if(provinceTiers.length === 0){
+            
+            // 如果没有选中任何评级，则隐藏所有省份
+            if (checkedTiers.size === 0) {
+                 container.querySelectorAll('#province-city-tree > li').forEach(li => {
                     li.style.display = 'none';
-                    return;
-                }
+                });
+                return;
+            }
+
+            container.querySelectorAll('#province-city-tree > li').forEach(li => {
+                const provinceTiers = li.dataset.provinceTiers ? li.dataset.provinceTiers.split(',') : [];
+                // 关键修复：只要省份的评级中有一个和选中的评级匹配，就应该显示
                 const isVisible = provinceTiers.some(t => checkedTiers.has(t));
                 li.style.display = isVisible ? '' : 'none';
             });
