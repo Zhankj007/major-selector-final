@@ -94,5 +94,17 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .app-container { flex-direction: column; }
     .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; }
     .right-panel { position: static; margin-top: 20px; }
-    #majors-tab .header-controls { flex-direction: column; align-items: stretch; }
+    .header-controls { flex-direction: column; align-items: stretch; }
+}
+
+/* 新增：招生计划页面的特定样式 */
+.plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.plan-filters select { padding: 8px 12px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border-color); flex-grow: 1; }
+.plan-search-inputs { display: flex; gap: 8px; margin-bottom: 10px; }
+.plan-search-inputs input { flex-grow: 1; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;}
+.chart-display-area {
+    border: 1px dashed var(--border-color); border-radius: 8px;
+    padding: 20px; text-align: center; color: #6c757d;
+    height: 30%; min-height: 100px; margin-bottom: 20px; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
 }
