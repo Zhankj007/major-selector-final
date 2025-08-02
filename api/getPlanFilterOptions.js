@@ -1,36 +1,36 @@
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(request, response) {
+    // 始终将响应头设置放在最前面，确保即使出错也能正确返回UTF-8编码的JSON
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+
     try {
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-        const [
-            { data: planTypesData, error: e1 },
-            { data: cityData, error: e2 },
-            { data: subjectData, error: e3 },
-            { data: ownershipsData, error: e4 },
-            { data: eduLevelsData, error: e5 }
-        ] = await Promise.all([
-            supabase.from('2025gkplans').select('科类'),
-            supabase.from('2025gkplans').select('省份, 城市, 城市评级'),
-            supabase.from('2025gkplans').select('文理科归类, 25年选科要求'),
-            supabase.from('2025gkplans').select('办学性质'),
-            supabase.from('2025gkplans').select('本专科')
-        ]);
-
-        if (e1 || e2 || e3 || e4 || e5) {
-            throw new Error(e1?.message || e2?.message || e3?.message || e4?.message || e5?.message);
+        // 检查环境变量是否存在
+        if (!supabaseUrl || !supabaseAnonKey) {
+            throw new Error("服务器配置错误: 缺少Supabase环境变量。");
         }
 
-        // --- 数据处理与去重 (已加强) ---
-        const getUniqueSorted = (data, field) => [...new Set(data.map(item => item[field]?.trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'zh-CN'));
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-        const planTypes = getUniqueSorted(planTypesData, '科类');
-        const ownerships = getUniqueSorted(ownershipsData, '办学性质');
-        const eduLevels = getUniqueSorted(eduLevelsData, '本专科');
+        const { data, error } = await supabase.rpc('get_distinct_plan_options');
 
+        if (error) {
+            throw new Error(`数据库RPC调用错误: ${error.message}`);
+        }
+        
+        // 从返回的JSON中直接获取处理好的数据
+        const planTypes = data.plan_types || [];
+        const ownerships = data.ownerships || [];
+        const eduLevels = data.edu_levels || [];
+        const cityData = data.city_data || [];
+        const subjectData = data.subject_data || [];
+
+        // --- 数据处理 ---
+
+        // 城市评级自定义排序
         const tierOrder = ['一线', '新一线', '二线', '三线', '四线', '五线'];
         const uniqueCityTiers = [...new Set(cityData.map(item => item.城市评级).filter(Boolean))].sort((a, b) => {
             const indexA = tierOrder.indexOf(a);
@@ -49,10 +49,10 @@ export default async function handler(request, response) {
         }, {});
         
         Object.keys(provinceCityTree).forEach(province => {
-            provinceCityTree[province].cities = Array.from(provinceCityTree[province].cities.entries()).map(([name, data]) => ({ name, ...data }));
+            provinceCityTree[province].cities = Array.from(provinceCityTree[province].cities.entries()).map(([name, cityInfo]) => ({ name, ...cityInfo }));
         });
 
-        const subjectTree = subjectData.reduce((acc, { 文理科归类, '25年选科要求': req }) => {
+        const subjectTree = subjectData.reduce((acc, { 文理科归类, req }) => {
             if (!req) return acc;
             const category = 文理科归类?.trim() || '其他';
             if (!acc[category]) acc[category] = new Set();
@@ -66,15 +66,13 @@ export default async function handler(request, response) {
         Object.keys(subjectTree).forEach(cat => {
             subjectTree[cat] = [...subjectTree[cat]].sort();
         });
-
+        
         const options = { planTypes, cityTiers, provinceCityTree, subjectTree, ownerships, eduLevels };
         
-        response.setHeader('Content-Type', 'application/json; charset=utf-8');
         return response.status(200).json(options);
 
     } catch (error) {
         console.error("API Error (getPlanFilterOptions):", error);
-        response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        return response.status(500).json({ error: `处理筛选选项数据时发生错误: ${error.message}` });
+        return response.status(500).json({ error: `服务器内部错误: ${error.message}` });
     }
 }
