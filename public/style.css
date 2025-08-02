@@ -40,13 +40,8 @@ body {
     gap: 15px; /* 添加分区之间的间距 */
 }
 .details-content { flex-grow: 1; }
-/* 筛选器容器的统一命名 */
-.filter-controls, .plan-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-}
+.controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
+.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; background-color: #fff; }
 .filter-group summary { font-weight: 500; cursor: pointer; padding: 3px 20px 3px 5px; list-style: none; transition: all 0.2s; border-radius: 4px; }
 .filter-group summary.filter-active { background-color: var(--primary-color); color: white; }
@@ -121,7 +116,13 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .header-controls { flex-direction: column; align-items: stretch; }
 }
 
-/* --- 招生计划页面修改后的样式 --- */
+/* --- 招生计划页面特定样式 --- */
+.plan-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
 .plan-interactive-controls {
     display: flex;
     gap: 10px;
