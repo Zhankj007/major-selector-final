@@ -2,8 +2,6 @@ window.initializePlansTab = function() {
     const plansTab = document.getElementById('plans-tab');
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
-
-    // 1. 注入完整的HTML结构
     plansTab.innerHTML = `
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
@@ -47,8 +45,6 @@ window.initializePlansTab = function() {
             </div>
         </div>
     `;
-
-    // --- 2. 获取DOM元素引用 ---
     const uniSearchInput = plansTab.querySelector('#plan-uni-search');
     const majorSearchInput = plansTab.querySelector('#plan-major-search');
     const copyMajorButton = plansTab.querySelector('#plan-copy-selected-button');
@@ -58,11 +54,7 @@ window.initializePlansTab = function() {
     const planOutputTextarea = plansTab.querySelector('#plan-output-textarea');
     const planCopyButton = plansTab.querySelector('#plan-copy-button');
     const planClearButton = plansTab.querySelector('#plan-clear-button');
-
-    // --- 3. 状态与数据管理 ---
     let allFilterOptions = {};
-
-    // --- 4. 核心功能函数 ---
 
     async function populateFilters() {
         try {
@@ -129,16 +121,12 @@ window.initializePlansTab = function() {
         console.log("查询功能待实现...");
     }
 
-    // --- 5. 事件绑定与初始化 ---
-
-    // **已补全**：更新本页“意向计划”输出区的按钮状态
     function updatePlanOutputButtonsState() {
         const hasContent = planOutputTextarea.value.length > 0;
         planCopyButton.classList.toggle('disabled', !hasContent);
         planClearButton.classList.toggle('disabled', !hasContent);
     }
-
-    // **已补全**：更新“复制所选专业”按钮的状态（依赖于另一标签页）
+    
     function updateCopyMajorButtonState() {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
         const hasContent = majorOutputTextarea && majorOutputTextarea.value.length > 0;
@@ -148,7 +136,6 @@ window.initializePlansTab = function() {
     planOutputTextarea.addEventListener('input', updatePlanOutputButtonsState);
     setInterval(updateCopyMajorButtonState, 500);
 
-    // **已补全**：“复制所选专业”按钮的点击逻辑
     copyMajorButton.addEventListener('click', () => {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
         if (majorOutputTextarea && majorOutputTextarea.value) {
@@ -161,23 +148,26 @@ window.initializePlansTab = function() {
     
     filterContainer.addEventListener('click', e => {
         if (e.target.classList.contains('tree-label')) {
+            e.preventDefault(); // 阻止点击label时触发checkbox
             e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
             e.target.classList.toggle('caret-down');
-        } else if (e.target.classList.contains('parent-checkbox')) {
-             e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
-                child.checked = e.target.checked;
-             });
         }
     });
 
-    filterContainer.addEventListener('change', () => {
+    filterContainer.addEventListener('change', e => {
+        if (e.target.classList.contains('parent-checkbox')) {
+            const isChecked = e.target.checked;
+            e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
+                child.checked = isChecked;
+            });
+        }
+        
         filterContainer.querySelectorAll('.filter-group').forEach(group => {
             const hasSelection = group.querySelector('input:checked');
             group.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
         });
     });
 
-    // 初始化
     populateFilters();
     updatePlanOutputButtonsState();
     updateCopyMajorButtonState();
