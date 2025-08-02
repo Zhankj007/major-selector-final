@@ -80,9 +80,28 @@ li { padding: 4px 0; }
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 #uni-selection-counter, #major-selection-counter { color: var(--primary-color); font-weight: 600; margin-left: 8px; background-color: #e7f1ff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 .button-group { display: flex; gap: 8px; }
-.output-button { padding: 8px 12px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.output-button:hover { background-color: #5a6268; }
-.output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
+/* 启用状态下的按钮样式 */
+.output-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: var(--primary-color); /* 默认蓝色 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.output-button:hover {
+    background-color: #0056b3; /* 悬停时深蓝色 */
+}
+/* 禁用状态下的按钮样式 */
+.output-button.disabled {
+    background-color: var(--button-disabled-bg); /* 灰色 */
+    color: var(--button-disabled-color);
+    cursor: not-allowed;
+    pointer-events: none;
+}
 textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
 .details-content p { margin: 0 0 10px 0; line-height: 1.6; word-break: break-word; }
 .details-content p strong { display: inline-block; min-width: 85px; color: #333; font-weight: 600; vertical-align: top; white-space: nowrap; }
