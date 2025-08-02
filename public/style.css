@@ -101,12 +101,48 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
 .plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 .plan-filters select { padding: 8px 12px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border-color); flex-grow: 1; }
 
-.input-group { display: flex; gap: 10px; margin-bottom: 10px; }
-.input-group input { padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
-.input-group .uni-input { flex: 1 1 150px; }
-.input-group .major-input { flex: 2 1 250px; }
+/* 左侧交互区主容器 */
+.plan-interactive-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: stretch; /* 核心属性：让子元素（列）等高 */
+}
 
-.plan-button-group { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+/* 输入框列 */
+.input-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-grow: 1; /* 占据剩余主要空间 */
+}
+.input-column input, .input-column textarea {
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit; /* 继承body字体 */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    width: 100%;
+}
+.input-column textarea {
+    resize: vertical; /* 只允许垂直方向调整大小 */
+}
+
+/* 按钮列 */
+.button-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 垂直方向均匀分布 */
+    flex-shrink: 0; /* 防止按钮列被压缩 */
+    gap: 5px;
+}
+.button-column .query-button, .button-column .switcher, .button-column .output-button {
+    width: 100%; /* 让按钮宽度一致 */
+    box-sizing: border-box;
+    display: flex; /* 用于让switcher内部也居中 */
+    justify-content: center;
+}
 
 /* 右侧面板分区样式 */
 .plan-details-section, .plan-chart-section, #plan-output-container.output-container {
@@ -120,9 +156,9 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     flex-direction: column; /* 垂直排列标题和内容 */
 }
 
-#plan-details-content { flex: 4; } /* 40% 高度 */
-#plan-chart-area { flex: 3; } /* 30% 高度 */
-#plan-output-container { flex: 3; } /* 30% 高度 */
+#plan-details-content { flex: 40; } /* 40% 高度 */
+#plan-chart-area { flex: 35; } /* 35% 高度 */
+#plan-output-container { flex: 25; } /* 25% 高度 */
 
 .plan-details-section h3, .plan-chart-section h3 { margin: 0 0 10px 0; flex-shrink: 0; }
 .content-placeholder {
