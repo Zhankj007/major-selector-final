@@ -35,8 +35,9 @@ body {
 .app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; width: 100%; }
 .left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
 .right-panel {
-    width: 60%; flex-shrink: 0; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background-color: var(--background-light);
+    width: 60%; flex-shrink: 0;
     overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box;
+    gap: 15px; /* 添加分区之间的间距 */
 }
 .details-content { flex-grow: 1; }
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
@@ -59,7 +60,7 @@ body {
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 .search-container { display: flex; gap: 8px; flex-grow: 1; }
-.search-container input { flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
+.search-container input, .plan-controls input { flex-grow: 1; min-width: 150px; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
 .query-button { padding: 8px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .query-button:hover { background-color: #0056b3; }
 ul { list-style-type: none; padding-left: 20px; }
@@ -70,13 +71,13 @@ li { padding: 4px 0; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
-.output-container { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-shrink: 0; }
+.output-container { border-top: 1px solid var(--border-color); padding-top: 15px; flex-shrink: 0; }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 #uni-selection-counter, #major-selection-counter { color: var(--primary-color); font-weight: 600; margin-left: 8px; background-color: #e7f1ff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 .button-group { display: flex; gap: 8px; }
-.output-button { padding: 4px 12px; font-size: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
-.output-button:hover { background-color: #0056b3; }
+.output-button { padding: 8px 12px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.output-button:hover { background-color: #5a6268; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
 .details-content p { margin: 0 0 10px 0; line-height: 1.6; word-break: break-word; }
@@ -97,14 +98,38 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .header-controls { flex-direction: column; align-items: stretch; }
 }
 
-/* 新增：招生计划页面的特定样式 */
+/* --- 招生计划页面修改后的样式 --- */
 .plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 .plan-filters select { padding: 8px 12px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border-color); flex-grow: 1; }
-.plan-search-inputs { display: flex; gap: 8px; margin-bottom: 10px; }
-.plan-search-inputs input { flex-grow: 1; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;}
-.chart-display-area {
-    border: 1px dashed var(--border-color); border-radius: 8px;
-    padding: 20px; text-align: center; color: #6c757d;
-    height: 30%; min-height: 100px; margin-bottom: 20px; box-sizing: border-box;
-    display: flex; align-items: center; justify-content: center;
+
+.plan-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+.plan-controls .uni-input { flex: 1 1 150px; } /* 基础150px, 可伸缩 */
+.plan-controls .major-input { flex: 2 1 250px; } /* 占比更大, 基础250px, 可伸缩 */
+.plan-button-group { display: flex; gap: 8px; align-items: center; }
+.plan-button-group .switcher label { padding: 8px 12px; font-size: 14px; } /* 调整按钮大小与输入框对齐 */
+.plan-button-group .switcher { border-radius: 8px; }
+
+/* 右侧面板分区样式 */
+.plan-details-section, .plan-chart-section {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    background-color: var(--background-light);
+    flex-shrink: 0;
 }
+.plan-details-section h3, .plan-chart-section h3 { margin: 0 0 10px 0; }
+.content-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    color: #6c757d;
+}
+#plan-output-container.output-container {
+    border-top: none; /* 因为已有独立边框, 所以移除原有的上边框 */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    background-color: var(--background-light);
+}
+#plan-output-container .output-header { padding: 0; }
