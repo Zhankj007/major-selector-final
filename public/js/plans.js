@@ -8,32 +8,13 @@ window.initializePlansTab = function() {
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
                 <div class="plan-filters">
-                    <details class="filter-group" id="filter-plan-type">
-                        <summary>科类</summary>
-                        <div class="filter-options"><p>加载中...</p></div>
-                    </details>
-                    <details class="filter-group" id="filter-city">
-                        <summary>城市</summary>
-                        <div class="filter-options"><p>加载中...</p></div>
-                    </details>
-                    <details class="filter-group" id="filter-subject">
-                        <summary>选科</summary>
-                        <div class="filter-options"><p>加载中...</p></div>
-                    </details>
-                    <details class="filter-group" id="filter-uni-level">
-                        <summary>院校水平</summary>
-                        <div class="filter-options"><p>...</p></div>
-                    </details>
-                     <details class="filter-group" id="filter-ownership">
-                        <summary>办学性质</summary>
-                        <div class="filter-options"><p>加载中...</p></div>
-                    </details>
-                     <details class="filter-group" id="filter-edu-level">
-                        <summary>本专科</summary>
-                        <div class="filter-options"><p>加载中...</p></div>
-                    </details>
+                    <details class="filter-group" id="filter-plan-type"><summary>科类</summary><div class="filter-options"><p>加载中...</p></div></details>
+                    <details class="filter-group" id="filter-city"><summary>城市</summary><div class="filter-options"><p>加载中...</p></div></details>
+                    <details class="filter-group" id="filter-subject"><summary>选科</summary><div class="filter-options"><p>加载中...</p></div></details>
+                    <details class="filter-group" id="filter-uni-level"><summary>院校水平</summary><div class="filter-options"><p>...</p></div></details>
+                    <details class="filter-group" id="filter-ownership"><summary>办学性质</summary><div class="filter-options"><p>加载中...</p></div></details>
+                    <details class="filter-group" id="filter-edu-level"><summary>本专科</summary><div class="filter-options"><p>加载中...</p></div></details>
                 </div>
-
                 <div class="plan-interactive-controls">
                     <div class="input-column">
                         <input type="text" id="plan-uni-search" placeholder="院校名称关键字">
@@ -43,28 +24,16 @@ window.initializePlansTab = function() {
                         <button id="plan-query-button" class="query-button">查 询</button>
                         <button id="plan-copy-selected-button" class="output-button">复制所选专业</button>
                         <div class="switcher">
-                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
-                             <label for="view-tree">树状</label>
-                             <input type="radio" name="view-mode" value="list" id="view-list">
-                             <label for="view-list">列表</label>
+                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked><label for="view-tree">树状</label>
+                             <input type="radio" name="view-mode" value="list" id="view-list"><label for="view-list">列表</label>
                         </div>
                     </div>
                 </div>
-
-                <div id="plan-tree-container" class="major-tree-container">
-                    <p>请设置筛选条件后, 点击“查询”。</p>
-                </div>
+                <div id="plan-tree-container" class="major-tree-container"><p>请设置筛选条件后, 点击“查询”。</p></div>
             </div>
-
             <div class="right-panel">
-                <div id="plan-details-content" class="plan-details-section">
-                    <h3>计划详情</h3>
-                    <div class="content-placeholder"><p>在此显示选中项的具体招生计划信息。</p></div>
-                </div>
-                <div id="plan-chart-area" class="plan-chart-section">
-                    <h3>图表展示</h3>
-                    <div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div>
-                </div>
+                <div id="plan-details-content" class="plan-details-section"><h3>计划详情</h3><div class="content-placeholder"><p>在此显示选中项的具体招生计划信息。</p></div></div>
+                <div id="plan-chart-area" class="plan-chart-section"><h3>图表展示</h3><div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div></div>
                 <div id="plan-output-container" class="output-container">
                     <div class="output-header">
                         <h3>意向计划</h3>
@@ -102,34 +71,27 @@ window.initializePlansTab = function() {
             allFilterOptions = await response.json();
             if (allFilterOptions.error) { throw new Error(allFilterOptions.error); }
 
-            // 填充“科类”
             const planTypeContainer = plansTab.querySelector('#filter-plan-type .filter-options');
             planTypeContainer.innerHTML = allFilterOptions.planTypes.map(o => `<label><input type="checkbox" name="planType" value="${o}"> ${o}</label>`).join('');
-
-            // 填充“城市”
+            
             populateCityFilter();
-
-            // 填充“选科”
+            
             const subjectContainer = plansTab.querySelector('#filter-subject .filter-options');
             let subjectHtml = '';
             for (const category in allFilterOptions.subjectTree) {
-                subjectHtml += `<li><label><input type="checkbox" class="parent-checkbox"> <span class="caret tree-label">${category}</span></label><ul class="nested active">`;
+                subjectHtml += `<li><label><input type="checkbox" class="parent-checkbox"> <span class="caret tree-label">${category}</span></label><ul class="nested">`;
                 subjectHtml += allFilterOptions.subjectTree[category].map(req => `<li><label><input type="checkbox" name="subjectReq" value="${req}"> ${req}</label></li>`).join('');
                 subjectHtml += `</ul></li>`;
             }
             subjectContainer.innerHTML = `<ul>${subjectHtml}</ul>`;
-
-            // 填充“院校水平”（硬编码）
+            
             plansTab.querySelector('#filter-uni-level .filter-options').innerHTML = '此功能下一步实现';
-
-            // 填充“办学性质”
+            
             const ownershipContainer = plansTab.querySelector('#filter-ownership .filter-options');
             ownershipContainer.innerHTML = allFilterOptions.ownerships.map(o => `<label><input type="checkbox" name="ownership" value="${o}"> ${o}</label>`).join('');
-
-            // 填充“本专科”
+            
             const eduLevelContainer = plansTab.querySelector('#filter-edu-level .filter-options');
             eduLevelContainer.innerHTML = allFilterOptions.eduLevels.map(o => `<label><input type="checkbox" name="eduLevel" value="${o}"> ${o}</label>`).join('');
-
         } catch (error) {
             console.error("填充筛选器失败:", error);
             filterContainer.innerHTML = `<p style="color:red;">筛选器加载失败: ${error.message}</p>`;
@@ -138,66 +100,63 @@ window.initializePlansTab = function() {
     
     function populateCityFilter() {
         const container = plansTab.querySelector('#filter-city .filter-options');
-        if (!allFilterOptions.cityTiers || !allFilterOptions.provinceCityTree) {
+        if (!allFilterOptions.provinceCityTree) {
             container.innerHTML = `<p style="color:red;">城市数据加载不完整。</p>`;
             return;
         }
-        const cityTierOrder = allFilterOptions.cityTiers;
         
-        let cityHtml = '<div><strong>城市评级:</strong><div id="city-tier-filter" class="filter-options-group">';
-        cityHtml += cityTierOrder.map(tier => `<label><input type="checkbox" name="cityTier" value="${tier}" checked> ${tier}</label>`).join('');
-        cityHtml += '</div></div><hr><div><strong>省份/城市:</strong><ul id="province-city-tree">';
-
+        const tierOrder = ['一线', '新一线', '二线', '三线', '四线', '五线', '其他'];
+        let cityHtml = '<ul id="province-city-tree">';
         const sortedProvinces = Object.keys(allFilterOptions.provinceCityTree).sort((a, b) => a.localeCompare(b, 'zh-CN'));
 
         for (const province of sortedProvinces) {
             const provinceData = allFilterOptions.provinceCityTree[province];
-            const tiers_str = Array.from(provinceData.tier).join(',');
             const sortedCities = provinceData.cities.sort((a, b) => {
-                const tierIndexA = cityTierOrder.indexOf(a.tier);
-                const tierIndexB = cityTierOrder.indexOf(b.tier);
-                if (tierIndexA !== -1 && tierIndexB === -1) return -1;
-                if (tierIndexA === -1 && tierIndexB !== -1) return 1;
+                const tierIndexA = tierOrder.indexOf(a.tier);
+                const tierIndexB = tierOrder.indexOf(b.tier);
                 if (tierIndexA !== tierIndexB) return tierIndexA - tierIndexB;
                 return a.name.localeCompare(b.name, 'zh-CN');
             });
-
-            cityHtml += `<li data-province-tiers="${tiers_str}"><label><input type="checkbox" class="parent-checkbox"> <span class="caret tree-label">${province}</span></label><ul class="nested active">`;
-            cityHtml += sortedCities.map(city => `<li><label><input type="checkbox" name="city" value="${city.name}"> ${city.name} <small style="color:#888;">(${city.tier || '其他'})</small></label></li>`).join('');
+            cityHtml += `<li><label><input type="checkbox" class="parent-checkbox"> <span class="caret tree-label">${province}</span></label><ul class="nested">`;
+            cityHtml += sortedCities.map(city => `<li><label><input type="checkbox" name="city" value="${city.name}"> ${city.name} <small style="color:#888;">(${city.tier})</small></label></li>`).join('');
             cityHtml += `</ul></li>`;
         }
-        cityHtml += '</ul></div>';
+        cityHtml += '</ul>';
         container.innerHTML = cityHtml;
-
-        // **已修复的联动逻辑**
-        container.querySelector('#city-tier-filter').addEventListener('change', () => {
-            const checkedTiers = new Set(Array.from(container.querySelectorAll('input[name="cityTier"]:checked')).map(cb => cb.value));
-            
-            // 如果没有选中任何评级，则隐藏所有省份
-            if (checkedTiers.size === 0) {
-                 container.querySelectorAll('#province-city-tree > li').forEach(li => {
-                    li.style.display = 'none';
-                });
-                return;
-            }
-
-            container.querySelectorAll('#province-city-tree > li').forEach(li => {
-                const provinceTiers = li.dataset.provinceTiers ? li.dataset.provinceTiers.split(',') : [];
-                // 关键修复：只要省份的评级中有一个和选中的评级匹配，就应该显示
-                const isVisible = provinceTiers.some(t => checkedTiers.has(t));
-                li.style.display = isVisible ? '' : 'none';
-            });
-        });
     }
 
-    async function executeQuery() { /* ... */ }
+    async function executeQuery() {
+        console.log("查询功能待实现...");
+    }
 
     // --- 5. 事件绑定与初始化 ---
-    function updatePlanOutputButtonsState() { /* ... */ }
-    function updateCopyMajorButtonState() { /* ... */ }
+
+    // **已补全**：更新本页“意向计划”输出区的按钮状态
+    function updatePlanOutputButtonsState() {
+        const hasContent = planOutputTextarea.value.length > 0;
+        planCopyButton.classList.toggle('disabled', !hasContent);
+        planClearButton.classList.toggle('disabled', !hasContent);
+    }
+
+    // **已补全**：更新“复制所选专业”按钮的状态（依赖于另一标签页）
+    function updateCopyMajorButtonState() {
+        const majorOutputTextarea = document.querySelector('#major-output-textarea');
+        const hasContent = majorOutputTextarea && majorOutputTextarea.value.length > 0;
+        copyMajorButton.classList.toggle('disabled', !hasContent);
+    }
+
     planOutputTextarea.addEventListener('input', updatePlanOutputButtonsState);
     setInterval(updateCopyMajorButtonState, 500);
-    copyMajorButton.addEventListener('click', () => { /* ... */ });
+
+    // **已补全**：“复制所选专业”按钮的点击逻辑
+    copyMajorButton.addEventListener('click', () => {
+        const majorOutputTextarea = document.querySelector('#major-output-textarea');
+        if (majorOutputTextarea && majorOutputTextarea.value) {
+            majorSearchInput.value = majorOutputTextarea.value;
+            majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+    
     queryButton.addEventListener('click', executeQuery);
     
     filterContainer.addEventListener('click', e => {
