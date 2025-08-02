@@ -13,7 +13,6 @@ export default async function handler(request, response) {
 
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         
-        // 调用我们简化版的数据库函数
         const { data, error } = await supabase.rpc('get_distinct_plan_options');
 
         if (error) {
@@ -24,15 +23,15 @@ export default async function handler(request, response) {
             throw new Error("数据库函数没有返回有效数据。");
         }
 
-        // 注意：我们现在只处理 plan_types
+        // 现在处理 plan_types, ownerships, 和 edu_levels
         const options = {
             planTypes: data.plan_types || [],
+            ownerships: data.ownerships || [],
+            eduLevels: data.edu_levels || [],
             // 为其他选项提供空的默认值，防止前端JS出错
             cityTiers: [],
             provinceCityTree: {},
             subjectTree: {},
-            ownerships: [],
-            eduLevels: [],
         };
         
         return response.status(200).json(options);
