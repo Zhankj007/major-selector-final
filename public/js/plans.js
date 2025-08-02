@@ -3,7 +3,7 @@ window.initializePlansTab = function() {
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
 
-    // 1. 注入新标签页的HTML结构 (已按新要求更新)
+    // 1. 注入新标签页的HTML结构 (已按新要求重构)
     plansTab.innerHTML = `
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
@@ -16,20 +16,21 @@ window.initializePlansTab = function() {
                     <select name="education-level"><option>本科</option></select>
                 </div>
 
-                <div class="input-group">
-                    <input type="text" id="plan-uni-search" class="uni-input" placeholder="院校名称关键字">
-                    <input type="text" id="plan-major-search" class="major-input" placeholder="专业名称关键字 (可多个, 用空格分隔)">
-                </div>
-
-                <div class="plan-button-group">
-                    <div class="switcher">
-                         <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
-                         <label for="view-tree">树状</label>
-                         <input type="radio" name="view-mode" value="list" id="view-list">
-                         <label for="view-list">列表</label>
+                <div class="plan-interactive-controls">
+                    <div class="input-column">
+                        <input type="text" id="plan-uni-search" placeholder="院校名称关键字">
+                        <textarea id="plan-major-search" rows="3" placeholder="专业名称关键字 (可多个, 用空格分隔)"></textarea>
                     </div>
-                    <button id="plan-copy-selected-button" class="output-button">复制所选</button>
-                    <button id="plan-query-button" class="query-button">查 询</button>
+                    <div class="button-column">
+                        <button id="plan-query-button" class="query-button">查 询</button>
+                        <div class="switcher">
+                             <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
+                             <label for="view-tree">树状</label>
+                             <input type="radio" name="view-mode" value="list" id="view-list">
+                             <label for="view-list">列表</label>
+                        </div>
+                        <button id="plan-copy-selected-button" class="output-button">复制所选</button>
+                    </div>
                 </div>
 
                 <div id="plan-tree-container" class="major-tree-container">
