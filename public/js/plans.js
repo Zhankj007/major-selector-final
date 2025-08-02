@@ -3,7 +3,7 @@ window.initializePlansTab = function() {
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
 
-    // 1. 注入新标签页的HTML结构 (已按新要求重构)
+    // 1. 注入新标签页的HTML结构 (已更新按钮顺序)
     plansTab.innerHTML = `
         <div class="app-container" id="app-container-plans">
             <div class="left-panel">
@@ -23,13 +23,13 @@ window.initializePlansTab = function() {
                     </div>
                     <div class="button-column">
                         <button id="plan-query-button" class="query-button">查 询</button>
+                        <button id="plan-copy-selected-button" class="output-button">复制所选</button>
                         <div class="switcher">
                              <input type="radio" name="view-mode" value="tree" id="view-tree" checked>
                              <label for="view-tree">树状</label>
                              <input type="radio" name="view-mode" value="list" id="view-list">
                              <label for="view-list">列表</label>
                         </div>
-                        <button id="plan-copy-selected-button" class="output-button">复制所选</button>
                     </div>
                 </div>
 
