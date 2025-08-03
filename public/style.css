@@ -40,8 +40,13 @@ body {
     gap: 15px; /* 添加分区之间的间距 */
 }
 .details-content { flex-grow: 1; }
-.controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
-.filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+/* 筛选器容器的统一命名 */
+.filter-controls, .plan-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; background-color: #fff; }
 .filter-group summary { font-weight: 500; cursor: pointer; padding: 3px 20px 3px 5px; list-style: none; transition: all 0.2s; border-radius: 4px; }
 .filter-group summary.filter-active { background-color: var(--primary-color); color: white; }
@@ -116,7 +121,7 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .header-controls { flex-direction: column; align-items: stretch; }
 }
 
-/* --- 招生计划页面特定样式 --- */
+/* --- 招生计划页面修改后的样式 --- */
 .plan-filters {
     display: flex;
     flex-wrap: wrap;
@@ -182,9 +187,8 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 80px;
     color: #6c757d;
-    flex-grow: 1; /* 占满剩余空间 */
-    overflow-y: auto; /* 如果内容过多则滚动 */
 }
 #plan-output-container.output-container {
     border-top: none; /* 移除基类带来的上边框 */
@@ -193,3 +197,64 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
 }
 #plan-output-container .output-header { padding: 0; flex-shrink: 0; }
 #plan-output-container textarea { flex-grow: 1; }
+
+/* --- 新增：查询结果列表视图样式 --- */
+.plan-list-view {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+}
+.plan-list-view .list-header {
+    display: table-header-group;
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.plan-list-view .list-row {
+    display: table-row;
+    border-bottom: 1px solid #dee2e6;
+}
+.plan-list-view .list-row:hover {
+    background-color: #f1f3f5;
+}
+.plan-list-view .list-cell {
+    display: table-cell;
+    padding: 8px 10px;
+    vertical-align: middle;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.plan-list-view .list-cell input {
+    vertical-align: middle;
+}
+
+/* --- 新增：计划详情区域样式 --- */
+#plan-details-content .detail-group {
+    margin-bottom: 15px;
+}
+#plan-details-content .detail-group h4 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+#plan-details-content .detail-row {
+    display: flex;
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+#plan-details-content .detail-label {
+    flex-shrink: 0;
+    width: 90px;
+    font-weight: 600;
+    color: #333;
+}
+#plan-details-content .detail-value {
+    word-break: break-all;
+}
+#plan-details-content .detail-value a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+#plan-details-content .detail-value a:hover {
+    text-decoration: underline;
+}
