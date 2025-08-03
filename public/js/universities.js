@@ -55,19 +55,16 @@ window.initializeUniversitiesTab = function() {
             </div>
         </div>`;
 
-    // 2. Get references to the newly created elements, scoped to this tab's container
-    const groupBySwitcher = container.querySelector('input[name="uni-group-by"]')?.parentElement;
-    const expandCollapseSwitcher = container.querySelector('input[name="expand-collapse"]')?.parentElement;
+    // 2. Get references to the newly created elements
     const searchInput = container.querySelector('#uni-search-input');
     const queryButton = container.querySelector('#uni-query-button');
     const treeContainer = container.querySelector('#uni-tree-container');
-    const detailsContent = container.querySelector('#uni-details-content');
     const outputTextarea = container.querySelector('#uni-output-textarea');
     const copyButton = container.querySelector('#uni-copy-button');
     const clearButton = container.querySelector('#uni-clear-button');
-    const selectionCounter = container.querySelector('#uni-selection-counter');
     const filterUIs = { '院校水平': container.querySelector('#uni-level-filter'), '院校类型': container.querySelector('#uni-type-filter'), '城市评级': container.querySelector('#uni-city-tier-filter'), '办学性质': container.querySelector('#uni-ownership-filter'), '办学层次': container.querySelector('#uni-edu-level-filter') };
-    
+    const filterGroups = container.querySelectorAll('.filter-group');
+
     let allUniversities = [];
     let groupBy = 'region';
     let selectedUniversities = new Map();
@@ -84,7 +81,6 @@ window.initializeUniversitiesTab = function() {
             allUniversities = await response.json();
             if (!allUniversities || !allUniversities.length) throw new Error("获取的高校数据为空或格式错误。");
             generateFilterOptions();
-            runQuery();
         } catch (error) {
             console.error("高校数据加载失败:", error);
             treeContainer.innerHTML = `<p style="color:red;">数据加载失败: ${error.message}<br>请检查 /_data/universities.csv 文件是否存在且格式正确。</p>`;
@@ -92,17 +88,55 @@ window.initializeUniversitiesTab = function() {
     }
 
     function generateFilterOptions() {
+        // **定义自定义排序规则**
+        const cityTierOrder = ['一线', '新一线', '二线', '三线', '四线', '五线', '其他'];
+        const ownershipOrder = ['公办', '独立学院', '民办', '中外合作办学', '内地与港澳台地区合作办学', '境外高校海南办学'];
+        const eduLevelOrder = ['本科', '专科', '成人'];
+        const orderMap = {
+            '城市评级': cityTierOrder,
+            '办学性质': ownershipOrder,
+            '办学层次': eduLevelOrder
+        };
+
         const filters = { '院校水平': new Set(), '院校类型': new Set(), '城市评级': new Set(), '办学性质': new Set(), '办学层次': new Set() };
+        
+        // 提取所有选项
         allUniversities.forEach(uni => {
             if(!uni) return;
+            // 院校水平（多值）
             (uni['院校水平'] || '').split('/').forEach(level => level.trim() && filters['院校水平'].add(level.trim()));
-            Object.keys(filters).forEach(key => { if (key !== '院校水平' && uni[key]) filters[key].add(uni[key]); });
+            // 简单单值字段
+            ['院校类型', '办学性质', '办学层次'].forEach(key => {
+                if (uni[key]) filters[key].add(uni[key].trim());
+            });
+            // **城市评级特殊处理：空白或'其他'统一为'其他'**
+            const cityTier = uni['城市评级']?.trim();
+            filters['城市评级'].add(cityTier && cityTier !== '其他' ? cityTier : '其他');
         });
+        
+        // 渲染筛选器UI
         Object.entries(filters).forEach(([key, valueSet]) => {
             const uiContainer = filterUIs[key];
             if (!uiContainer) return;
-            const sortedValues = Array.from(valueSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+            
+            let sortedValues;
+            // **应用自定义排序或默认排序**
+            if (orderMap[key]) {
+                const order = orderMap[key];
+                sortedValues = Array.from(valueSet).sort((a, b) => {
+                    const indexA = order.indexOf(a);
+                    const indexB = order.indexOf(b);
+                    if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'zh-Hans-CN');
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
+            } else {
+                sortedValues = Array.from(valueSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+            }
+
             uiContainer.innerHTML = sortedValues.map(value => `<label><input type="checkbox" value="${value}"> ${value}</label>`).join('');
+            
             const filterGroup = uiContainer.closest('.filter-group');
             filterGroup.addEventListener('change', () => {
                 const hasSelection = filterGroup.querySelector('input:checked');
@@ -113,6 +147,7 @@ window.initializeUniversitiesTab = function() {
     }
 
     function runQuery() {
+        // ... (此函数无变化)
         const keyword = searchInput.value.trim().toLowerCase();
         const activeFilters = {};
         Object.keys(filterUIs).forEach(key => {
@@ -123,9 +158,7 @@ window.initializeUniversitiesTab = function() {
             const levelA = a['办学层次'] === '本科' ? 1 : 2;
             const levelB = b['办学层次'] === '本科' ? 1 : 2;
             if (levelA !== levelB) return levelA - levelB;
-            const codeA = a[UNI_CODE_KEY] || '999999';
-            const codeB = b[UNI_CODE_KEY] || '999999';
-            return String(codeA).localeCompare(String(codeB));
+            return String(a[UNI_CODE_KEY] || '999999').localeCompare(String(b[UNI_CODE_KEY] || '999999'));
         });
         let filteredList = sortedList.filter(uni => {
             if (!uni) return false;
@@ -134,13 +167,207 @@ window.initializeUniversitiesTab = function() {
                 if (key === '院校水平') {
                     const uniLevels = new Set((uni[key] || '').split('/').map(s => s.trim()));
                     if (![...valueSet].some(v => uniLevels.has(v))) return false;
+                } else if (key === '城市评级') {
+                    const uniTier = uni[key]?.trim() || '其他';
+                    if (!valueSet.has(uniTier)) return false;
                 } else { if (!valueSet.has(uni[key])) return false; }
             }
             return true;
         });
         renderUniversityTree(filteredList);
     }
+    
+    // ... (其他所有函数，如 buildHierarchy, renderUniversityTree, handleUniCheckboxChange 等均无变化)
 
+    // --- 4. Event Listeners & Initialization ---
+
+    // **新增：为筛选器添加悬停打开/关闭功能**
+    filterGroups.forEach(group => {
+        const details = group;
+        details.addEventListener('mouseenter', () => {
+            details.open = true;
+        });
+        details.addEventListener('mouseleave', () => {
+            details.open = false;
+        });
+    });
+
+    container.querySelector('input[name="uni-group-by"]')?.parentElement.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
+    queryButton.addEventListener('click', runQuery);
+    searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
+    container.querySelector('input[name="expand-collapse"]')?.parentElement.addEventListener('change', e => {
+        toggleAllNodes(e.target.value === "expand")
+    });
+    copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
+    clearButton.addEventListener('click', () => {
+        if (selectedUniversities.size === 0) return;
+        selectedUniversities.clear();
+        runQuery();
+        updateUniOutputUI();
+    });
+
+    fetchData();
+    updateUniOutputUI();
+    
+    // (此处省略所有未修改的函数定义，为确保您能直接使用，请见下方的完整版)
+}
+
+// **为确保万无一失，提供包含所有函数体的完整 universities.js 文件**
+window.initializeUniversitiesTab = function() {
+    const container = document.getElementById('universities-tab');
+    if (!container || container.dataset.initialized) return;
+    container.dataset.initialized = 'true';
+    container.innerHTML = `
+        <div class="app-container">
+            <div class="left-panel">
+                <div class="header-controls">
+                    <div class="switcher">
+                        <input type="radio" name="uni-group-by" value="region" id="group-by-region" checked>
+                        <label for="group-by-region">按地域</label>
+                        <input type="radio" name="uni-group-by" value="department" id="group-by-department">
+                        <label for="group-by-department">按主管部门</label>
+                    </div>
+                    <div class="search-container">
+                        <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
+                        <button id="uni-query-button" class="query-button">查询</button>
+                    </div>
+                </div>
+                <div class="controls-toolbar">
+                    <div class="filter-controls">
+                        <details class="filter-group"><summary>院校水平</summary><div id="uni-level-filter" class="filter-options"><p>加载中...</p></div></details>
+                        <details class="filter-group"><summary>院校类型</summary><div id="uni-type-filter" class="filter-options"><p>加载中...</p></div></details>
+                        <details class="filter-group"><summary>城市评级</summary><div id="uni-city-tier-filter" class="filter-options"><p>加载中...</p></div></details>
+                        <details class="filter-group"><summary>办学性质</summary><div id="uni-ownership-filter" class="filter-options"><p>加载中...</p></div></details>
+                        <details class="filter-group"><summary>办学层次</summary><div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div></details>
+                    </div>
+                    <div class="switcher-group">
+                         <div class="switcher">
+                            <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
+                            <label for="collapse-all">折叠</label>
+                            <input type="radio" name="expand-collapse" value="expand" id="expand-all">
+                            <label for="expand-all">展开</label>
+                        </div>
+                    </div>
+                </div>
+                <div id="uni-tree-container" class="major-tree-container"><p>请点击“查询”按钮开始。</p></div>
+            </div>
+            <div class="right-panel">
+                <h3>院校详情</h3>
+                <div id="uni-details-content" class="details-content"><p>请在左侧选择或查询院校...</p></div>
+                <div class="output-container">
+                    <div class="output-header">
+                        <h3>意向院校<span id="uni-selection-counter"></span></h3>
+                        <div class="button-group">
+                            <button id="uni-copy-button" class="output-button">复制</button>
+                            <button id="uni-clear-button" class="output-button">清空</button>
+                        </div>
+                    </div>
+                    <textarea id="uni-output-textarea" readonly placeholder="您勾选的院校将按选择顺序列在这里..."></textarea>
+                </div>
+            </div>
+        </div>`;
+    const groupBySwitcher = container.querySelector('input[name="uni-group-by"]')?.parentElement;
+    const expandCollapseSwitcher = container.querySelector('input[name="expand-collapse"]')?.parentElement;
+    const searchInput = container.querySelector('#uni-search-input');
+    const queryButton = container.querySelector('#uni-query-button');
+    const treeContainer = container.querySelector('#uni-tree-container');
+    const detailsContent = container.querySelector('#uni-details-content');
+    const outputTextarea = container.querySelector('#uni-output-textarea');
+    const copyButton = container.querySelector('#uni-copy-button');
+    const clearButton = container.querySelector('#uni-clear-button');
+    const selectionCounter = container.querySelector('#uni-selection-counter');
+    const filterUIs = { '院校水平': container.querySelector('#uni-level-filter'), '院校类型': container.querySelector('#uni-type-filter'), '城市评级': container.querySelector('#uni-city-tier-filter'), '办学性质': container.querySelector('#uni-ownership-filter'), '办学层次': container.querySelector('#uni-edu-level-filter') };
+    const filterGroups = container.querySelectorAll('.filter-group');
+    let allUniversities = [];
+    let groupBy = 'region';
+    let selectedUniversities = new Map();
+    const UNI_NAME_KEY = '院校名';
+    const UNI_CODE_KEY = '院校编码';
+    async function fetchData() {
+        try {
+            treeContainer.innerHTML="<p>正在加载高校数据...</p>";
+            const response = await fetch('/api/getUniversities');
+            if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
+            allUniversities = await response.json();
+            if (!allUniversities || !allUniversities.length) throw new Error("获取的高校数据为空或格式错误。");
+            generateFilterOptions();
+            runQuery();
+        } catch (error) {
+            console.error("高校数据加载失败:", error);
+            treeContainer.innerHTML = `<p style="color:red;">数据加载失败: ${error.message}<br>请检查 /_data/universities.csv 文件是否存在且格式正确。</p>`;
+        }
+    }
+    function generateFilterOptions() {
+        const cityTierOrder = ['一线', '新一线', '二线', '三线', '四线', '五线', '其他'];
+        const ownershipOrder = ['公办', '独立学院', '民办', '中外合作办学', '内地与港澳台地区合作办学', '境外高校海南办学'];
+        const eduLevelOrder = ['本科', '专科', '成人'];
+        const orderMap = {
+            '城市评级': cityTierOrder,
+            '办学性质': ownershipOrder,
+            '办学层次': eduLevelOrder
+        };
+        const filters = { '院校水平': new Set(), '院校类型': new Set(), '城市评级': new Set(), '办学性质': new Set(), '办学层次': new Set() };
+        allUniversities.forEach(uni => {
+            if (!uni) return;
+            (uni['院校水平'] || '').split('/').forEach(level => level.trim() && filters['院校水平'].add(level.trim()));
+            ['院校类型', '办学性质', '办学层次'].forEach(key => {
+                if (uni[key]) filters[key].add(uni[key].trim());
+            });
+            const cityTier = uni['城市评级']?.trim();
+            filters['城市评级'].add(cityTier && cityTier !== '其他' ? cityTier : '其他');
+        });
+        Object.entries(filters).forEach(([key, valueSet]) => {
+            const uiContainer = filterUIs[key];
+            if (!uiContainer) return;
+            let sortedValues;
+            if (orderMap[key]) {
+                const order = orderMap[key];
+                sortedValues = Array.from(valueSet).sort((a, b) => {
+                    const indexA = order.indexOf(a); const indexB = order.indexOf(b);
+                    if (indexA === -1 && indexB === -1) return a.localeCompare(b, 'zh-Hans-CN');
+                    if (indexA === -1) return 1; if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
+            } else {
+                sortedValues = Array.from(valueSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+            }
+            uiContainer.innerHTML = sortedValues.map(value => `<label><input type="checkbox" value="${value}"> ${value}</label>`).join('');
+            const filterGroup = uiContainer.closest('.filter-group');
+            filterGroup.addEventListener('change', () => {
+                const hasSelection = filterGroup.querySelector('input:checked');
+                filterGroup.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
+                runQuery();
+            });
+        });
+    }
+    function runQuery() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const activeFilters = {};
+        Object.keys(filterUIs).forEach(key => {
+            const checked = Array.from(filterUIs[key].querySelectorAll('input:checked')).map(cb => cb.value);
+            if (checked.length) activeFilters[key] = new Set(checked);
+        });
+        const sortedList = [...allUniversities].sort((a, b) => {
+            const levelA = a['办学层次'] === '本科' ? 1 : 2; const levelB = b['办学层次'] === '本科' ? 1 : 2;
+            if (levelA !== levelB) return levelA - levelB;
+            return String(a[UNI_CODE_KEY] || '999999').localeCompare(String(b[UNI_CODE_KEY] || '999999'));
+        });
+        let filteredList = sortedList.filter(uni => {
+            if (!uni) return false;
+            if (keyword && !(uni[UNI_NAME_KEY] || '').toLowerCase().includes(keyword)) return false;
+            for (const [key, valueSet] of Object.entries(activeFilters)) {
+                if (key === '院校水平') {
+                    const uniLevels = new Set((uni[key] || '').split('/').map(s => s.trim()));
+                    if (![...valueSet].some(v => uniLevels.has(v))) return false;
+                } else if (key === '城市评级') {
+                    const uniTier = uni[key]?.trim() || '其他';
+                    if (!valueSet.has(uniTier)) return false;
+                } else { if (!valueSet.has(uni[key])) return false; }
+            }
+            return true;
+        });
+        renderUniversityTree(filteredList);
+    }
     function buildHierarchy(list, key1, key2) {
         const hierarchy = {};
         list.forEach(item => {
@@ -153,7 +380,6 @@ window.initializeUniversitiesTab = function() {
         });
         return hierarchy;
     }
-
     function renderUniversityTree(list) {
         let hierarchy;
         if (groupBy === 'region') hierarchy = buildHierarchy(list, '省份', '城市');
@@ -180,13 +406,11 @@ window.initializeUniversitiesTab = function() {
         const expandValue = expandCollapseSwitcher.querySelector("input:checked").value;
         toggleAllNodes(expandValue === 'expand');
     }
-
     function renderUniLi(uni, liClass = 'level-3-li') {
         if (!uni || !uni[UNI_NAME_KEY]) return "";
         const details = btoa(encodeURIComponent(JSON.stringify(uni)));
         return `<li class="${liClass}" data-details="${details}"><input type="checkbox" value="${uni[UNI_NAME_KEY]}"><span class="uni-label">${uni[UNI_NAME_KEY]}</span></li>`;
     }
-    
     function attachUniEventListeners() {
         const tree = treeContainer.querySelector("#uni-tree");
         if (!tree) return;
@@ -197,7 +421,6 @@ window.initializeUniversitiesTab = function() {
         tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
         tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
     }
-
     function handleUniCheckboxChange(checkbox) {
         const currentLi = checkbox.closest("li");
         const isChecked = checkbox.checked;
@@ -206,7 +429,6 @@ window.initializeUniversitiesTab = function() {
         cascadeUniCheckboxVisuals(checkbox);
         updateUniOutputUI();
     }
-
     function updateUniOutputUI() {
         const names = Array.from(selectedUniversities.values()).map(uni => uni[UNI_NAME_KEY]);
         outputTextarea.value = names.join(" ");
@@ -215,12 +437,10 @@ window.initializeUniversitiesTab = function() {
         copyButton.classList.toggle("disabled", count === 0);
         clearButton.classList.toggle("disabled", count === 0);
     }
-
     function syncUniCheckboxesWithState() {
         treeContainer.querySelectorAll("li[data-details]").forEach(li => { const uniData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); li.querySelector("input").checked = selectedUniversities.has(uniData[UNI_CODE_KEY]) });
         treeContainer.querySelectorAll(".level-1-li, .level-2-li:not([data-details])").forEach(parentLi => { cascadeUniCheckboxVisuals(parentLi.querySelector(":scope > input[type=\"checkbox\"]")) });
     }
-
     function cascadeUniCheckboxVisuals(checkbox) {
         const currentLi = checkbox.closest("li"); const isChecked = checkbox.checked;
         currentLi.querySelectorAll(":scope > ul input[type=\"checkbox\"]").forEach(childCb => childCb.checked = isChecked);
@@ -237,7 +457,6 @@ window.initializeUniversitiesTab = function() {
             parentLi = parentLi.parentElement.closest("li");
         }
     }
-
     function showUniDetails(li) {
         if (!li || !li.dataset.details) return;
         const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
@@ -252,12 +471,17 @@ window.initializeUniversitiesTab = function() {
         links.forEach(key => { let value = d[key]; if (value) { if (typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) { value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>` } html += `<p><strong>${key}:</strong> <span>${value}</span></p>`; handledKeys.add(key) } });
         detailsContent.innerHTML = html;
     }
-
     function toggleAllNodes(shouldExpand) {
         treeContainer.querySelectorAll(".nested").forEach(ul => ul.classList.toggle("active", shouldExpand));
         treeContainer.querySelectorAll(".caret").forEach(caret => caret.classList.toggle("caret-down", shouldExpand));
     }
-
+    
+    filterGroups.forEach(group => {
+        const details = group;
+        details.addEventListener('mouseenter', () => { details.open = true; });
+        details.addEventListener('mouseleave', () => { details.open = false; });
+    });
+    
     groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
     queryButton.addEventListener('click', runQuery);
     searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
