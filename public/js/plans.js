@@ -308,10 +308,7 @@ window.initializePlansTab = function() {
             ${renderRow('专业简注:', plan.专业简注)}
         </div>`;
         html += `<div class="detail-group"><h4>历年情况</h4>
-            ${yearlyData('25')}
-            ${yearlyData('24')}
-            ${yearlyData('23')}
-            ${yearlyData('22')}
+            ${yearlyData('25')} ${yearlyData('24')} ${yearlyData('23')} ${yearlyData('22')}
         </div>`;
         html += `<div class="detail-group"><h4>院校实力</h4>
             ${renderRow('院校水平:', plan.院校水平或来历)}
@@ -405,8 +402,6 @@ window.initializePlansTab = function() {
         planClearButton.classList.toggle('disabled', !hasContent);
     }
 
-    // --- Event Listeners & Initialization ---
-    
     viewModeSwitcher.addEventListener('change', renderResults);
     queryButton.addEventListener('click', executeQuery);
     resultsContainer.addEventListener('change', e => {
@@ -416,6 +411,12 @@ window.initializePlansTab = function() {
             resultsContainer.querySelectorAll(`input[type="checkbox"][value="${CSS.escape(value)}"]`).forEach(cb => {
                 if (cb !== e.target) cb.checked = e.target.checked;
             });
+        }
+    });
+    resultsContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('tree-label')) {
+            e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
+            e.target.classList.toggle('caret-down');
         }
     });
     resultsContainer.addEventListener('mouseover', e => {
