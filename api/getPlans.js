@@ -24,6 +24,11 @@ export default async function handler(request, response) {
         const ownerships = getArray(searchParams.get('ownerships')); if (ownerships) query = query.in('办学性质', ownerships);
         const eduLevels = getArray(searchParams.get('eduLevels')); if (eduLevels) query = query.in('本专科', eduLevels);
 
+        const scoreLow = searchParams.get('scoreLow'); if (scoreLow) query = query.gte('25年分数线', parseInt(scoreLow, 10));
+        const scoreHigh = searchParams.get('scoreHigh'); if (scoreHigh) query = query.lte('25年分数线', parseInt(scoreHigh, 10));
+        const rankLow = searchParams.get('rankLow'); if (rankLow) query = query.gte('25年位次号', parseInt(rankLow, 10));
+        const rankHigh = searchParams.get('rankHigh'); if (rankHigh) query = query.lte('25年位次号', parseInt(rankHigh, 10));
+        
         const majorKeywords = getArray(searchParams.get('majorKeywords'));
         if (majorKeywords && majorKeywords.length > 0) {
             query = query.or(majorKeywords.map(kw => `专业名称.ilike.%${kw}%,专业简注.ilike.%${kw}%`).join(','));
