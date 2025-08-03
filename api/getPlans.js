@@ -16,7 +16,6 @@ export default async function handler(request, response) {
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
-        // **修改：增加count查询**
         let query = supabase.from('2025gkplans').select('*', { count: 'exact' });
 
         const uniKeyword = searchParams.get('uniKeyword'); if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
@@ -63,12 +62,10 @@ export default async function handler(request, response) {
             }
         }
         
-        // **修改：限制返回数量为1000**
         const { data, error, count } = await query.limit(1000);
 
         if (error) throw new Error(`数据库查询错误: ${error.message}`);
         
-        // **修改：返回数据和总数**
         return response.status(200).json({ data, count });
 
     } catch (error) {
