@@ -2,6 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 
 const getArray = (param) => param ? param.split(',') : null;
 
+// 定义所有“特殊”院校的判断条件，用于排除
+const SPECIAL_UNI_LEVEL_TERMS = [
+    'level:/985/', 'level:/211/', 'level:/双一流大学/',
+    'level:/基础学科拔尖/', 'level:/保研资格/',
+    'name:(省重点建设高校)|(省市共建重点高校)', 'owner:中外合作办学',
+    'level:高水平学校', 'level:高水平专业群'
+];
+
 export default async function handler(request, response) {
     try {
         const supabaseUrl = process.env.SUPABASE_URL;
@@ -10,54 +18,54 @@ export default async function handler(request, response) {
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
-        const uniKeyword = searchParams.get('uniKeyword');
-        const majorKeywords = getArray(searchParams.get('majorKeywords'));
-        const cities = getArray(searchParams.get('cities'));
-        const subjectReqs = getArray(searchParams.get('subjectReqs'));
-        const uniLevels = getArray(searchParams.get('uniLevels')); // 新的复杂参数
-        const ownerships = getArray(searchParams.get('ownerships'));
-        const eduLevels = getArray(searchParams.get('eduLevels'));
-        const planTypes = getArray(searchParams.get('planTypes'));
-
         let query = supabase.from('2025gkplans').select('*');
 
-        if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
-        if (planTypes) query = query.in('科类', planTypes);
-        if (cities) query = query.in('城市', cities);
-        if (ownerships) query = query.in('办学性质', ownerships);
-        if (eduLevels) query = query.in('本专科', eduLevels);
+        // --- Handle standard filters ---
+        const planTypes = getArray(searchParams.get('planTypes')); if (planTypes) query = query.in('科类', planTypes);
+        const cities = getArray(searchParams.get('cities')); if (cities) query = query.in('城市', cities);
+        const ownerships = getArray(searchParams.get('ownerships')); if (ownerships) query = query.in('办学性质', ownerships);
+        const eduLevels = getArray(searchParams.get('eduLevels')); if (eduLevels) query = query.in('本专科', eduLevels);
+        const uniKeyword = searchParams.get('uniKeyword'); if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
 
+        const majorKeywords = getArray(searchParams.get('majorKeywords'));
         if (majorKeywords && majorKeywords.length > 0) {
-            const orConditions = majorKeywords.map(kw => `专业名称.ilike.%${kw}%,专业简注.ilike.%${kw}%`).join(',');
-            query = query.or(orConditions);
+            query = query.or(majorKeywords.map(kw => `专业名称.ilike.%${kw}%,专业简注.ilike.%${kw}%`).join(','));
         }
+        const subjectReqs = getArray(searchParams.get('subjectReqs'));
         if (subjectReqs && subjectReqs.length > 0) {
-            const orConditions = subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(',');
-            query = query.or(orConditions);
+            query = query.or(subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(','));
         }
 
-        // **新增：处理复杂的“院校水平”筛选**
+        // --- Handle complex "uniLevels" filter ---
+        const uniLevels = getArray(searchParams.get('uniLevels'));
         if (uniLevels && uniLevels.length > 0) {
-            const levelOrs = [];
-            const nameOrs = [];
-            const ownerOrs = [];
+            const hasOtherUndergrad = uniLevels.includes('special:other_undergrad');
+            const positiveUniLevels = uniLevels.filter(l => l !== 'special:other_undergrad');
 
-            uniLevels.forEach(level => {
-                const [column, term] = level.split(':');
-                if (column === 'level') {
-                    levelOrs.push(`院校水平或来历.ilike.%${term}%`);
-                } else if (column === 'name') {
-                    // 处理 "term1|term2" 的情况
-                    const nameTerms = term.split('|');
-                    nameTerms.forEach(t => nameOrs.push(`院校名称.ilike.%${t}%`));
-                } else if (column === 'owner') {
-                    ownerOrs.push(`办学性质.eq.${term}`);
+            if (hasOtherUndergrad) {
+                // 如果勾选了“非上述”，则执行排除法
+                query = query.eq('本专科', '本科');
+                const negativeOrs = [];
+                SPECIAL_UNI_LEVEL_TERMS.forEach(level => {
+                    const [column, term] = level.split(/:(.*)/s); // 分割列和条件
+                    if (column === 'level') negativeOrs.push(`院校水平或来历.ilike.%${term}%`);
+                    else if (column === 'name') term.split('|').forEach(t => negativeOrs.push(`院校名称.ilike.%${t}%`));
+                    else if (column === 'owner') negativeOrs.push(`办学性质.eq.${term}`);
+                });
+                query = query.not.or(negativeOrs.join(','));
+
+            } else if (positiveUniLevels.length > 0) {
+                // 否则，执行常规的“或”查询
+                const positiveOrs = [];
+                positiveUniLevels.forEach(level => {
+                    const [column, term] = level.split(/:(.*)/s);
+                    if (column === 'level') positiveOrs.push(`院校水平或来历.ilike.%${term}%`);
+                    else if (column === 'name') term.split('|').forEach(t => positiveOrs.push(`院校名称.ilike.%${t}%`));
+                    else if (column === 'owner') positiveOrs.push(`办学性质.eq.${term}`);
+                });
+                if (positiveOrs.length > 0) {
+                    query = query.or(positiveOrs.join(','));
                 }
-            });
-            
-            const allOrConditions = [...levelOrs, ...nameOrs, ...ownerOrs].join(',');
-            if(allOrConditions) {
-                query = query.or(allOrConditions);
             }
         }
         
