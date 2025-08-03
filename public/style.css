@@ -3,17 +3,8 @@
     --background-light: #f8f9fa; --text-color: #212529;
     --button-disabled-bg: #adb5bd; --button-disabled-color: #f8f9fa;
 }
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-}
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 15px; background-color: #f0f2f5;
-    color: var(--text-color); font-size: 14px;
-    box-sizing: border-box;
-}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 15px; background-color: #f0f2f5; color: var(--text-color); font-size: 14px; box-sizing: border-box; }
 .toolbox-container { display: flex; flex-direction: column; height: 100%; max-width: none; }
 .toolbox-header { background-color: white; padding: 15px 25px; border-radius: 8px; border: 1px solid var(--border-color); flex-shrink: 0; }
 .toolbox-header .title-version { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
@@ -22,12 +13,7 @@ body {
 .toolbox-header .description { font-size: 14px; color: #555; margin: 8px 0 0; margin-left: 5px; }
 .title-version > .description { margin-left: 20px; }
 .tab-navigation { display: flex; gap: 5px; margin-top: 15px; margin-bottom: -1px; flex-shrink: 0; }
-.tab-button {
-    padding: 10px 20px; font-size: 16px; font-weight: 500;
-    border: 1px solid var(--border-color);
-    border-bottom: none; background-color: #f8f9fa; cursor: pointer;
-    border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out;
-}
+.tab-button { padding: 10px 20px; font-size: 16px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; }
 .tab-button.active { background-color: white; color: var(--primary-color); border-top: 3px solid var(--primary-color); padding-top: 8px;}
 .tab-content { background-color: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; }
 .tab-panel { display: none; width: 100%; }
@@ -48,7 +34,7 @@ body {
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
 .major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow: auto; flex-grow: 1; min-height: 200px; position: relative; }
-.header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; flex-shrink: 0; margin-bottom: 10px; }
+.header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
@@ -84,9 +70,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .details-content a { color: var(--primary-color); text-decoration: none; }
 .details-content a:hover { text-decoration: underline; }
 @media (max-width: 1024px) { body { overflow-y: auto; padding: 10px; } .toolbox-container { height: auto; } .app-container { flex-direction: column; } .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } .right-panel { position: static; margin-top: 20px; } .header-controls { flex-direction: column; align-items: stretch; } }
-
-/* --- 招生计划页面样式 --- */
-.plan-filters { flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 .plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; }
 .input-column { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
 .input-column input, .input-column textarea { padding: 8px 12px; font-size: 14px; font-family: inherit; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; width: 100%; }
@@ -94,7 +78,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .button-column { display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; gap: 5px; }
 .button-column .query-button, .button-column .switcher, .button-column .output-button { width: 100%; box-sizing: border-box; display: flex; justify-content: center; }
 .plan-details-section, .plan-chart-section, #plan-output-container.output-container { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; background-color: var(--background-light); flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
-#plan-details-content { flex: 40; }
+#plan-details-content { flex: 40; overflow-y: auto; /* **修复3：添加滚动条** */ }
 #plan-chart-area { flex: 35; }
 #plan-output-container { flex: 25; }
 .plan-details-section h3, .plan-chart-section h3 { margin: 0 0 10px 0; flex-shrink: 0; }
@@ -102,11 +86,9 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 #plan-output-container.output-container { border-top: none; border: 1px solid var(--border-color); padding-top: 15px; }
 #plan-output-container .output-header { padding: 0; }
 #query-results-message { color: var(--primary-color); margin-bottom: 10px; font-weight: 500; }
-
-/* --- 新增：查询结果列表视图样式 (含粘性布局) --- */
 .plan-list-view { display: table; width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .plan-list-view .list-header { display: table-header-group; font-weight: 600; }
-.plan-list-view .list-header .list-cell { background-color: #f8f9fa; position: sticky; top: -1px; /* 微调防止被容器border遮挡 */ z-index: 2; }
+.plan-list-view .list-header .list-cell { background-color: #f8f9fa; position: sticky; top: -1px; z-index: 2; }
 .plan-list-view .list-body { display: table-row-group; }
 .plan-list-view .list-row { display: table-row; }
 .plan-list-view .list-row:hover .list-cell { background-color: #f1f3f5; }
@@ -116,12 +98,10 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .plan-list-view .list-row:hover .list-cell:first-child, .plan-list-view .list-row:hover .list-cell:nth-child(2) { background-color: #f1f3f5; }
 .plan-list-view .list-header .list-cell:first-child, .plan-list-view .list-header .list-cell:nth-child(2) { z-index: 3; }
 .plan-list-view .list-header .list-cell:first-child { z-index: 4; }
-.plan-list-view .list-cell:nth-child(2) { left: 50px; } /* 手动设置第二列的粘性偏移 */
+.plan-list-view .list-cell:nth-child(2) { left: 50px; }
 .plan-list-view .list-cell.col-select { width: 50px; }
 .plan-list-view .list-cell.col-uni-major { width: 250px; white-space: normal; word-break: break-all; }
 .plan-list-view .list-cell.col-notes { width: 200px; white-space: normal; word-break: break-all; }
-
-/* --- 新增：计划详情区域紧凑样式 --- */
 #plan-details-content .detail-group { margin-bottom: 10px; }
 #plan-details-content .detail-group h4 { margin: 0 0 8px 0; font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
 #plan-details-content .detail-row, #plan-details-content .detail-item { display: flex; margin-bottom: 2px; line-height: 1.5; font-size: 13px; }
