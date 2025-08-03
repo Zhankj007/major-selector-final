@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Helper to safely get array from query params
 const getArray = (param) => param ? param.split(',') : null;
 
 export default async function handler(request, response) {
@@ -11,25 +10,19 @@ export default async function handler(request, response) {
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
-        // --- 1. 获取所有可能的筛选参数 ---
         const uniKeyword = searchParams.get('uniKeyword');
         const majorKeywords = getArray(searchParams.get('majorKeywords'));
-        const cityTiers = getArray(searchParams.get('cityTiers'));
         const cities = getArray(searchParams.get('cities'));
         const subjectReqs = getArray(searchParams.get('subjectReqs'));
-        const uniLevels = getArray(searchParams.get('uniLevels'));
+        const uniLevels = getArray(searchParams.get('uniLevels')); // 新的复杂参数
         const ownerships = getArray(searchParams.get('ownerships'));
         const eduLevels = getArray(searchParams.get('eduLevels'));
         const planTypes = getArray(searchParams.get('planTypes'));
 
-        // --- 2. 构建基础查询 ---
-        // 注意：这里的表名 '2025gkplans' 是根据您之前的信息来的，如果不同请修改
         let query = supabase.from('2025gkplans').select('*');
 
-        // --- 3. 根据参数动态添加筛选条件 ---
         if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
         if (planTypes) query = query.in('科类', planTypes);
-        if (cityTiers) query = query.in('城市评级', cityTiers);
         if (cities) query = query.in('城市', cities);
         if (ownerships) query = query.in('办学性质', ownerships);
         if (eduLevels) query = query.in('本专科', eduLevels);
@@ -42,12 +35,32 @@ export default async function handler(request, response) {
             const orConditions = subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(',');
             query = query.or(orConditions);
         }
+
+        // **新增：处理复杂的“院校水平”筛选**
         if (uniLevels && uniLevels.length > 0) {
-            const orConditions = uniLevels.map(level => `院校水平或来历.ilike.%${level}%`).join(',');
-            query = query.or(orConditions);
+            const levelOrs = [];
+            const nameOrs = [];
+            const ownerOrs = [];
+
+            uniLevels.forEach(level => {
+                const [column, term] = level.split(':');
+                if (column === 'level') {
+                    levelOrs.push(`院校水平或来历.ilike.%${term}%`);
+                } else if (column === 'name') {
+                    // 处理 "term1|term2" 的情况
+                    const nameTerms = term.split('|');
+                    nameTerms.forEach(t => nameOrs.push(`院校名称.ilike.%${t}%`));
+                } else if (column === 'owner') {
+                    ownerOrs.push(`办学性质.eq.${term}`);
+                }
+            });
+            
+            const allOrConditions = [...levelOrs, ...nameOrs, ...ownerOrs].join(',');
+            if(allOrConditions) {
+                query = query.or(allOrConditions);
+            }
         }
         
-        // --- 4. 执行查询，并限制返回数量 ---
         const { data, error } = await query.limit(500);
 
         if (error) throw new Error(`数据库查询错误: ${error.message}`);
