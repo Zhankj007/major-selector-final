@@ -56,7 +56,7 @@ body {
 .filter-group[open] summary::after { content: ' ▲'; }
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
-.major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow-y: auto; flex-grow: 1; min-height: 200px; }
+.major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow-y: auto; flex-grow: 1; min-height: 200px; position: relative; }
 .header-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls h2 { margin: 0; flex-shrink: 0; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
@@ -80,28 +80,9 @@ li { padding: 4px 0; }
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 #uni-selection-counter, #major-selection-counter { color: var(--primary-color); font-weight: 600; margin-left: 8px; background-color: #e7f1ff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 .button-group { display: flex; gap: 8px; }
-/* 启用状态下的按钮样式 */
-.output-button {
-    padding: 8px 12px;
-    font-size: 14px;
-    background-color: var(--primary-color); /* 默认蓝色 */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-}
-.output-button:hover {
-    background-color: #0056b3; /* 悬停时深蓝色 */
-}
-/* 禁用状态下的按钮样式 */
-.output-button.disabled {
-    background-color: var(--button-disabled-bg); /* 灰色 */
-    color: var(--button-disabled-color);
-    cursor: not-allowed;
-    pointer-events: none;
-}
+.output-button { padding: 8px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.output-button:hover { background-color: #0056b3; }
+.output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); }
 .details-content p { margin: 0 0 10px 0; line-height: 1.6; word-break: break-word; }
 .details-content p strong { display: inline-block; min-width: 85px; color: #333; font-weight: 600; vertical-align: top; white-space: nowrap; }
@@ -121,140 +102,46 @@ textarea { width: 100%; box-sizing: border-box; height: 120px; font-size: 13px; 
     .header-controls { flex-direction: column; align-items: stretch; }
 }
 
-/* --- 招生计划页面修改后的样式 --- */
-.plan-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-.plan-interactive-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: stretch; /* 核心属性：让子元素（列）等高 */
-}
-.input-column {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex-grow: 1; /* 占据剩余主要空间 */
-}
-.input-column input, .input-column textarea {
-    padding: 8px 12px;
-    font-size: 14px;
-    font-family: inherit; /* 继承body字体 */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-sizing: border-box;
-    width: 100%;
-}
-.input-column textarea {
-    resize: vertical; /* 只允许垂直方向调整大小 */
-}
-.button-column {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* 垂直方向均匀分布 */
-    flex-shrink: 0; /* 防止按钮列被压缩 */
-    gap: 5px;
-}
-.button-column .query-button, .button-column .switcher, .button-column .output-button {
-    width: 100%; /* 让按钮宽度一致 */
-    box-sizing: border-box;
-    display: flex; /* 用于让switcher内部也居中 */
-    justify-content: center;
-}
-
-/* 右侧面板分区样式 */
-.plan-details-section, .plan-chart-section, #plan-output-container.output-container {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 15px;
-    background-color: var(--background-light);
-    flex-shrink: 1;
-    min-height: 0; /* 允许flex项目收缩，防止内容溢出破坏布局 */
-    display: flex; /* 让区域本身也成为flex容器 */
-    flex-direction: column; /* 垂直排列标题和内容 */
-}
-
-#plan-details-content { flex: 40; } /* 40% 高度 */
-#plan-chart-area { flex: 35; } /* 35% 高度 */
-#plan-output-container { flex: 25; } /* 25% 高度 */
-
+/* --- 招生计划页面样式 --- */
+.plan-filters { flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+.plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; }
+.input-column { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
+.input-column input, .input-column textarea { padding: 8px 12px; font-size: 14px; font-family: inherit; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; width: 100%; }
+.input-column textarea { resize: vertical; }
+.button-column { display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; gap: 5px; }
+.button-column .query-button, .button-column .switcher, .button-column .output-button { width: 100%; box-sizing: border-box; display: flex; justify-content: center; }
+.plan-details-section, .plan-chart-section, #plan-output-container.output-container { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; background-color: var(--background-light); flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
+#plan-details-content { flex: 40; }
+#plan-chart-area { flex: 35; }
+#plan-output-container { flex: 25; }
 .plan-details-section h3, .plan-chart-section h3 { margin: 0 0 10px 0; flex-shrink: 0; }
-.content-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 80px;
-    color: #6c757d;
-}
-#plan-output-container.output-container {
-    border-top: none; /* 移除基类带来的上边框 */
-    border: 1px solid var(--border-color); /* 确保边框统一 */
-    padding-top: 15px; /* 恢复内边距 */
-}
-#plan-output-container .output-header { padding: 0; flex-shrink: 0; }
+.content-placeholder { display: flex; align-items: center; justify-content: center; min-height: 80px; color: #6c757d; }
+#plan-output-container.output-container { border-top: none; border: 1px solid var(--border-color); padding-top: 15px; }
+#plan-output-container .output-header { padding: 0; }
 #plan-output-container textarea { flex-grow: 1; }
-
-/* --- 新增：查询结果列表视图样式 --- */
-.plan-list-view {
-    display: table;
-    width: 100%;
-    border-collapse: collapse;
-}
-.plan-list-view .list-header {
-    display: table-header-group;
-    background-color: #f8f9fa;
-    font-weight: 600;
-}
-.plan-list-view .list-row {
-    display: table-row;
-    border-bottom: 1px solid #dee2e6;
-}
-.plan-list-view .list-row:hover {
-    background-color: #f1f3f5;
-}
-.plan-list-view .list-cell {
-    display: table-cell;
-    padding: 8px 10px;
-    vertical-align: middle;
-    font-size: 13px;
-    white-space: nowrap;
-}
-.plan-list-view .list-cell input {
-    vertical-align: middle;
-}
-
-/* --- 新增：计划详情区域样式 --- */
-#plan-details-content .detail-group {
-    margin-bottom: 15px;
-}
-#plan-details-content .detail-group h4 {
-    margin: 0 0 8px 0;
-    font-size: 15px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-}
-#plan-details-content .detail-row {
-    display: flex;
-    margin-bottom: 6px;
-    line-height: 1.6;
-}
-#plan-details-content .detail-label {
-    flex-shrink: 0;
-    width: 90px;
-    font-weight: 600;
-    color: #333;
-}
-#plan-details-content .detail-value {
-    word-break: break-all;
-}
-#plan-details-content .detail-value a {
-    color: var(--primary-color);
-    text-decoration: none;
-}
-#plan-details-content .detail-value a:hover {
-    text-decoration: underline;
-}
+#query-results-message { color: var(--primary-color); margin-bottom: 10px; font-weight: 500; }
+.plan-list-view { display: table; width: 100%; border-collapse: separate; border-spacing: 0; }
+.plan-list-view .list-header { display: table-header-group; font-weight: 600; }
+.plan-list-view .list-header .list-cell { background-color: #f8f9fa; position: sticky; top: 0; z-index: 1; }
+.plan-list-view .list-body { display: table-row-group; }
+.plan-list-view .list-row { display: table-row; }
+.plan-list-view .list-row:hover .list-cell { background-color: #f1f3f5; }
+.plan-list-view .list-cell { display: table-cell; padding: 8px 10px; border-bottom: 1px solid #dee2e6; vertical-align: middle; font-size: 13px; white-space: nowrap; }
+.plan-list-view .list-cell input[type="checkbox"] { vertical-align: middle; }
+.plan-list-view .list-cell:first-child, .plan-list-view .list-cell:nth-child(2) { position: sticky; left: 0; background-color: white; }
+.plan-list-view .list-row:hover .list-cell:first-child, .plan-list-view .list-row:hover .list-cell:nth-child(2) { background-color: #f1f3f5; }
+.plan-list-view .list-header .list-cell:first-child, .plan-list-view .list-header .list-cell:nth-child(2) { z-index: 3; }
+.plan-list-view .list-header .list-cell:first-child { z-index: 4; }
+.plan-list-view .list-cell:nth-child(2) { left: 50px; } /* 假设第一列宽度约为50px */
+.plan-list-view .list-cell.col-select { width: 50px; }
+.plan-list-view .list-cell.col-uni-major { width: 220px; white-space: normal; }
+.plan-list-view .list-cell.col-notes { width: 250px; white-space: normal; }
+#plan-details-content .detail-group { margin-bottom: 12px; }
+#plan-details-content .detail-group h4 { margin: 0 0 8px 0; font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
+#plan-details-content .detail-row { display: flex; margin-bottom: 2px; line-height: 1.5; font-size: 13px; }
+#plan-details-content .detail-multi-row { display: flex; flex-wrap: wrap; }
+#plan-details-content .detail-item { display: flex; margin-bottom: 2px; margin-right: 15px; line-height: 1.5; font-size: 13px; }
+#plan-details-content .detail-label { flex-shrink: 0; width: 90px; font-weight: 600; color: #333; }
+#plan-details-content .detail-value { word-break: break-all; }
+#plan-details-content .detail-value a { color: var(--primary-color); text-decoration: none; }
+#plan-details-content .detail-value a:hover { text-decoration: underline; }
