@@ -281,67 +281,70 @@ window.initializePlansTab = function() {
             return;
         }
         const p = (v) => v || '---';
-        const renderRow = (label, value) => `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${p(value)}</span></div>`;
-        const renderItem = (label, value) => `<div class="detail-item"><span class="detail-label">${label}</span><span class="detail-value">${p(value)}</span></div>`;
+        const renderRow = (label, value) => value ? `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>` : '';
+        const renderItem = (label, value) => value ? `<div class="detail-item"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>` : '';
         const renderLink = (label, url) => url ? `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value"><a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></span></div>` : '';
         const yearlyData = (year) => {
             const y = String(year).slice(-2);
-            return { plans: plan[`${y}年计划数`], score: plan[`${y}年分数线`], rank: plan[`${y}年位次号`], avg: plan[`${y}年平均分`] };
+            const data = { plans: plan[`${y}年计划数`], score: plan[`${y}年分数线`], rank: plan[`${y}年位次号`], avg: plan[`${y}年平均分`] };
+            if (Object.values(data).every(v => !v)) return '';
+            return `<div class="detail-row"><span class="detail-label">${y}年投档</span><span class="detail-value">【${p(data.plans)}人 | ${p(data.score)}分 | ${p(data.rank)}位 | 平均${p(data.avg)}分】</span></div>`;
         };
         const rates = [plan['25年推免率'], plan['24年推免率'], plan['23年推免率']].filter(Boolean).join(' | ');
         
         let html = `<h3>${plan.院校} - ${plan.专业}</h3>`;
         html += `<div class="detail-group"><h4>核心信息</h4>
             <div class="detail-multi-row">
-                ${renderItem('科类/批次', `${p(plan.科类)}/${p(plan.批次)}`)}
-                ${renderItem('省份/城市', `${p(plan.省份)}/${p(plan.城市)}(${p(plan.城市评级)})`)}
+                ${renderItem('科类/批次:', `${p(plan.科类)}/${p(plan.批次)}`)}
+                ${renderItem('省份/城市:', `${p(plan.省份)}/${p(plan.城市)}(${p(plan.城市评级)})`)}
             </div>
             <div class="detail-multi-row">
-                ${renderItem('学制/学费', `${p(plan.学制)}年 / ${p(plan.学费)}元`)}
-                ${renderItem('本/专科', p(plan.本专科))}
-                ${renderItem('25年新招', p(plan.新招))}
+                ${renderItem('学制/学费:', `${p(plan.学制)}年 / ${p(plan.学费)}元`)}
+                ${renderItem('本/专科:', p(plan.本专科))}
+                ${renderItem('25年新招:', p(plan['25年新招']))}
             </div>
-            ${renderRow('选科要求', plan['25年选科要求'])}
-            ${renderRow('专业限制', plan.专业限制)}
-            ${renderRow('专业简注', plan.专业简注)}
+            ${renderRow('选科要求:', plan['25年选科要求'])}
+            ${renderRow('专业限制:', plan.专业限制)}
+            ${renderRow('专业简注:', plan.专业简注)}
         </div>`;
         html += `<div class="detail-group"><h4>历年情况</h4>
-            <div class="detail-row"><span class="detail-label">25年情况</span><span class="detail-value">【${p(yearlyData(25).plans)}人 | ${p(yearlyData(25).score)}分 | ${p(yearlyData(25).rank)}位 | 平均${p(yearlyData(25).avg)}分】</span></div>
-            <div class="detail-row"><span class="detail-label">24年情况</span><span class="detail-value">【${p(yearlyData(24).plans)}人 | ${p(yearlyData(24).score)}分 | ${p(yearlyData(24).rank)}位 | 平均${p(yearlyData(24).avg)}分】</span></div>
-            <div class="detail-row"><span class="detail-label">23年情况</span><span class="detail-value">【${p(yearlyData(23).plans)}人 | ${p(yearlyData(23).score)}分 | ${p(yearlyData(23).rank)}位 | 平均${p(yearlyData(23).avg)}分】</span></div>
+            ${yearlyData('25')}
+            ${yearlyData('24')}
+            ${yearlyData('23')}
+            ${yearlyData('22')}
         </div>`;
         html += `<div class="detail-group"><h4>院校实力</h4>
-            ${renderRow('院校水平', plan.院校水平或来历)}
+            ${renderRow('院校水平:', plan.院校水平或来历)}
             <div class="detail-multi-row">
-                ${renderItem('办学性质', p(plan.办学性质))}
-                ${renderItem('院校类型', p(plan.院校类型))}
+                ${renderItem('办学性质:', p(plan.办学性质))}
+                ${renderItem('院校类型:', p(plan.院校类型))}
             </div>
-            ${renderRow('软科排名', plan.软科校排名)}
-            ${renderRow('第四轮评估', plan.第四轮学科评估)}
-            ${renderRow('硕/博点', `硕:${p(plan.硕士点)}+${p(plan.硕士专业)} / 博:${p(plan.博士点)}+${p(plan.博士专业)}`)}
+            ${renderRow('软科排名:', plan.软科校排名)}
+            ${renderRow('第四轮评估:', plan.第四轮学科评估)}
+            ${renderRow('硕/博点:', `硕:${p(plan.硕士点)}+${p(plan.硕士专业)} / 博:${p(plan.博士点)}+${p(plan.博士专业)}`)}
         </div>`;
         html += `<div class="detail-group"><h4>专业前景</h4>
             <div class="detail-multi-row">
-                ${renderItem('推免率(23-25)', p(rates))}
-                ${renderItem('升学率(国内/外)', `${p(plan.国内升学比率)} / ${p(plan.国外升学比率)}`)}
-                ${renderItem('23年专升本率', p(plan['23年专升本比率']))}
+                ${renderItem('推免率(23-25):', p(rates))}
+                ${renderItem('升学率(国内/外):', `${p(plan.国内升学比率)} / ${p(plan.国外升学比率)}`)}
+                ${renderItem('23年专升本率:', p(plan['23年专升本比率']))}
             </div>
             <div class="detail-multi-row">
-                ${renderItem('专业排名', `${p(plan.专业排名)} / ${p(plan['专业排名/总数'])}`)}
-                ${renderItem('软科专业排名', p(plan.软科专业排名))}
+                ${renderItem('专业排名:', `${p(plan.专业排名)} / ${p(plan['专业排名/总数'])}`)}
+                ${renderItem('软科专业排名:', p(plan.软科专业排名))}
             </div>
         </div>`;
         html += `<div class="detail-group"><h4>专业介绍</h4>
-            ${renderRow('培养目标', plan.培养目标)}
-            ${renderRow('主要课程', plan.主要课程)}
-            ${renderRow('就业方向', plan.就业方向)}
+            ${renderRow('培养目标:', plan.培养目标)}
+            ${renderRow('主要课程:', plan.主要课程)}
+            ${renderRow('就业方向:', plan.就业方向)}
         </div>`;
         html += `<div class="detail-group"><h4>官方链接</h4>
-            ${renderLink('招生章程', plan.招生章程)}
-            ${renderLink('学校招生信息', plan.学校招生信息)}
-            ${renderLink('校园VR', plan.校园VR)}
-            ${renderLink('院校百科', plan.院校百科)}
-            ${renderLink('就业质量', plan.就业质量)}
+            ${renderLink('招生章程:', plan.招生章程)}
+            ${renderLink('学校招生信息:', plan.学校招生信息)}
+            ${renderLink('校园VR:', plan.校园VR)}
+            ${renderLink('院校百科:', plan.院校百科)}
+            ${renderLink('就业质量:', plan.就业质量)}
         </div>`;
 
         detailsContent.innerHTML = html;
@@ -381,8 +384,26 @@ window.initializePlansTab = function() {
         const hasContent = majorOutputTextarea && majorOutputTextarea.value.length > 0;
         copyMajorButton.classList.toggle('disabled', !hasContent);
     }
-    function updateIntendedCities() { /* ... */ }
-    function updatePlanOutputButtonsState() { /* ... */ }
+
+    function updateIntendedCities() {
+        if (!cityFilterGroup) return;
+        const placeholderText = '<p style="color: #888; padding: 5px; margin:0;">您勾选的城市将按顺序在此显示。</p>';
+        const checkedCityCheckboxes = Array.from(cityFilterGroup.querySelectorAll('input[name="city"]:checked'));
+        const cityNames = checkedCityCheckboxes.map(cb => cb.value);
+        if (cityNames.length > 0) {
+            intendedCitiesList.innerHTML = cityNames.join(' ');
+            clearCitiesButton.classList.remove('disabled');
+        } else {
+            intendedCitiesList.innerHTML = placeholderText;
+            clearCitiesButton.classList.add('disabled');
+        }
+    }
+
+    function updatePlanOutputButtonsState() {
+        const hasContent = planOutputTextarea.value.length > 0;
+        planCopyButton.classList.toggle('disabled', !hasContent);
+        planClearButton.classList.toggle('disabled', !hasContent);
+    }
 
     // --- Event Listeners & Initialization ---
     
@@ -409,11 +430,49 @@ window.initializePlansTab = function() {
         updatePlanOutputUI();
         renderResults();
     });
-    planCopyButton.addEventListener('click', () => { /* ... */ });
-    copyMajorButton.addEventListener('click', () => { /* ... */ });
-    filterContainer.addEventListener('click', e => { /* ... */ });
-    filterContainer.addEventListener('change', e => { /* ... */ });
-    clearCitiesButton.addEventListener('click', () => { /* ... */ });
+    planCopyButton.addEventListener('click', () => {
+        if (!planOutputTextarea.value) return;
+        navigator.clipboard.writeText(planOutputTextarea.value).then(() => {
+            planCopyButton.textContent = '已复制!';
+            setTimeout(() => { planCopyButton.textContent = '复制'; }, 1500);
+        });
+    });
+    copyMajorButton.addEventListener('click', () => {
+        const majorOutputTextarea = document.querySelector('#major-output-textarea');
+        if (majorOutputTextarea && majorOutputTextarea.value) {
+            majorSearchInput.value = majorOutputTextarea.value;
+            majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+    filterContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('tree-label')) {
+            e.preventDefault();
+            e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
+            e.target.classList.toggle('caret-down');
+        }
+    });
+    filterContainer.addEventListener('change', e => {
+        if (e.target.classList.contains('parent-checkbox')) {
+            const isChecked = e.target.checked;
+            e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
+                child.checked = isChecked;
+            });
+        }
+        filterContainer.querySelectorAll('.filter-group').forEach(group => {
+            const hasSelection = group.querySelector('input:checked');
+            group.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
+        });
+        if (e.target.closest('#filter-city')) {
+            updateIntendedCities();
+        }
+    });
+    clearCitiesButton.addEventListener('click', () => {
+        if (!cityFilterGroup) return;
+        cityFilterGroup.querySelectorAll('input[name="city"]:checked, input.parent-checkbox:checked').forEach(cb => {
+            cb.checked = false;
+        });
+        cityFilterGroup.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     
     populateFilters();
     updatePlanOutputUI();
