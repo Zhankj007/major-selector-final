@@ -295,10 +295,7 @@ window.initializeUniversitiesTab = function() {
 
             if (rates_parts.length > 0) html += `<p><strong>历年推免率:</strong> <span>${rates_parts.join(' | ')}</span></p>`;
             if (升学比例_parts.length > 0) html += `<p><strong>升学比例:</strong> <span>${升学比例_parts.join(' | ')}</span></p>`;
-            
-            if (d['23年升本率']) {
-                 html += renderRow('23年升本率', d['23年升本率']);
-            }
+            if (d['23年升本率']) html += renderRow('23年升本率', d['23年升本率']);
             
             html += renderRow('招生章程', d['招生章程']);
             html += renderRow('学校招生信息', d['学校招生信息']);
@@ -334,3 +331,4 @@ window.initializeUniversitiesTab = function() {
     fetchData();
     updateUniOutputUI();
 }
+
