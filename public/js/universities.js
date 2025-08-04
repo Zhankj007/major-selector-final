@@ -257,29 +257,47 @@ window.initializeUniversitiesTab = function() {
         };
         const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
         const p = (v) => v || '---';
+        const handledKeys = new Set();
 
         let html = `<h3>${p(d[UNI_NAME_KEY])} - ${p(d[UNI_CODE_KEY])}</h3>`;
-        html += `<p><strong>办学信息:</strong> <span>${p(d['办学性质'])} - ${p(d['办学层次'])} - ${p(d['院校类型'])}</span></p>`;
-        html += `<p><strong>所在地区:</strong> <span>${p(d['省份'])} - ${p(d['城市'])} (${p(d['城市评级'])})</span></p>`;
-        html += `<p><strong>主管/建校:</strong> <span>${p(d['主管部门'])} - ${p(d['建校时间'])}</span></p>`;
-        html += `<p><strong>硕博点:</strong> <span>校硕点: ${d['校硕点'] ? '有' : '无'}； 校博点: ${d['校博点'] ? '有' : '无'}</span></p>`;
-        html += `<p><strong>院校水平:</strong> <span>${p(d['院校水平'])}</span></p>`;
+        handledKeys.add(UNI_NAME_KEY).add(UNI_CODE_KEY);
+
+        // 合并字段
+        const mergedFields = [
+            { label: '办学信息', keys: ['办学性质', '办学层次', '院校类型'], separator: ' - ' },
+            { label: '所在地区', keys: ['省份', '城市'], separator: ' - ', extra: (data) => data['城市评级'] ? ` (${p(data['城市评级'])})` : '' },
+            { label: '主管/建校', keys: ['主管部门', '建校时间'], separator: ' - ' },
+            { label: '硕博点', custom: (data) => `校硕点: ${data['校硕点'] ? '有' : '无'}； 校博点: ${data['校博点'] ? '有' : '无'}` }
+        ];
         
-        const rates = Object.keys(d).filter(k => k.includes("推免率")).sort().reverse();
-        if (rates.length > 0) {
-            const ratesHtml = rates.map(key => d[key] ? `${key.substring(0, 2)}年:${d[key]}` : "").filter(Boolean).join(" | ");
-            if(ratesHtml) html += `<p><strong>历年推免率:</strong> <span>${ratesHtml}</span></p>`;
-        }
-        
-        const links = ["招生章程", "学校招生信息", "校园VR", "院校百科", "就业质量", "官网"];
-        links.forEach(key => {
-            let value = d[key];
-            if (value && typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                html += `<p><strong>${key}:</strong> <span><a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a></span></p>`;
-            } else if (value) {
-                html += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
+        mergedFields.forEach(mf => {
+            handledKeys.add('城市评级'); // Always handle this key
+            let content;
+            if (mf.custom) {
+                content = mf.custom(d);
+            } else {
+                content = mf.keys.map(k => {
+                    handledKeys.add(k);
+                    return p(d[k]);
+                }).join(mf.separator);
+                if (mf.extra) {
+                    content += mf.extra(d);
+                }
+            }
+            html += `<p><strong>${mf.label}:</strong> <span>${content}</span></p>`;
+        });
+
+        // 单独处理和剩余字段
+        Object.entries(d).forEach(([key, value]) => {
+            if (!handledKeys.has(key) && value) {
+                let displayValue = value;
+                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                    displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                }
+                html += `<p><strong>${key}:</strong> <span>${displayValue}</span></p>`;
             }
         });
+
         detailsContent.innerHTML = html;
     }
 
