@@ -200,24 +200,28 @@ window.initializeMajorsTab = function() {
         }
         const d = JSON.parse(decodeURIComponent(atob(targetLi.dataset.details)));
         const p = (v) => v || '---';
-
+        const handledKeys = new Set();
+        
         let detailsHtml = `<h3>${p(d[MAJOR_NAME_KEY])} - ${p(d[MAJOR_CODE_KEY])}</h3>`;
+        handledKeys.add(MAJOR_NAME_KEY).add(MAJOR_CODE_KEY);
 
-        const renderField = (key) => {
+        const primaryFields = ['设立年份', '指引必选科目', '体检限制'];
+        primaryFields.forEach(key => {
             if (d[key]) {
-                let value = d[key];
-                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                    value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
-                }
-                detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
+                detailsHtml += `<p><strong>${key}:</strong> <span>${p(d[key])}</span></p>`;
+                handledKeys.add(key);
             }
-        };
+        });
 
-        const standardFields = ['学科类别', '专业类', '学历层次', '学制', '学位', '就业率', '主要课程', '培养目标'];
-        const extraFields = ['设立年份', '指引必选科目', '体检限制'];
-
-        standardFields.forEach(renderField);
-        extraFields.forEach(renderField); // 新增的字段
+        Object.entries(d).forEach(([key, value]) => {
+            if (!handledKeys.has(key) && value) {
+                let displayValue = value;
+                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                    displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                }
+                detailsHtml += `<p><strong>${key}:</strong> <span>${displayValue}</span></p>`;
+            }
+        });
 
         detailsContent.innerHTML = detailsHtml;
     }
