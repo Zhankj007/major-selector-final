@@ -205,21 +205,27 @@ window.initializeMajorsTab = function() {
         let detailsHtml = `<h3>${p(d[MAJOR_NAME_KEY])} - ${p(d[MAJOR_CODE_KEY])}</h3>`;
         handledKeys.add(MAJOR_NAME_KEY).add(MAJOR_CODE_KEY);
 
-        const primaryFields = ['设立年份', '指引必选科目', '体检限制'];
-        primaryFields.forEach(key => {
+        const renderField = (key) => {
             if (d[key]) {
-                detailsHtml += `<p><strong>${key}:</strong> <span>${p(d[key])}</span></p>`;
+                let value = d[key];
+                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                    value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                }
+                detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
                 handledKeys.add(key);
             }
-        });
+        };
 
-        Object.entries(d).forEach(([key, value]) => {
-            if (!handledKeys.has(key) && value) {
-                let displayValue = value;
-                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                    displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
-                }
-                detailsHtml += `<p><strong>${key}:</strong> <span>${displayValue}</span></p>`;
+        const bachelorFieldsOrder = ['门类', '专业类', '学位', '学制', '设立年份', '指引必选科目', '体检限制', '培养目标', '主要课程', '就业方向或职业面向', '专业知识库链接', '开设院校链接'];
+        const associateFieldsOrder = ['专业大类', '专业类', '接续高职本科', '接续普通本科', '职业证书', '职业面向', '培养目标', '专业能力', '基础课程', '核心课程', '实习实训'];
+        
+        const displayOrder = (currentCatalogType === 'bachelor') ? bachelorFieldsOrder : associateFieldsOrder;
+        
+        displayOrder.forEach(key => renderField(key));
+
+        Object.keys(d).forEach(key => {
+            if (!handledKeys.has(key)) {
+                renderField(key);
             }
         });
 
