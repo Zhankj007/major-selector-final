@@ -2,8 +2,6 @@ window.initializeMajorsTab = function() {
     const majorsTab = document.getElementById('majors-tab');
     if (!majorsTab || majorsTab.dataset.initialized) return;
     majorsTab.dataset.initialized = 'true';
-
-    // 1. Inject the HTML for the Majors tool
     majorsTab.innerHTML = `
         <div class="app-container" id="app-container-majors">
             <div class="left-panel">
@@ -23,7 +21,6 @@ window.initializeMajorsTab = function() {
                 <div id="major-tree-container" class="major-tree-container"><p>正在加载...</p></div>
             </div>
             <div class="right-panel">
-                <h3>专业详情</h3>
                 <div id="major-details-content" class="details-content"><p>请选择目录后进行操作。</p></div>
                 <div class="output-container">
                     <div class="output-header">
@@ -38,7 +35,6 @@ window.initializeMajorsTab = function() {
             </div>
         </div>`;
 
-    // 2. Get references to the newly created elements, scoped to this tab's container
     const container = majorsTab;
     const catalogSwitcher = container.querySelector('input[name="major-catalog-type"]')?.parentElement;
     const searchInput = container.querySelector('#major-search-input');
@@ -50,12 +46,9 @@ window.initializeMajorsTab = function() {
     const clearButton = container.querySelector('#major-clear-button');
     const selectionCounter = container.querySelector('#major-selection-counter');
 
-    // 3. Implement all the logic for the Majors tool
     let fullMajorData = null;
     let currentCatalogType = 'bachelor';
     let selectedMajors = new Map();
-    // VVV 新增的代码，创建一个全局的“信使”函数。 VVV
-    window.getSharedSelectedMajors = () => selectedMajors;
     const MAJOR_NAME_KEY = '专业名';
     const MAJOR_CODE_KEY = '专业码';
 
@@ -201,18 +194,31 @@ window.initializeMajorsTab = function() {
     }
 
     function showDetails(targetLi) {
-        if (!targetLi || !targetLi.dataset.details) return;
+        if (!targetLi || !targetLi.dataset.details) {
+             detailsContent.innerHTML = '<h3>专业详情</h3><p>请在左侧选择专业...</p>';
+            return;
+        }
         const d = JSON.parse(decodeURIComponent(atob(targetLi.dataset.details)));
-        let detailsHtml = "";
-        for (const key in d) {
-            if (d.hasOwnProperty(key) && d[key]) {
+        const p = (v) => v || '---';
+
+        let detailsHtml = `<h3>${p(d[MAJOR_NAME_KEY])} - ${p(d[MAJOR_CODE_KEY])}</h3>`;
+
+        const renderField = (key) => {
+            if (d[key]) {
                 let value = d[key];
                 if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
                     value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
                 }
                 detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
             }
-        }
+        };
+
+        const standardFields = ['学科类别', '专业类', '学历层次', '学制', '学位', '就业率', '主要课程', '培养目标'];
+        const extraFields = ['设立年份', '指引必选科目', '体检限制'];
+
+        standardFields.forEach(renderField);
+        extraFields.forEach(renderField); // 新增的字段
+
         detailsContent.innerHTML = detailsHtml;
     }
     
