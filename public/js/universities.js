@@ -243,18 +243,23 @@ window.initializeUniversitiesTab = function() {
     }
 
     function showUniDetails(li) {
-        if (!li || !li.dataset.details) { 
-            detailsContent.innerHTML = '<h3>院校详情</h3><p>请在左侧选择或查询院校...</p>';
-            return;
-        };
         try {
+            if (!li || !li.dataset.details) { 
+                detailsContent.innerHTML = '<h3>院校详情</h3><p>请在左侧选择或查询院校...</p>';
+                return;
+            };
+
             const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
+            if (typeof d !== 'object' || d === null) {
+                 throw new Error("解析后的数据不是一个有效的对象。");
+            }
             
             const renderRow = (label, value) => {
-                const cleanValue = typeof value === 'string' ? value.trim() : value;
-                if (!cleanValue) return '';
+                const cleanValue = value === null || typeof value === 'undefined' ? '' : String(value).trim();
+                if (cleanValue === '') return ''; // 如果值为空，则不渲染整行
+                
                 let displayValue = cleanValue;
-                if (typeof cleanValue === 'string' && (cleanValue.startsWith('http://') || cleanValue.startsWith('https://'))) {
+                if (cleanValue.startsWith('http://') || cleanValue.startsWith('https://')) {
                      displayValue = `<a href="${cleanValue}" target="_blank" rel="noopener noreferrer">${cleanValue}</a>`;
                 }
                 return `<p><strong>${label}:</strong> <span>${displayValue}</span></p>`;
@@ -304,7 +309,7 @@ window.initializeUniversitiesTab = function() {
             detailsContent.innerHTML = html;
         } catch(error) {
             console.error("显示院校详情时出错:", error);
-            detailsContent.innerHTML = `<p style="color:red;">加载详情失败，数据可能存在问题。</p>`;
+            detailsContent.innerHTML = `<p style="color:red;">加载详情失败: ${error.message}。请检查浏览器控制台获取详细信息。</p>`;
         }
     }
 
