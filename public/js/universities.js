@@ -244,51 +244,62 @@ window.initializeUniversitiesTab = function() {
 
     function showUniDetails(li) {
         if (!li || !li.dataset.details) { 
-            detailsContent.innerHTML = '<h3>院校详情</h3><p>请在左侧选择或查询院校...</p>';
+            detailsContent.innerHTML = '<p>请在左侧选择或查询院校...</p>';
             return;
         };
         try {
             const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
-            const p = (v) => v || '---';
+            
             const renderRow = (label, value) => {
-                if (!value) return '';
+                if (!value) return ''; // 如果值为空，则不渲染整行
                 if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
                      value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
                 }
                 return `<p><strong>${label}:</strong> <span>${value}</span></p>`;
             };
 
-            const 办学信息 = `${p(d['办学性质'])} - ${p(d['办学层次'])} - ${p(d['院校类型'])}`;
-            const 所在地区 = `${p(d['省份'])} - ${p(d['城市'])}` + (d['城市评级'] ? ` (${p(d['城市评级'])})` : '');
-            const 主管建校 = `${p(d['主管部门'])} - ${p(d['建校时间'])}`;
-            const 硕博点 = `有硕士点: ${d['校硕点'] ? '有' : '无'}； 有博士点: ${d['校博点'] ? '有' : '无'}`;
+            const 办学信息_parts = [d['办学性质'], d['办学层次'], d['院校类型']].filter(Boolean);
+            const 所在地区_parts = [d['省份'], d['城市']].filter(Boolean);
+            const 主管建校_parts = [d['主管部门'], d['建校时间']].filter(Boolean);
             
-            const rates = ['25年', '24年', '23年', '22年', '21年', '20年'].map(year => {
+            const 硕博点_parts = [];
+            if (d['校硕点']) 硕博点_parts.push(`${d['校硕点']}硕士点`);
+            if (d['校博点']) 硕博点_parts.push(`${d['校博点']}博士点`);
+
+            const rates_parts = ['25年', '24年', '23年', '22年', '21年', '20年'].map(year => {
                 const rateKey = `${year}推免率`;
                 return d[rateKey] ? `${year} ${d[rateKey]}` : null;
-            }).filter(Boolean).join(' | ');
+            }).filter(Boolean);
 
-            const 升学比例 = `国内 ${p(d['国内升学比率'])} | 国外 ${p(d['国外升学比率'])}`;
-
-            let html = `<h3>${p(d[UNI_NAME_KEY])} - ${p(d[UNI_CODE_KEY])}</h3>`;
-            html += `<p><strong>办学信息:</strong> <span>${办学信息}</span></p>`;
-            html += `<p><strong>所在地区:</strong> <span>${所在地区}</span></p>`;
-            html += `<p><strong>主管/建校:</strong> <span>${主管建校}</span></p>`;
+            const 升学比例_parts = [];
+            if (d['国内升学比率']) 升学比例_parts.push(`国内 ${d['国内升学比率']}`);
+            if (d['国外升学比率']) 升学比例_parts.push(`国外 ${d['国外升学比率']}`);
+            
+            let html = `<h3>${d[UNI_NAME_KEY] || '---'} - ${d[UNI_CODE_KEY] || '---'}</h3>`;
+            if (办学信息_parts.length > 0) html += `<p><strong>办学信息:</strong> <span>${办学信息_parts.join(' - ')}</span></p>`;
+            if (所在地区_parts.length > 0) html += `<p><strong>所在地区:</strong> <span>${所在地区_parts.join(' - ')}` + (d['城市评级'] ? ` (${d['城市评级']})` : '') + `</span></p>`;
+            if (主管建校_parts.length > 0) html += `<p><strong>主管/建校:</strong> <span>${主管建校_parts.join(' - ')}</span></p>`;
+            
             html += renderRow('院校水平', d['院校水平']);
             html += renderRow('院校来历', d['院校来历']);
             html += renderRow('招生电话', d['招生电话']);
             html += renderRow('院校地址', d['院校地址']);
             html += renderRow('软科校排', d['软科校排']);
-            html += `<p><strong>硕博点:</strong> <span>${硕博点}</span></p>`;
+
+            if (硕博点_parts.length > 0) html += `<p><strong>硕博点:</strong> <span>${硕博点_parts.join('； ')}</span></p>`;
+            
             html += renderRow('第四轮学科评估统计', d['第四轮学科评估统计']);
             html += renderRow('第四轮学科评估结果', d['第四轮学科评估结果']);
             html += renderRow('一流学科数量', d['一流学科数量']);
             html += renderRow('一流学科', d['一流学科']);
-            if (rates) html += `<p><strong>历年推免率:</strong> <span>${rates}</span></p>`;
-            html += `<p><strong>升学比例:</strong> <span>${升学比例}</span></p>`;
+
+            if (rates_parts.length > 0) html += `<p><strong>历年推免率:</strong> <span>${rates_parts.join(' | ')}</span></p>`;
+            if (升学比例_parts.length > 0) html += `<p><strong>升学比例:</strong> <span>${升学比例_parts.join(' | ')}</span></p>`;
+            
             if (d['23年升本率']) {
-                 html += `<p><strong>23年升本率:</strong> <span>${d['23年升本率']}</span></p>`;
+                 html += renderRow('23年升本率', d['23年升本率']);
             }
+            
             html += renderRow('招生章程', d['招生章程']);
             html += renderRow('学校招生信息', d['学校招生信息']);
             html += renderRow('校园VR', d['校园VR']);
