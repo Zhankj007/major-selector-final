@@ -257,18 +257,49 @@ window.initializeUniversitiesTab = function() {
         };
         const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
         const p = (v) => v || '---';
-        const handledKeys = new Set();
+        const renderLink = (label, url) => url ? `<p><strong>${label}:</strong> <span><a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></span></p>` : '';
+
+        // 按您的要求构建合并字段
+        const办学信息 = `${p(d['办学性质'])} - ${p(d['办学层次'])} - ${p(d['院校类型'])}`;
+        const所在地区 = `${p(d['省份'])} - ${p(d['城市'])}` + (d['城市评级'] ? ` (${d['城市评级']})` : '');
+        const主管建校 = `${p(d['主管部门'])} - ${p(d['建校时间'])}`;
+        const硕博点 = `有硕士点: ${d['校硕点'] ? '有' : '无'}； 有博士点: ${d['校博点'] ? '有' : '无'}`;
+        
+        const rates = ['25年', '24年', '23年', '22年', '21年', '20年'].map(year => {
+            const rate = d[`${year}推免率`];
+            return rate ? `${year} ${rate}` : null;
+        }).filter(Boolean).join(' | ');
+
+        const升学比例 = `国内 ${p(d['国内升学比率'])} | 国外 ${p(d['国外升学比率'])}`;
 
         let html = `<h3>${p(d[UNI_NAME_KEY])} - ${p(d[UNI_CODE_KEY])}</h3>`;
-        handledKeys.add(UNI_NAME_KEY).add(UNI_CODE_KEY);
+        html += `<p><strong>办学信息:</strong> <span>${办学信息}</span></p>`;
+        html += `<p><strong>所在地区:</strong> <span>${所在地区}</span></p>`;
+        html += `<p><strong>主管/建校:</strong> <span>${主管建校}</span></p>`;
+        html += `<p><strong>院校水平:</strong> <span>${p(d['院校水平'])}</span></p>`;
+        html += `<p><strong>院校来历:</strong> <span>${p(d['院校来历'])}</span></p>`;
+        html += `<p><strong>招生电话:</strong> <span>${p(d['招生电话'])}</span></p>`;
+        html += `<p><strong>院校地址:</strong> <span>${p(d['院校地址'])}</span></p>`;
+        html += `<p><strong>软科校排:</strong> <span>${p(d['软科校排'])}</span></p>`;
+        html += `<p><strong>硕博点:</strong> <span>${硕博点}</span></p>`;
+        html += `<p><strong>第四轮学科评估统计:</strong> <span>${p(d['第四轮学科评估统计'])}</span></p>`;
+        html += `<p><strong>第四轮学科评估结果:</strong> <span>${p(d['第四轮学科评估结果'])}</span></p>`;
+        html += `<p><strong>一流学科数量:</strong> <span>${p(d['一流学科数量'])}</span></p>`;
+        html += `<p><strong>一流学科:</strong> <span>${p(d['一流学科'])}</span></p>`;
+        html += rates ? `<p><strong>历年推免率:</strong> <span>${rates}</span></p>` : '';
+        html += `<p><strong>升学比例:</strong> <span>${升学比例}</span></p>`;
+        if (d['23年升本率']) {
+             html += `<p><strong>23年升本率:</strong> <span>${d['23年升本率']}</span></p>`;
+        }
+        html += renderLink('招生章程', d['招生章程']);
+        html += renderLink('学校招生信息', d['学校招生信息']);
+        html += renderLink('校园VR', d['校园VR']);
+        html += renderLink('院校百科', d['院校百科']);
+        html += renderLink('就业质量', d['就业质量']);
+        
+        detailsContent.innerHTML = html;
+    }
 
-        // 合并字段
-        const mergedFields = [
-            { label: '办学信息', keys: ['办学性质', '办学层次', '院校类型'], separator: ' - ' },
-            { label: '所在地区', keys: ['省份', '城市'], separator: ' - ', extra: (data) => data['城市评级'] ? ` (${p(data['城市评级'])})` : '' },
-            { label: '主管/建校', keys: ['主管部门', '建校时间'], separator: ' - ' },
-            { label: '硕博点', custom: (data) => `校硕点: ${data['校硕点'] ? '有' : '无'}； 校博点: ${data['校博点'] ? '有' : '无'}` }
-        ];
         
         mergedFields.forEach(mf => {
             handledKeys.add('城市评级'); // Always handle this key
@@ -322,3 +353,4 @@ window.initializeUniversitiesTab = function() {
     fetchData();
     updateUniOutputUI();
 }
+
