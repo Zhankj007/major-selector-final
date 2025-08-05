@@ -418,8 +418,10 @@ window.initializePlansTab = function() {
             });
         }
         filterContainer.querySelectorAll('.filter-group').forEach(group => {
-            const hasSelection = group.querySelector('input:checked');
-            group.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
+            if (group.id !== 'filter-range') { // "范围"按钮由其自己的监听器处理
+                const hasSelection = !!group.querySelector('input:checked');
+                group.querySelector('summary').classList.toggle('filter-active', hasSelection);
+            }
         });
         if (e.target.closest('#filter-city')) {
             updateIntendedCities();
