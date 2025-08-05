@@ -80,7 +80,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 #plan-output-container.output-container { border-top: none; }
 #plan-output-container .output-header { padding: 0; }
 #query-results-message { color: var(--primary-color); margin-bottom: 10px; font-weight: 500; }
-.plan-list-view { display: table; width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.plan-list-view { display: table; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .plan-list-view .list-header { display: table-header-group; font-weight: 600; }
 .plan-list-view .list-header .list-cell { background-color: #f8f9fa; position: sticky; top: -1px; z-index: 2; }
 .plan-list-view .list-body { display: table-row-group; }
@@ -97,6 +97,8 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .plan-list-view .list-cell.col-uni-major { width: 250px; white-space: normal; word-break: break-all; }
 .plan-list-view .list-cell.col-notes { width: 200px; white-space: normal; word-break: break-all; }
 /* [新增] 为“学费”、“选科要求”等没有class的列，使用nth-child按顺序设置一个合适的固定宽度，防止它们过宽 */
+.plan-list-view .list-cell:nth-child(3), /* 第3列: 省份 */
+.plan-list-view .list-cell:nth-child(4), /* 第4列: 城市 */
 .plan-list-view .list-cell:nth-child(5), /* 第5列: 学费 */
 .plan-list-view .list-cell:nth-child(6), /* 第6列: 选科要求 */
 .plan-list-view .list-cell:nth-child(7), /* 第7列: 分数线 */
@@ -121,4 +123,5 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     min-height: 80px; /* 设置一个较小的最小高度 */
     flex-grow: 0;     /* 取消其在垂直方向上的弹性增长 */
 }
+
 
