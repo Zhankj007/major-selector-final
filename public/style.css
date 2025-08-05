@@ -96,6 +96,13 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .plan-list-view .list-cell.col-select { width: 45px; }
 .plan-list-view .list-cell.col-uni-major { width: 250px; white-space: normal; word-break: break-all; }
 .plan-list-view .list-cell.col-notes { width: 200px; white-space: normal; word-break: break-all; }
+/* [新增] 为“学费”、“选科要求”等没有class的列，使用nth-child按顺序设置一个合适的固定宽度，防止它们过宽 */
+.plan-list-view .list-cell:nth-child(5), /* 第5列: 学费 */
+.plan-list-view .list-cell:nth-child(6), /* 第6列: 选科要求 */
+.plan-list-view .list-cell:nth-child(7), /* 第7列: 分数线 */
+.plan-list-view .list-cell:nth-child(8) { /* 第8列: 位次号 */
+    width: 110px;
+}
 #plan-details-content .detail-group { margin-bottom: 8px; }
 #plan-details-content .detail-group h4 { margin: 0 0 6px 0; font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
 #plan-details-content .detail-row, #plan-details-content .detail-item { display: flex; margin-bottom: 1px; line-height: 1.4; font-size: 13px; }
@@ -114,3 +121,4 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     min-height: 80px; /* 设置一个较小的最小高度 */
     flex-grow: 0;     /* 取消其在垂直方向上的弹性增长 */
 }
+
