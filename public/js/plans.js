@@ -78,8 +78,6 @@ window.initializePlansTab = function() {
     const rangeTypeSwitcher = plansTab.querySelector('input[name="range-type"]')?.parentElement;
     const rangeLowInput = plansTab.querySelector('#range-low');
     const rangeHighInput = plansTab.querySelector('#range-high');
-    const rangeFilterGroup = plansTab.querySelector('#filter-range');
-
 
     let allFilterOptions = {};
     let lastQueryData = [];
@@ -115,12 +113,10 @@ window.initializePlansTab = function() {
             ownershipContainer.innerHTML = allFilterOptions.ownerships.map(o => `<label><input type="checkbox" name="ownership" value="${o}"> ${o}</label>`).join('');
             const eduLevelContainer = plansTab.querySelector('#filter-edu-level .filter-options');
             eduLevelContainer.innerHTML = allFilterOptions.eduLevels.map(o => `<label><input type="checkbox" name="eduLevel" value="${o}"> ${o}</label>`).join('');
-            
-            let hoverTimeout;
             filterContainer.querySelectorAll('.filter-group').forEach(group => {
                 const details = group;
-                details.addEventListener('mouseenter', () => { clearTimeout(hoverTimeout); details.open = true; });
-                details.addEventListener('mouseleave', () => { hoverTimeout = setTimeout(() => { details.open = false; }, 200); });
+                details.addEventListener('mouseenter', () => { details.open = true; });
+                details.addEventListener('mouseleave', () => { details.open = false; });
             });
         } catch (error) {
             console.error("填充筛选器失败:", error);
@@ -185,19 +181,15 @@ window.initializePlansTab = function() {
         } catch (error) {
             console.error("查询执行失败:", error);
             resultsContainer.innerHTML = `<p style="color:red;">查询失败: ${error.message}</p>`;
-            resultsMessage.textContent = '';
         }
     }
 
     function renderResults() {
-        try {
-            const viewMode = viewModeSwitcher.querySelector('input:checked').value;
-            if (viewMode === 'tree') renderTreeView(lastQueryData); else renderListView(lastQueryData);
-        } catch (error) {
-            console.error("渲染结果时出错:", error);
-            resultsContainer.innerHTML = `<p style="color:red;">渲染结果时出错: ${error.message}</p>`;
-        }
+        const viewMode = viewModeSwitcher.querySelector('input:checked').value;
+        if (viewMode === 'tree') renderTreeView(lastQueryData);
+        else renderListView(lastQueryData);
     }
+
     function renderTreeView(data) {
         if (!data || data.length === 0) { resultsContainer.innerHTML = '<p>没有找到符合条件的记录。</p>'; return; }
         const sortedData = [...data].sort((a, b) => (`${a.院校代码 || ''}-${a.专业代码 || ''}`).localeCompare(`${b.院校代码 || ''}-${b.专业代码 || ''}`));
@@ -229,7 +221,8 @@ window.initializePlansTab = function() {
         html += '</ul>';
         resultsContainer.innerHTML = html;
     }
-        function renderListView(data) {
+
+    function renderListView(data) {
         if (!data || data.length === 0) { resultsContainer.innerHTML = '<p>没有找到符合条件的记录。</p>'; return; }
         const sortedData = [...data].sort((a, b) => (parseInt(b['25年位次号'], 10) || 0) - (parseInt(a['25年位次号'], 10) || 0));
         let html = '<div class="plan-list-view">';
@@ -315,14 +308,13 @@ window.initializePlansTab = function() {
         planCopyButton.classList.toggle('disabled', !hasSelection);
         planClearButton.classList.toggle('disabled', !hasSelection);
     }
+
     function updateCopyMajorButtonState() {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
         const hasContent = majorOutputTextarea && majorOutputTextarea.value.length > 0;
-        if (copyMajorButton) {
-            copyMajorButton.classList.toggle('disabled', !hasContent);
-        }
+        copyMajorButton.classList.toggle('disabled', !hasContent);
     }
-    
+
     function updateIntendedCities() {
         if (!cityFilterGroup) return;
         const placeholderText = '<p style="color: #888; padding: 5px; margin:0;">您勾选的城市将按顺序在此显示。</p>';
@@ -342,7 +334,32 @@ window.initializePlansTab = function() {
         planCopyButton.classList.toggle('disabled', !hasContent);
         planClearButton.classList.toggle('disabled', !hasContent);
     }
-    
+
+    // --- Event Listeners & Initialization ---
+    planOutputTextarea.addEventListener('input', updatePlanOutputButtonsState);
+    copyMajorButton.addEventListener('click', () => {
+        const majorOutputTextarea = document.querySelector('#major-output-textarea');
+        if (majorOutputTextarea && majorOutputTextarea.value) {
+            majorSearchInput.value = majorOutputTextarea.value;
+            majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+    // Use a timeout to ensure the other tabs might have initialized, then start checking
+    setTimeout(() => {
+        updateCopyMajorButtonState();
+        setInterval(updateCopyMajorButtonState, 500);
+    }, 200);
+
+    rangeTypeSwitcher.addEventListener('change', (e) => {
+        if (e.target.value === 'score') {
+            rangeLowInput.placeholder = '低分'; rangeHighInput.placeholder = '高分';
+        } else {
+            rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
+        }
+    });
+
+    queryButton.addEventListener('click', executeQuery);
+
     viewModeSwitcher.addEventListener('change', renderResults);
     queryButton.addEventListener('click', executeQuery);
     resultsContainer.addEventListener('change', e => {
@@ -381,12 +398,11 @@ window.initializePlansTab = function() {
     });
     copyMajorButton.addEventListener('click', () => {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
-        if (majorOutputTextarea && !copyMajorButton.classList.contains('disabled')) {
+        if (majorOutputTextarea && majorOutputTextarea.value) {
             majorSearchInput.value = majorOutputTextarea.value;
             majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
-    
     filterContainer.addEventListener('click', e => {
         if (e.target.classList.contains('tree-label')) {
             e.preventDefault();
@@ -394,37 +410,19 @@ window.initializePlansTab = function() {
             e.target.classList.toggle('caret-down');
         }
     });
-
     filterContainer.addEventListener('change', e => {
         if (e.target.classList.contains('parent-checkbox')) {
             const isChecked = e.target.checked;
-            e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => { child.checked = isChecked; });
+            e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
+                child.checked = isChecked;
+            });
         }
-        
         filterContainer.querySelectorAll('.filter-group').forEach(group => {
-            if (group.id !== 'filter-range') { // "范围"按钮由其自己的监听器处理
-                const hasSelection = !!group.querySelector('input:checked');
-                group.querySelector('summary').classList.toggle('filter-active', hasSelection);
-            }
+            const hasSelection = group.querySelector('input:checked');
+            group.querySelector('summary').classList.toggle('filter-active', !!hasSelection);
         });
-
         if (e.target.closest('#filter-city')) {
             updateIntendedCities();
-        }
-    });
-
-    const updateRangeFilterColor = () => {
-        const hasValue = !!(rangeLowInput.value || rangeHighInput.value);
-        rangeFilterGroup.querySelector('summary').classList.toggle('filter-active', hasValue);
-    };
-    rangeLowInput.addEventListener('input', updateRangeFilterColor);
-    rangeHighInput.addEventListener('input', updateRangeFilterColor);
-    
-    rangeTypeSwitcher.addEventListener('change', (e) => {
-        if (e.target.value === 'score') {
-            rangeLowInput.placeholder = '低分'; rangeHighInput.placeholder = '高分';
-        } else {
-            rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
         }
     });
     clearCitiesButton.addEventListener('click', () => {
@@ -434,11 +432,9 @@ window.initializePlansTab = function() {
         });
         cityFilterGroup.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    
     populateFilters();
     updatePlanOutputUI();
-    setTimeout(() => {
-        updateCopyMajorButtonState();
-        setInterval(updateCopyMajorButtonState, 500);
-    }, 200);
+    updateCopyMajorButtonState();
     updateIntendedCities();
 };
