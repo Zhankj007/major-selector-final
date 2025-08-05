@@ -225,13 +225,13 @@ window.initializePlansTab = function() {
 
     function renderListView(data) {
         if (!data || data.length === 0) { resultsContainer.innerHTML = '<p>没有找到符合条件的记录。</p>'; return; }
-        const sortedData = [...data].sort((a, b) => (parseInt(b['25年位次号'], 10) || 0) - (parseInt(a['25年位次号'], 10) || 0));
+        const sortedData = [...data].sort((a, b) => (parseInt(a['25年位次号'], 10) || 0) - (parseInt(b['25年位次号'], 10) || 0));
         let html = '<div class="plan-list-view">';
         html += `<div class="list-header"><div class="list-row">
             <div class="list-cell col-select">选择</div><div class="list-cell col-uni-major">院校专业</div>
             <div class="list-cell">省份</div><div class="list-cell">城市</div>
             <div class="list-cell">学费</div><div class="list-cell">选科要求</div>
-            <div class="list-cell">分数线(25)</div><div class="list-cell">位次号(25)</div>
+            <div class="list-cell">分数线</div><div class="list-cell">位次号</div>
             <div class="list-cell col-notes">专业简注</div>
         </div></div>`;
         html += '<div class="list-body">';
