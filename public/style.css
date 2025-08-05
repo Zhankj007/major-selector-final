@@ -105,11 +105,12 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .plan-list-view .list-cell:nth-child(6), 
 .plan-list-view .list-cell:nth-child(7), 
 .plan-list-view .list-cell:nth-child(8) { width: 110px;} */
+/* --- 最终版CSS：固定前两列并自定义列宽 --- */
+
 .plan-list-view { 
     display: table; 
     border-collapse: separate; 
     border-spacing: 0; 
-    /* 注意：这里没有设置任何 width 或 table-layout */
 }
 
 .plan-list-view .list-header { 
@@ -117,10 +118,10 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     font-weight: 600; 
 }
 .plan-list-view .list-header .list-cell {
-    background-color: #f8f9fa; /* 表头背景色 */
-    position: sticky; /* 让表头在垂直滚动时也固定 */
+    background-color: #f8f9fa;
+    position: sticky;
     top: -1px;
-    z-index: 2; /* 层级高于普通行 */
+    z-index: 2;
 }
 
 .plan-list-view .list-body { 
@@ -135,7 +136,6 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     border-bottom: 1px solid #dee2e6; 
     vertical-align: middle; 
     font-size: 13px;
-    /* 注意：这里没有设置 white-space: nowrap，让长文本可以自动换行 */
 }
 
 .plan-list-view .list-row:hover .list-cell:not(.sticky-col) { 
@@ -145,41 +145,46 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     vertical-align: middle; 
 }
 
-/* --- 以下是实现“前两列固定”的核心代码 --- */
-
-/* 1. 让第一列和第二列变成“粘性定位” */
+/* --- 固定定位核心代码 --- */
 .plan-list-view .list-cell:first-child, 
 .plan-list-view .list-cell:nth-child(2) { 
     position: sticky; 
     left: 0; 
-    background-color: white; /* 设置背景色防止滚动时下方内容透过来 */
-    border-right: 1px solid #dee2e6; /* 固定列右侧加个边框更好看 */
-    z-index: 1; /* 层级高于普通列 */
+    background-color: white; 
+    border-right: 1px solid #dee2e6;
+    z-index: 1;
 }
-
-/* 当鼠标悬浮在某行时，也改变固定列的背景色 */
 .plan-list-view .list-row:hover .list-cell:first-child, 
 .plan-list-view .list-row:hover .list-cell:nth-child(2) { 
     background-color: #f1f3f5; 
 }
-
-/* 2. 让表头的固定列层级更高，防止被内容区的固定列覆盖 */
 .plan-list-view .list-header .list-cell:first-child, 
 .plan-list-view .list-header .list-cell:nth-child(2) { 
     z-index: 3; 
 }
 .plan-list-view .list-header .list-cell:first-child {
-    z-index: 4; /* 第一列表头层级最高 */
+    z-index: 4;
 }
-
-/* 3. 定义第一列的宽度，这是第二列定位的基础 */
 .plan-list-view .list-cell.col-select { 
     width: 8px; 
 }
-
-/* 4. 让第二列从左侧偏移，偏移量等于第一列的宽度，防止重叠 */
 .plan-list-view .list-cell:nth-child(2) { 
     left: 8px; 
+}
+
+/* --- [新增] 自定义列宽 --- */
+
+/* 1. 加宽“院校专业”列 */
+.plan-list-view .list-cell.col-uni-major {
+    width: 250px;
+    white-space: normal; /* 允许文本自动换行 */
+    word-break: break-all; /* 允许在长单词或URL内部换行 */
+}
+
+/* 2. 加宽“选科要求”列 (第6列) */
+.plan-list-view .list-cell:nth-child(6) {
+    width: 50px;
+    white-space: normal;
 }
 #plan-details-content .detail-group { margin-bottom: 8px; }
 #plan-details-content .detail-group h4 { margin: 0 0 6px 0; font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
@@ -199,6 +204,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     min-height: 80px; /* 设置一个较小的最小高度 */
     flex-grow: 0;     /* 取消其在垂直方向上的弹性增长 */
 }
+
 
 
 
