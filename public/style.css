@@ -103,7 +103,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .plan-list-view .list-cell.col-uni-major { width: 280px; white-space: normal; word-break: break-all; } /* 院校专业 */
 .plan-list-view .list-cell:nth-child(3) { width: 20px; } /* 省份 */
 .plan-list-view .list-cell:nth-child(4) { width: 20px; } /* 城市 */
-.plan-list-view .list-cell:nth-child(5) { width: 45px; white-space: normal; word-break: break-all; } /* 学费 */
+.plan-list-view .list-cell:nth-child(5) { width: 50px; white-space: normal; word-break: break-all; } /* 学费 */
 .plan-list-view .list-cell:nth-child(6) { width: 55px; white-space: normal; word-break: break-all; } /* 选科要求 */
 .plan-list-view .list-cell:nth-child(7) { width: 30px; } /* 分数线 */
 .plan-list-view .list-cell:nth-child(8) { width: 45px; } /* 位次号 */
@@ -121,22 +121,5 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 #filter-range .filter-options { width: auto; align-items: center; }
 /* 只修改“招生计划”标签页内、位于“输入区域”(.input-column)的 textarea 高度。
   这可以精确地指向“院校名称关键字”和“专业名称关键字”下方的输入框，
-  而不会影响到右侧的“意向计划”输出框。
-*/
-#app-container-plans .input-column textarea {
-    min-height: 80px; /* 设置一个较小的最小高度 */
-    flex-grow: 0;     /* 取消其在垂直方向上的弹性增长 */
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
+  而不会影响到右侧的“意向计划”输出框。*/
+#app-container-plans .input-column textarea { min-height: 80px; /* 设置一个较小的最小高度 */ flex-grow: 0; /* 取消其在垂直方向上的弹性增长 */ }
