@@ -427,6 +427,20 @@ window.initializePlansTab = function() {
             updateIntendedCities();
         }
     });
+    const updateRangeFilterColor = () => {
+        const hasValue = !!(rangeLowInput.value || rangeHighInput.value);
+        rangeFilterGroup.querySelector('summary').classList.toggle('filter-active', hasValue);
+    };
+    rangeLowInput.addEventListener('input', updateRangeFilterColor);
+    rangeHighInput.addEventListener('input', updateRangeFilterColor);
+    
+    rangeTypeSwitcher.addEventListener('change', (e) => {
+        if (e.target.value === 'score') {
+            rangeLowInput.placeholder = '低分'; rangeHighInput.placeholder = '高分';
+        } else {
+            rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
+        }
+    });
     clearCitiesButton.addEventListener('click', () => {
         if (!cityFilterGroup) return;
         cityFilterGroup.querySelectorAll('input[name="city"]:checked, input.parent-checkbox:checked').forEach(cb => {
