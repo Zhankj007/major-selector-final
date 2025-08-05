@@ -78,7 +78,8 @@ window.initializePlansTab = function() {
     const rangeTypeSwitcher = plansTab.querySelector('input[name="range-type"]')?.parentElement;
     const rangeLowInput = plansTab.querySelector('#range-low');
     const rangeHighInput = plansTab.querySelector('#range-high');
-
+    const rangeFilterGroup = plansTab.querySelector('#filter-range');
+    
     let allFilterOptions = {};
     let lastQueryData = [];
     let selectedPlans = new Map();
