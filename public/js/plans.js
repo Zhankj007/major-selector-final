@@ -320,8 +320,11 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-item { margin-right: 20px; }
             .plan-details-content .detail-label { font-weight: 600; }
             .plan-details-content .detail-text-block, .detail-link { margin-bottom: 10px; }
-            .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; }
+            .plan-details-content .detail-text-label { margin: 0 0 5px 0; } /* <- 已移除 font-size */
             .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
+            .plan-details-content .detail-row,
+            .plan-details-content .detail-text-block,
+            .plan-details-content .detail-link { font-size: 14px; /* 您可以根据需要调整这个值，例如 13px */ }
         </style>
         
         <h3 style="color: #007bff;">${planTitle}</h3>
