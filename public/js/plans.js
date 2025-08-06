@@ -296,8 +296,8 @@ function showPlanDetails(plan) {
     const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
     const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
     const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
-    const masterInfo = (plan.硕士点 || plan.硕士专业) ? `硕:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
-    const doctorInfo = (plan.博士点 || plan.博士专业) ? `博:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
+    const masterInfo = (plan.硕士点 || plan.硕士专业) ? `<strong>硕</strong>:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
+    const doctorInfo = (plan.博士点 || plan.博士专业) ? `<strong>博</strong>:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
     const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
     // 2. 【已修正】按"**年份**-X%"格式处理推免率
     const tuitionRates = [
@@ -355,9 +355,6 @@ function showPlanDetails(plan) {
             renderItem('软科专业排名', plan.软科专业排名)
         )}
         ${renderRow(renderItem('专业水平', plan.专业水平))}
-
-        <hr>
-
         ${renderRow(renderItem('培养目标', plan.培养目标))}
         ${renderRow(renderItem('主要课程', plan.主要课程))}
         ${renderRow(renderItem('就业方向', plan.就业方向))}
