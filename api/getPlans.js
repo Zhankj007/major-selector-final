@@ -1,12 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
 const getArray = (param) => param ? param.split(',') : null;
-const SPECIAL_UNI_LEVEL_TERMS = [
-    'level:/985/', 'level:/211/', 'level:/双一流大学/',
-    'level:/基础学科拔尖/', 'level:/保研资格/',
-    'name:(省重点建设高校)|(省市共建重点高校)', 'owner:中外合作办学',
-    'level:高水平学校', 'level:高水平专业群'
-];
 
 export default async function handler(request, response) {
     try {
@@ -16,6 +10,7 @@ export default async function handler(request, response) {
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
+        // 1. 保留所有其他的筛选器，它们的功能和逻辑完全不变
         let query = supabase.from('2025gkplans').select('*', { count: 'exact' });
 
         const uniKeyword = searchParams.get('uniKeyword'); if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
@@ -38,35 +33,50 @@ export default async function handler(request, response) {
             query = query.or(subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(','));
         }
 
+        // 2. 【核心修改】只重构“水平”(uniLevels)筛选的逻辑
         const uniLevels = getArray(searchParams.get('uniLevels'));
         if (uniLevels && uniLevels.length > 0) {
-            const hasOtherUndergrad = uniLevels.includes('special:other_undergrad');
-            const positiveUniLevels = uniLevels.filter(l => l !== 'special:other_undergrad');
+            // 定义“非上述普通本科”需要排除的7个本科层次条件
+            const OTHER_UNDERGRAD_EXCLUSION_TERMS = [
+                `院校水平或来历.ilike.%/985/%`,
+                `院校水平或来历.ilike.%/211/%`,
+                `院校水平或来历.ilike.%/双一流大学/%`,
+                `院校水平或来历.ilike.%/基础学科拔尖/%`,
+                `院校水平或来历.ilike.%/保研资格/%`,
+                `办学性质.eq.中外合作办学`,
+                // “浙江省重点高校”的两个名称条件
+                `院校名称.ilike.%(省重点建设高校)%`,
+                `院校名称.ilike.%(省市共建重点高校)%`
+            ];
 
-            if (hasOtherUndergrad) {
-                query = query.eq('本专科', '本科');
-                const negativeOrs = [];
-                SPECIAL_UNI_LEVEL_TERMS.forEach(level => {
-                    const [column, term] = level.split(/:(.*)/s);
-                    if (column === 'level') negativeOrs.push(`院校水平或来历.ilike.%${term}%`);
-                    else if (column === 'name') term.split('|').forEach(t => negativeOrs.push(`院校名称.ilike.%${t}%`));
-                    else if (column === 'owner') negativeOrs.push(`办学性质.eq.${term}`);
-                });
-                query = query.not.or(negativeOrs.join(','));
-            } else if (positiveUniLevels.length > 0) {
-                const positiveOrs = [];
-                positiveUniLevels.forEach(level => {
-                    const [column, term] = level.split(/:(.*)/s);
-                    if (column === 'level') positiveOrs.push(`院校水平或来历.ilike.%${term}%`);
-                    else if (column === 'name') term.split('|').forEach(t => positiveOrs.push(`院校名称.ilike.%${t}%`));
-                    else if (column === 'owner') positiveOrs.push(`办学性质.eq.${term}`);
-                });
-                if (positiveOrs.length > 0) {
-                    query = query.or(positiveOrs.join(','));
+            const orConditions = uniLevels.map(level => {
+                // 条件A: “非上述普通本科”
+                if (level === 'special:other_undergrad') {
+                    // 必须是本科，且不符合上面定义的任何一个排除条件
+                    const exclusionFilter = `not.or(${OTHER_UNDERGRAD_EXCLUSION_TERMS.join(',')})`;
+                    return `and(本专科.eq.本科,${exclusionFilter})`;
                 }
+                
+                // 条件B: “浙江省重点高校”
+                if (level === 'name:(省重点建设高校)|(省市共建重点高校)') {
+                    return `or(院校名称.ilike.%(省重点建设高校)%,院校名称.ilike.%(省市共建重点高校)%)`;
+                }
+
+                // 条件C: 其他所有普通选项
+                const [column, term] = level.split(/:(.*)/s);
+                if (column === 'level') return `院校水平或来历.ilike.%${term}%`;
+                if (column === 'owner') return `办学性质.eq.${term}`;
+                
+                return null; // 对于无法解析的选项，返回null
+            }).filter(Boolean); // 过滤掉null
+
+            if (orConditions.length > 0) {
+                // 将所有“水平”筛选内部的条件用 OR 连接，然后作为一个整体 AND 到主查询上
+                query = query.or(orConditions.join(','));
             }
         }
         
+        // 3. 后续查询和返回逻辑保持不变
         const { data, error, count } = await query.limit(1000);
 
         if (error) throw new Error(`数据库查询错误: ${error.message}`);
