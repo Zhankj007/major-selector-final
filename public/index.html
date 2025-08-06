@@ -36,5 +36,14 @@
 <script src="/js/majors.js"></script>
 <script src="/js/plans.js"></script>
 <script src="/js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 这句代码会手动执行 plans.js 里的所有功能
+        if (window.initializePlansTab) {
+            window.initializePlansTab();
+        }
+    });
+</script>
 </body>
 </html>
+
