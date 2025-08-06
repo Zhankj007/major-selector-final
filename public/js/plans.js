@@ -277,14 +277,17 @@ function showPlanDetails(plan) {
     // 3. 智能渲染函数,它会自动判断内容是长文本还是链接，并以合适的独立行格式进行渲染。
     const renderSmartField = (label, value) => {
         if (value === null || value === undefined || String(value).trim() === '') return '';
-        // 如果值是链接
+
+        let contentHtml = value;
+        // 自动转换链接
         if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-            return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a></div>`;
+            contentHtml = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
         }
-         // 否则，视为普通长文本 (如培养目标)
-        return `<div class="detail-text-block">
-                    <h4 class="detail-text-label">${label}</h4>
-                    <p class="detail-text-content">${value}</p>
+        
+        // 返回一个div，内部的标签和内容都在行内，内容过长时会自动换行
+        return `<div class="detail-smart-row">
+                    <strong class="detail-label">${label}:</strong> 
+                    <span>${contentHtml}</span>
                 </div>`;
     };
 
