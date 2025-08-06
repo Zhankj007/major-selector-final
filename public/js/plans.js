@@ -259,28 +259,25 @@ window.initializePlansTab = function() {
     // 【核心修改】重写整个计划详情展示函数
     // =================================================================
     function showPlanDetails(plan) {
-        // 1. 当没有计划被选择时，显示占位符
         if (!plan) {
             detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
             return;
         }
 
-        // 2. 定义一系列“助手”函数，用于生成HTML片段，核心是判断值是否存在
-        
-        // 助手1: 渲染一个"标签: 值"格式的条目。如果值为空，则返回空字符串。
+        // 助手函数1: 渲染单个"标签: 值"条目，如果值为空则返回空字符串。
         const renderItem = (label, value) => {
             if (value === null || value === undefined || String(value).trim() === '') return '';
-            // 使用 <div> 包装，方便CSS进行布局控制
-            return `<div class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></div>`;
+            return `<span class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></span>`;
         };
         
-        // 助手2: 渲染一个可点击的链接。
-        const renderLink = (label, url) => {
-            if (!url) return '';
-            return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></div>`;
+        // 助手函数2: 渲染一个包含多个"条目"的行，如果行内所有内容都为空，则不渲染该行。
+        const renderRow = (...items) => {
+            const content = items.join('');
+            if (content.trim() === '') return '';
+            return `<div class="detail-row">${content}</div>`;
         };
 
-        // 助手3: 渲染大段的文本内容，如培养目标。
+        // 助手函数3: 渲染大段文本内容
         const renderTextBlock = (label, text) => {
             if (!text) return '';
             return `<div class="detail-text-block">
@@ -289,96 +286,96 @@ window.initializePlansTab = function() {
                     </div>`;
         };
 
-        // 3. 预处理和组合模板中需要的字段
-        const planTitle = `${plan.院校代码 || ''}-${plan.院校 || '未知院校'} - ${plan.专业代码 || ''}-${plan.专业 || '未知专业'}`;
-        
+        // 助手函数4: 渲染链接
+        const renderLink = (label, url) => {
+            if (!url) return '';
+            return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></div>`;
+        };
+
+        // --- 字段预处理 ---
+        const planTitle = `${plan.院校代码 || ''}-${plan.院校 || ''} - ${plan.专业代码 || ''}-${plan.专业 || ''}`;
         const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
-        
         const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
         const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
-
         const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
-
         const masterInfo = (plan.硕士点 || plan.硕士专业) ? `硕:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
         const doctorInfo = (plan.博士点 || plan.博士专业) ? `博:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
         const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
-
         const tuitionRates = [plan['23年推免率'], plan['24年推免率'], plan['25年推免率']].filter(Boolean).join(' | ');
-
         const promotionRate = [
             plan.国内升学比率 ? `国内${plan.国内升学比率}` : null,
             plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
         ].filter(Boolean).join(' / ');
 
-        // 4. 使用模板字符串构建最终的HTML
+        // --- 构建HTML ---
         let html = `
             <style>
-                /* 为新布局添加的内联样式，方便您预览。可移动到 style.css */
-                .plan-details-content .detail-item { display: inline-block; margin-right: 15px; margin-bottom: 8px; vertical-align: top; }
-                .plan-details-content .detail-full-width { display: block; margin-bottom: 8px; }
-                .plan-details-content .detail-label { font-weight: 600; color: #333; }
-                .plan-details-content .detail-value { color: #555; }
+                .plan-details-content .detail-row { margin-bottom: 8px; }
+                .plan-details-content .detail-item { margin-right: 20px; }
+                .plan-details-content .detail-label { font-weight: 600; }
                 .plan-details-content hr { border: none; border-top: 1px solid #eee; margin: 15px 0; }
-                .plan-details-content .detail-text-block { margin-top: 10px; }
-                .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; font-weight: 600; }
-                .plan-details-content .detail-text-content { margin: 0; line-height: 1.6; }
-                .plan-details-content .detail-link-group { margin-top: 15px; }
-                .plan-details-content .detail-link { margin-bottom: 5px; word-break: break-all; }
+                .plan-details-content .detail-text-block, .detail-link { margin-bottom: 10px; }
+                .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; }
+                .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
             </style>
-
-            <h3>${planTitle}</h3>
-
-            <div>
-                ${renderItem('科类/批次', categoryBatch)}
-                ${renderItem('省份/城市', location)}
-                ${renderItem('学制/学费', studyFee)}
-                ${renderItem('本/专科', plan.本专科)}
-                ${renderItem('25年新招', plan['25年新招'])}
-                ${renderItem('选科要求', plan['25年选科要求'])}
-            </div>
             
-            <div class="detail-full-width">
-                ${renderItem('院校水平', plan.院校水平或来历)}
-            </div>
+            <h3 style="color: #007bff;">${planTitle}</h3>
 
-            <div>
-                ${renderItem('办学性质', plan.办学性质)}
-                ${renderItem('院校类型', plan.院校类型)}
-                ${renderItem('软科排名', plan.软科校排名)}
-                ${renderItem('硕/博点', degreePointInfo)}
-                ${renderItem('第四轮评估', plan.第四轮学科评估)}
-                ${renderItem('推免率(23-25)', tuitionRates)}
-                ${renderItem('升学率', promotionRate)}
-                ${renderItem('23年专升本率', plan['23年专升本比率'])}
-                ${renderItem('专业排名', plan['专业排名/总数'])}
-                ${renderItem('软科专业排名', plan.软科专业排名)}
-            </div>
+            ${renderRow(
+                renderItem('科类/批次', categoryBatch),
+                renderItem('省份/城市', location)
+            )}
 
-            <div class="detail-full-width">
-                ${renderItem('专业水平', plan.专业水平)}
-            </div>
+            ${renderRow(
+                renderItem('学制/学费', studyFee),
+                renderItem('本/专科', plan.本专科),
+                renderItem('25年新招', plan['25年新招']),
+                renderItem('选科要求', plan['25年选科要求'])
+            )}
+
+            ${renderRow(renderItem('院校水平', plan.院校水平或来历))}
+
+            ${renderRow(
+                renderItem('办学性质', plan.办学性质),
+                renderItem('院校类型', plan.院校类型),
+                renderItem('软科排名', plan.软科校排名)
+            )}
+
+            ${renderRow(renderItem('硕/博点', degreePointInfo))}
+
+            ${renderRow(
+                renderItem('第四轮评估', plan.第四轮学科评估),
+                renderItem('推免率(23-25)', tuitionRates)
+            )}
+
+            ${renderRow(
+                renderItem('升学率', promotionRate),
+                renderItem('23年专升本率', plan['23年专升本比率'])
+            )}
+
+            ${renderRow(
+                renderItem('专业排名', plan['专业排名/总数']),
+                renderItem('软科专业排名', plan.软科专业排名)
+            )}
             
+            ${renderRow(renderItem('专业水平', plan.专业水平))}
+
             <hr>
 
             ${renderTextBlock('培养目标', plan.培养目标)}
             ${renderTextBlock('主要课程', plan.主要课程)}
             ${renderTextBlock('就业方向', plan.就业方向)}
-            
-            <div class="detail-link-group">
-                ${renderLink('招生章程', plan.招生章程)}
-                ${renderLink('学校招生信息', plan.学校招生信息)}
-                ${renderLink('校园VR', plan.校园VR)}
-                ${renderLink('院校百科', plan.院校百科)}
-                ${renderLink('就业质量', plan.就业质量)}
-            </div>
+            ${renderLink('招生章程', plan.招生章程)}
+            ${renderLink('学校招生信息', plan.学校招生信息)}
+            ${renderLink('校园VR', plan.校园VR)}
+            ${renderLink('院校百科', plan.院校百科)}
+            ${renderLink('就业质量', plan.就业质量)}
         `;
 
-        // 5. 更新DOM内容
         detailsContent.innerHTML = html;
 
-        // 6. 根据要求，将“历年投档情况”移至图表区（此处仅作占位示意）
+        // 更新图表区
         const chartArea = plansTab.querySelector('#plan-chart-area');
-        // 未来可以在此根据 plan 数据生成图表
         chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>历年投档情况将在此以图表形式展示。</p></div>';
     }
 
