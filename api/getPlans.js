@@ -33,14 +33,13 @@ export default async function handler(request, response) {
             query = query.or(subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(','));
         }
 
-        // --- 【核心修改】最终版“水平”(uniLevels)筛选逻辑 ---
+        // --- “水平”(uniLevels)筛选逻辑 ---
         const uniLevels = getArray(searchParams.get('uniLevels'));
         if (uniLevels && uniLevels.length > 0) {
             
             const ZHEJIANG_FILTER_1 = '院校名称.ilike.%省重点建设高校%';
             const ZHEJIANG_FILTER_2 = '院校名称.ilike.%省市共建重点高校%';
             
-            // 修正2: 根据您的提示，修正院校水平的查询方式为 `%/关键词%`
             const createLevelFilter = (term) => `院校水平或来历.ilike.%/${term}%`;
 
             const OTHER_UNDERGRAD_EXCLUSION_TERMS = [
@@ -51,28 +50,35 @@ export default async function handler(request, response) {
             ];
 
             const orConditions = uniLevels.flatMap(level => {
-                // 条件A: “非上述普通本科”
                 if (level === 'special:other_undergrad') {
                     const exclusionFilter = `not.or(${OTHER_UNDERGRAD_EXCLUSION_TERMS.join(',')})`;
                     return [`and(本专科.eq.本科,${exclusionFilter})`];
                 }
                 
-                // 条件B: “浙江省重点高校”
                 if (level === 'name:(省重点建设高校)|(省市共建重点高校)') {
                     return [ZHEJIANG_FILTER_1, ZHEJIANG_FILTER_2];
                 }
                 
-                // 【已修正】条件C: 处理所有其他选项
                 const [column, term] = level.split(/:(.*)/s, 2);
-                
-                // 直接使用从前端传来的 term 值，不再做任何修改
-                if (column === 'level') {
-                    return [`院校水平或来历.ilike.%${term}%`];
-                }
+
                 if (column === 'owner') {
                     return [`办学性质.eq.${term}`];
                 }
-                return [];
+
+                if (column === 'level') {
+                    // 【核心修改】区分处理不同类型的 level 查询
+                    // 如果是“高水平学校”或“高水平专业群”，直接使用 term
+                    if (term === '高水平学校' || term === '高水平专业群') {
+                        return [`院校水平或来历.ilike.%${term}%`];
+                    } 
+                    // 否则，对于“/985/”这类，执行之前的清理和格式化逻辑
+                    else {
+                        const cleanTerm = term.replace(/\//g, '');
+                        return [createLevelFilter(cleanTerm)];
+                    }
+                }
+                
+                return []; // 对于未知选项，返回空数组
             });
 
             if (orConditions.length > 0) {
@@ -82,9 +88,7 @@ export default async function handler(request, response) {
         
         const { data, error, count } = await query.limit(1000);
 
-        if (error) {
-             throw new Error(`数据库查询错误: ${error.message}`);
-        }
+        if (error) throw new Error(`数据库查询错误: ${error.message}`);
         
         return response.status(200).json({ data, count });
 
