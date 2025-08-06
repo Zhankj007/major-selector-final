@@ -370,12 +370,10 @@ function showPlanDetails(plan) {
             renderItem('软科专业排名', plan.软科专业排名)
         )}
         ${renderRow(renderItem('专业水平', plan.专业水平))}
-        ${renderSmartField('专业水平', plan.专业水平)}
         ${renderRow(renderItem('培养目标', plan.培养目标))}
-        ${renderSmartField('培养目标', plan.培养目标)}
-        ${renderSmartField('主要课程', plan.主要课程)}
-        ${renderSmartField('就业方向', plan.就业方向)}
-        ${renderRow(renderItem('招生章程', plan.招生章程))}
+        ${renderRow(renderItem('主要课程', plan.主要课程))}
+        ${renderRow(renderItem('就业方向', plan.就业方向))}
+
         ${renderSmartField('招生章程', plan.招生章程)}
         ${renderSmartField('学校招生信息', plan.学校招生信息)}
         ${renderSmartField('校园VR', plan.校园VR)}
