@@ -261,33 +261,29 @@ function showPlanDetails(plan) {
         detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
         return;
     }
-    // 助手函数1: 渲染单个"标签: 值"条目
+    // --- 渲染助手函数 ---
     const renderItem = (label, value) => {
         if (value === null || value === undefined || String(value).trim() === '') return '';
         return `<span class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></span>`;
     };
     
-    // 助手函数2: 渲染一个包含多个"条目"的行
     const renderRow = (...items) => {
         const content = items.join('');
         if (content.trim() === '') return '';
         return `<div class="detail-row">${content}</div>`;
     };
 
-    // 3. 智能渲染函数,它会自动判断内容是长文本还是链接，并以合适的独立行格式进行渲染。
     const renderSmartField = (label, value) => {
         if (value === null || value === undefined || String(value).trim() === '') return '';
 
         let contentHtml = value;
-        // 自动转换链接
         if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
             contentHtml = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
         }
         
-        // 返回一个div，内部的标签和内容都在行内，内容过长时会自动换行
         return `<div class="detail-smart-row">
                     <strong class="detail-label">${label}:</strong> 
-                    <span>${contentHtml}</span>
+                    <span class="detail-value">${contentHtml}</span>
                 </div>`;
     };
 
