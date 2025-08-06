@@ -325,7 +325,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-label,
             .plan-details-content .detail-value,
             .plan-details-content .detail-smart-row a {
-                font-size: 14px; /* 您可以根据需要调整这个值 */
+                font-size: 12px; /* 您可以根据需要调整这个值 */
                 font-weight: normal; /* 重置字体粗细 */
             }
             /* 重新设置标签为粗体 */
