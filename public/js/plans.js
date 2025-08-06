@@ -370,7 +370,7 @@ function showPlanDetails(plan) {
         ${renderSmartField('就业质量', plan.就业质量)}
     `;
     detailsContent.innerHTML = html;
-}
+    }
 
     // --- 【新增】图表功能相关代码 (V2 - 根据补充说明重构) ---
     function renderMajorCharts(plan) {
@@ -535,103 +535,7 @@ function showPlanDetails(plan) {
             rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
         }
     });
-/*
-    queryButton.addEventListener('click', executeQuery);
 
-    viewModeSwitcher.addEventListener('change', renderResults);
-    resultsContainer.addEventListener('change', e => {
-        if (e.target.type === 'checkbox') {
-            handlePlanSelectionChange(e.target);
-            const value = e.target.value;
-            resultsContainer.querySelectorAll(`input[type="checkbox"][value="${CSS.escape(value)}"]`).forEach(cb => {
-                if (cb !== e.target) cb.checked = e.target.checked;
-            });
-        }
-    });
-    resultsContainer.addEventListener('click', e => {
-        if (e.target.classList.contains('tree-label')) {
-            e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
-            e.target.classList.toggle('caret-down');
-        }
-    });
-    resultsContainer.addEventListener('mouseover', e => {
-        const target = e.target.closest('[data-plan]');
-        if (target && target.dataset.plan) {
-            const plan = JSON.parse(decodeURIComponent(atob(target.dataset.plan)));
-            showPlanDetails(plan);
-        }
-    });
-    planClearButton.addEventListener('click', () => {
-        selectedPlans.clear();
-        updatePlanOutputUI();
-        renderResults();
-    });
-    planCopyButton.addEventListener('click', () => {
-        if (!planOutputTextarea.value) return;
-        navigator.clipboard.writeText(planOutputTextarea.value).then(() => {
-            planCopyButton.textContent = '已复制!';
-            setTimeout(() => { planCopyButton.textContent = '复制'; }, 1500);
-        });
-    });
-    copyMajorButton.addEventListener('click', () => {
-        const majorOutputTextarea = document.querySelector('#major-output-textarea');
-        if (majorOutputTextarea && majorOutputTextarea.value) {
-            majorSearchInput.value = majorOutputTextarea.value;
-            majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-    });
-    filterContainer.addEventListener('click', e => {
-        if (e.target.classList.contains('tree-label')) {
-            e.preventDefault();
-            e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
-            e.target.classList.toggle('caret-down');
-        }
-    });
-    filterContainer.addEventListener('change', e => {
-        if (e.target.classList.contains('parent-checkbox')) {
-            const isChecked = e.target.checked;
-            e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
-                child.checked = isChecked;
-            });
-        }
-        filterContainer.querySelectorAll('.filter-group').forEach(group => {
-            if (group.id !== 'filter-range') { // "范围"按钮由其自己的监听器处理
-                const hasSelection = !!group.querySelector('input:checked');
-                group.querySelector('summary').classList.toggle('filter-active', hasSelection);
-            }
-        });
-        if (e.target.closest('#filter-city')) {
-            updateIntendedCities();
-        }
-    });
-    const updateRangeFilterColor = () => {
-        const hasValue = !!(rangeLowInput.value || rangeHighInput.value);
-        rangeFilterGroup.querySelector('summary').classList.toggle('filter-active', hasValue);
-    };
-    rangeLowInput.addEventListener('input', updateRangeFilterColor);
-    rangeHighInput.addEventListener('input', updateRangeFilterColor);
-    
-    rangeTypeSwitcher.addEventListener('change', (e) => {
-        if (e.target.value === 'score') {
-            rangeLowInput.placeholder = '低分'; rangeHighInput.placeholder = '高分';
-        } else {
-            rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
-        }
-    });
-    clearCitiesButton.addEventListener('click', () => {
-        if (!cityFilterGroup) return;
-        cityFilterGroup.querySelectorAll('input[name="city"]:checked, input.parent-checkbox:checked').forEach(cb => {
-            cb.checked = false;
-        });
-        cityFilterGroup.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    
-    populateFilters();
-    updatePlanOutputUI();
-    updateCopyMajorButtonState();
-    updateIntendedCities(); */
-
-    
     // --- 事件监听器 (最终版) ---
 
     queryButton.addEventListener('click', executeQuery);
