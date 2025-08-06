@@ -1,5 +1,3 @@
-// plans.js (完整文件内容)
-
 window.initializePlansTab = function() {
     const plansTab = document.getElementById('plans-tab');
     if (!plansTab || plansTab.dataset.initialized) return;
@@ -263,7 +261,6 @@ function showPlanDetails(plan) {
         detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
         return;
     }
-
     // 助手函数1: 渲染单个"标签: 值"条目
     const renderItem = (label, value) => {
         if (value === null || value === undefined || String(value).trim() === '') return '';
@@ -277,14 +274,14 @@ function showPlanDetails(plan) {
         return `<div class="detail-row">${content}</div>`;
     };
 
-    // 助手函数3: 渲染大段文本内容
+    /*/ 助手函数3: 渲染大段文本内容
     const renderTextBlock = (label, text) => {
         if (!text) return '';
         return `<div class="detail-text-block">
                     <h4 class="detail-text-label">${label}</h4>
                     <p class="detail-text-content">${text}</p>
                 </div>`;
-    };
+    };*/
 
     // 助手函数4: 渲染链接
     const renderLink = (label, url) => {
@@ -295,7 +292,6 @@ function showPlanDetails(plan) {
     // --- 字段预处理 ---
     // 1. 【已修正】标题直接使用<院校>#<专业>
     const planTitle = `${plan.院校 || ''} # ${plan.专业 || ''}`;
-    
     const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
     const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
     const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
@@ -303,12 +299,11 @@ function showPlanDetails(plan) {
     const masterInfo = (plan.硕士点 || plan.硕士专业) ? `硕:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
     const doctorInfo = (plan.博士点 || plan.博士专业) ? `博:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
     const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
-
     // 2. 【已修正】按"**年份**-X%"格式处理推免率
     const tuitionRates = [
-        plan['25年推免率'] ? `<strong>25</strong>-${plan['25年推免率']}` : null,
-        plan['24年推免率'] ? `<strong>24</strong>-${plan['24年推免率']}` : null,
-        plan['23年推免率'] ? `<strong>23</strong>-${plan['23年推免率']}` : null
+        plan['25年推免率'] ? `<strong>25年</strong>-${plan['25年推免率']}` : null,
+        plan['24年推免率'] ? `<strong>24年</strong>-${plan['24年推免率']}` : null,
+        plan['23年推免率'] ? `<strong>23年</strong>-${plan['23年推免率']}` : null
     ].filter(Boolean).join(' | ');
 
     const promotionRate = [
@@ -363,9 +358,9 @@ function showPlanDetails(plan) {
 
         <hr>
 
-        ${renderTextBlock('培养目标', plan.培养目标)}
-        ${renderTextBlock('主要课程', plan.主要课程)}
-        ${renderTextBlock('就业方向', plan.就业方向)}
+        ${renderRow(renderItem('培养目标', plan.培养目标))}
+        ${renderRow(renderItem('主要课程', plan.主要课程))}
+        ${renderRow(renderItem('就业方向', plan.就业方向))}
         ${renderLink('招生章程', plan.招生章程)}
         ${renderLink('学校招生信息', plan.学校招生信息)}
         ${renderLink('校园VR', plan.校园VR)}
