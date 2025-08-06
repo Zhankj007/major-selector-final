@@ -10,9 +10,9 @@ export default async function handler(request, response) {
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
-        // 1. 保留所有其他的筛选器，它们的功能和逻辑完全不变
         let query = supabase.from('2025gkplans').select('*', { count: 'exact' });
 
+        // --- 其他筛选器保持不变 ---
         const uniKeyword = searchParams.get('uniKeyword'); if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
         const planTypes = getArray(searchParams.get('planTypes')); if (planTypes) query = query.in('科类', planTypes);
         const cities = getArray(searchParams.get('cities')); if (cities) query = query.in('城市', cities);
@@ -33,50 +33,46 @@ export default async function handler(request, response) {
             query = query.or(subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(','));
         }
 
-        // 2. 【核心修改】只重构“水平”(uniLevels)筛选的逻辑
+        // --- 【核心修改】调整“水平”(uniLevels)筛选逻辑 ---
         const uniLevels = getArray(searchParams.get('uniLevels'));
         if (uniLevels && uniLevels.length > 0) {
-            // 定义“非上述普通本科”需要排除的7个本科层次条件
             const OTHER_UNDERGRAD_EXCLUSION_TERMS = [
-                `院校水平或来历.ilike.%/985/%`,
-                `院校水平或来历.ilike.%/211/%`,
-                `院校水平或来历.ilike.%/双一流大学/%`,
-                `院校水平或来历.ilike.%/基础学科拔尖/%`,
-                `院校水平或来历.ilike.%/保研资格/%`,
-                `办学性质.eq.中外合作办学`,
-                // “浙江省重点高校”的两个名称条件
-                `院校名称.ilike.%(省重点建设高校)%`,
-                `院校名称.ilike.%(省市共建重点高校)%`
+                `院校水平或来历.ilike.%/985/%`, `院校水平或来历.ilike.%/211/%`,
+                `院校水平或来历.ilike.%/双一流大学/%`, `院校水平或来历.ilike.%/基础学科拔尖/%`,
+                `院校水平或来历.ilike.%/保研资格/%`, `办学性质.eq.中外合作办学`,
+                `院校名称.ilike.%(省重点建设高校)%`, `院校名称.ilike.%(省市共建重点高校)%`
             ];
 
-            const orConditions = uniLevels.map(level => {
-                // 条件A: “非上述普通本科”
+            // 使用 flatMap 来处理，确保最终得到一个扁平的条件数组
+            const orConditions = uniLevels.flatMap(level => {
+                // 条件A: “非上述普通本科” (逻辑不变)
                 if (level === 'special:other_undergrad') {
-                    // 必须是本科，且不符合上面定义的任何一个排除条件
                     const exclusionFilter = `not.or(${OTHER_UNDERGRAD_EXCLUSION_TERMS.join(',')})`;
                     return `and(本专科.eq.本科,${exclusionFilter})`;
                 }
                 
-                // 条件B: “浙江省重点高校”
+                // 【已修改】条件B: “浙江省重点高校”
                 if (level === 'name:(省重点建设高校)|(省市共建重点高校)') {
-                    return `or(院校名称.ilike.%(省重点建设高校)%,院校名称.ilike.%(省市共建重点高校)%)`;
+                    // 返回一个包含两个独立条件的数组，而不是一个复杂的 or() 字符串
+                    return [
+                        `院校名称.ilike.%(省重点建设高校)%`,
+                        `院校名称.ilike.%(省市共建重点高校)%`
+                    ];
                 }
 
-                // 条件C: 其他所有普通选项
+                // 条件C: 其他所有普通选项 (逻辑不变)
                 const [column, term] = level.split(/:(.*)/s);
                 if (column === 'level') return `院校水平或来历.ilike.%${term}%`;
                 if (column === 'owner') return `办学性质.eq.${term}`;
                 
-                return null; // 对于无法解析的选项，返回null
-            }).filter(Boolean); // 过滤掉null
+                return []; // 对于无法解析的选项，返回空数组，flatMap会将其移除
+            });
 
             if (orConditions.length > 0) {
-                // 将所有“水平”筛选内部的条件用 OR 连接，然后作为一个整体 AND 到主查询上
                 query = query.or(orConditions.join(','));
             }
         }
         
-        // 3. 后续查询和返回逻辑保持不变
         const { data, error, count } = await query.limit(1000);
 
         if (error) throw new Error(`数据库查询错误: ${error.message}`);
