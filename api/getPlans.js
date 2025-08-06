@@ -28,12 +28,15 @@ export default async function handler(request, response) {
         if (majorKeywords && majorKeywords.length > 0) {
             query = query.or(majorKeywords.map(kw => `专业名称.ilike.%${kw}%,专业简注.ilike.%${kw}%`).join(','));
         }
+
+        // --- 【核心修改】将“选科”筛选从模糊匹配改为精确匹配 ---
         const subjectReqs = getArray(searchParams.get('subjectReqs'));
         if (subjectReqs && subjectReqs.length > 0) {
-            query = query.or(subjectReqs.map(req => `25年选科要求.ilike.%${req}%`).join(','));
+            // 原来是 .or( ... .ilike ... )，现在改为 .in()，实现精确匹配
+            query = query.in('25年选科要求', subjectReqs);
         }
 
-        // --- “水平”(uniLevels)筛选逻辑 ---
+        // --- “水平”(uniLevels)筛选逻辑 (保持不变) ---
         const uniLevels = getArray(searchParams.get('uniLevels'));
         if (uniLevels && uniLevels.length > 0) {
             
@@ -66,19 +69,16 @@ export default async function handler(request, response) {
                 }
 
                 if (column === 'level') {
-                    // 【核心修改】区分处理不同类型的 level 查询
-                    // 如果是“高水平学校”或“高水平专业群”，直接使用 term
                     if (term === '高水平学校' || term === '高水平专业群') {
                         return [`院校水平或来历.ilike.%${term}%`];
                     } 
-                    // 否则，对于“/985/”这类，执行之前的清理和格式化逻辑
                     else {
                         const cleanTerm = term.replace(/\//g, '');
                         return [createLevelFilter(cleanTerm)];
                     }
                 }
                 
-                return []; // 对于未知选项，返回空数组
+                return [];
             });
 
             if (orConditions.length > 0) {
