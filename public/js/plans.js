@@ -1,3 +1,5 @@
+// plans.js (完整文件内容)
+
 window.initializePlansTab = function() {
     const plansTab = document.getElementById('plans-tab');
     if (!plansTab || plansTab.dataset.initialized) return;
@@ -60,6 +62,7 @@ window.initializePlansTab = function() {
         </div>
     `;
     
+    // --- DOM Element selections (no changes here) ---
     const uniSearchInput = plansTab.querySelector('#plan-uni-search');
     const majorSearchInput = plansTab.querySelector('#plan-major-search');
     const copyMajorButton = plansTab.querySelector('#plan-copy-selected-button');
@@ -84,6 +87,7 @@ window.initializePlansTab = function() {
     let lastQueryData = [];
     let selectedPlans = new Map();
 
+    // --- populateFilters and other functions (no changes here) ---
     async function populateFilters() {
         try {
             const response = await fetch('/api/getPlanFilterOptions');
@@ -251,37 +255,133 @@ window.initializePlansTab = function() {
         resultsContainer.innerHTML = html;
     }
 
+    // =================================================================
+    // 【核心修改】重写整个计划详情展示函数
+    // =================================================================
     function showPlanDetails(plan) {
+        // 1. 当没有计划被选择时，显示占位符
         if (!plan) {
-            detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>'; return;
+            detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
+            return;
         }
-        const p = (v) => v || '---';
-        const renderRow = (label, value) => value ? `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>` : '';
-        const renderItem = (label, value) => value ? `<div class="detail-item"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>` : '';
-        const renderLink = (label, url) => url ? `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value"><a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></span></div>` : '';
-        const yearlyData = (year) => {
-            const y = String(year).slice(-2);
-            const data = { plans: plan[`${y}年计划数`], score: plan[`${y}年分数线`], rank: plan[`${y}年位次号`], avg: plan[`${y}年平均分`] };
-            if (Object.values(data).every(v => !v)) return '';
-            return `<div class="detail-row"><span class="detail-label">${y}年投档</span><span class="detail-value">【${p(data.plans)}人 | ${p(data.score)}分 | ${p(data.rank)}位 | 平均${p(data.avg)}分】</span></div>`;
+
+        // 2. 定义一系列“助手”函数，用于生成HTML片段，核心是判断值是否存在
+        
+        // 助手1: 渲染一个"标签: 值"格式的条目。如果值为空，则返回空字符串。
+        const renderItem = (label, value) => {
+            if (value === null || value === undefined || String(value).trim() === '') return '';
+            // 使用 <div> 包装，方便CSS进行布局控制
+            return `<div class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></div>`;
         };
-        const rates = [plan['25年推免率'], plan['24年推免率'], plan['23年推免率']].filter(Boolean).join(' | ');
-        let html = `<h3>${plan.院校} - ${plan.专业}</h3>`;
-        html += `<div class="detail-group"><h4>核心信息</h4>
-            <div class="detail-multi-row">${renderItem('科类/批次:', `${p(plan.科类)}/${p(plan.批次)}`)}${renderItem('省份/城市:', `${p(plan.省份)}/${p(plan.城市)}(${p(plan.城市评级)})`)}</div>
-            <div class="detail-multi-row">${renderItem('学制/学费:', `${p(plan.学制)}年 / ${p(plan.学费)}元`)}${renderItem('本/专科:', p(plan.本专科))}${renderItem('25年新招:', p(plan['25年新招']))}</div>
-            ${renderRow('选科要求:', plan['25年选科要求'])}${renderRow('专业限制:', plan.专业限制)}${renderRow('专业简注:', plan.专业简注)}
-        </div>`;
-        html += `<div class="detail-group"><h4>历年情况</h4>${yearlyData('25')}${yearlyData('24')}${yearlyData('23')}${yearlyData('22')}</div>`;
-        html += `<div class="detail-group"><h4>院校实力</h4>${renderRow('院校水平:', plan.院校水平或来历)}<div class="detail-multi-row">${renderItem('办学性质:', p(plan.办学性质))}${renderItem('院校类型:', p(plan.院校类型))}</div>${renderRow('软科排名:', plan.软科校排名)}${renderRow('第四轮评估:', plan.第四轮学科评估)}${renderRow('硕/博点:', `硕:${p(plan.硕士点)}+${p(plan.硕士专业)} / 博:${p(plan.博士点)}+${p(plan.博士专业)}`)}</div>`;
-        html += `<div class="detail-group"><h4>专业前景</h4>
-            <div class="detail-multi-row">${renderItem('推免率(23-25):', p(rates))}${renderItem('升学率(国内/外):', `${p(plan.国内升学比率)} / ${p(plan.国外升学比率)}`)}${renderItem('23年专升本率:', p(plan['23年专升本比率']))}</div>
-            <div class="detail-multi-row">${renderItem('专业排名:', `${p(plan.专业排名)} / ${p(plan['专业排名/总数'])}`)}${renderItem('软科专业排名:', p(plan.软科专业排名))}</div>
-        </div>`;
-        html += `<div class="detail-group"><h4>专业介绍</h4>${renderRow('培养目标:', plan.培养目标)}${renderRow('主要课程:', plan.主要课程)}${renderRow('就业方向:', plan.就业方向)}</div>`;
-        html += `<div class="detail-group"><h4>官方链接</h4>${renderLink('招生章程:', plan.招生章程)}${renderLink('学校招生信息:', plan.学校招生信息)}${renderLink('校园VR:', plan.校园VR)}${renderLink('院校百科:', plan.院校百科)}${renderLink('就业质量:', plan.就业质量)}</div>`;
+        
+        // 助手2: 渲染一个可点击的链接。
+        const renderLink = (label, url) => {
+            if (!url) return '';
+            return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></div>`;
+        };
+
+        // 助手3: 渲染大段的文本内容，如培养目标。
+        const renderTextBlock = (label, text) => {
+            if (!text) return '';
+            return `<div class="detail-text-block">
+                        <h4 class="detail-text-label">${label}</h4>
+                        <p class="detail-text-content">${text}</p>
+                    </div>`;
+        };
+
+        // 3. 预处理和组合模板中需要的字段
+        const planTitle = `${plan.院校代码 || ''}-${plan.院校 || '未知院校'} - ${plan.专业代码 || ''}-${plan.专业 || '未知专业'}`;
+        
+        const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
+        
+        const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
+        const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
+
+        const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
+
+        const masterInfo = (plan.硕士点 || plan.硕士专业) ? `硕:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
+        const doctorInfo = (plan.博士点 || plan.博士专业) ? `博:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
+        const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
+
+        const tuitionRates = [plan['23年推免率'], plan['24年推免率'], plan['25年推免率']].filter(Boolean).join(' | ');
+
+        const promotionRate = [
+            plan.国内升学比率 ? `国内${plan.国内升学比率}` : null,
+            plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
+        ].filter(Boolean).join(' / ');
+
+        // 4. 使用模板字符串构建最终的HTML
+        let html = `
+            <style>
+                /* 为新布局添加的内联样式，方便您预览。可移动到 style.css */
+                .plan-details-content .detail-item { display: inline-block; margin-right: 15px; margin-bottom: 8px; vertical-align: top; }
+                .plan-details-content .detail-full-width { display: block; margin-bottom: 8px; }
+                .plan-details-content .detail-label { font-weight: 600; color: #333; }
+                .plan-details-content .detail-value { color: #555; }
+                .plan-details-content hr { border: none; border-top: 1px solid #eee; margin: 15px 0; }
+                .plan-details-content .detail-text-block { margin-top: 10px; }
+                .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; font-weight: 600; }
+                .plan-details-content .detail-text-content { margin: 0; line-height: 1.6; }
+                .plan-details-content .detail-link-group { margin-top: 15px; }
+                .plan-details-content .detail-link { margin-bottom: 5px; word-break: break-all; }
+            </style>
+
+            <h3>${planTitle}</h3>
+
+            <div>
+                ${renderItem('科类/批次', categoryBatch)}
+                ${renderItem('省份/城市', location)}
+                ${renderItem('学制/学费', studyFee)}
+                ${renderItem('本/专科', plan.本专科)}
+                ${renderItem('25年新招', plan['25年新招'])}
+                ${renderItem('选科要求', plan['25年选科要求'])}
+            </div>
+            
+            <div class="detail-full-width">
+                ${renderItem('院校水平', plan.院校水平或来历)}
+            </div>
+
+            <div>
+                ${renderItem('办学性质', plan.办学性质)}
+                ${renderItem('院校类型', plan.院校类型)}
+                ${renderItem('软科排名', plan.软科校排名)}
+                ${renderItem('硕/博点', degreePointInfo)}
+                ${renderItem('第四轮评估', plan.第四轮学科评估)}
+                ${renderItem('推免率(23-25)', tuitionRates)}
+                ${renderItem('升学率', promotionRate)}
+                ${renderItem('23年专升本率', plan['23年专升本比率'])}
+                ${renderItem('专业排名', plan['专业排名/总数'])}
+                ${renderItem('软科专业排名', plan.软科专业排名)}
+            </div>
+
+            <div class="detail-full-width">
+                ${renderItem('专业水平', plan.专业水平)}
+            </div>
+            
+            <hr>
+
+            ${renderTextBlock('培养目标', plan.培养目标)}
+            ${renderTextBlock('主要课程', plan.主要课程)}
+            ${renderTextBlock('就业方向', plan.就业方向)}
+            
+            <div class="detail-link-group">
+                ${renderLink('招生章程', plan.招生章程)}
+                ${renderLink('学校招生信息', plan.学校招生信息)}
+                ${renderLink('校园VR', plan.校园VR)}
+                ${renderLink('院校百科', plan.院校百科)}
+                ${renderLink('就业质量', plan.就业质量)}
+            </div>
+        `;
+
+        // 5. 更新DOM内容
         detailsContent.innerHTML = html;
+
+        // 6. 根据要求，将“历年投档情况”移至图表区（此处仅作占位示意）
+        const chartArea = plansTab.querySelector('#plan-chart-area');
+        // 未来可以在此根据 plan 数据生成图表
+        chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>历年投档情况将在此以图表形式展示。</p></div>';
     }
+
 
     function handlePlanSelectionChange(checkbox) {
         const id = checkbox.value; const targetRow = checkbox.closest('[data-plan]');
@@ -336,7 +436,7 @@ window.initializePlansTab = function() {
         planClearButton.classList.toggle('disabled', !hasContent);
     }
 
-    // --- Event Listeners & Initialization ---
+    // --- Event Listeners & Initialization (no changes here) ---
     planOutputTextarea.addEventListener('input', updatePlanOutputButtonsState);
     copyMajorButton.addEventListener('click', () => {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
@@ -362,7 +462,6 @@ window.initializePlansTab = function() {
     queryButton.addEventListener('click', executeQuery);
 
     viewModeSwitcher.addEventListener('change', renderResults);
-    queryButton.addEventListener('click', executeQuery);
     resultsContainer.addEventListener('change', e => {
         if (e.target.type === 'checkbox') {
             handlePlanSelectionChange(e.target);
