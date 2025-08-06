@@ -274,19 +274,18 @@ function showPlanDetails(plan) {
         return `<div class="detail-row">${content}</div>`;
     };
 
-    /*/ 助手函数3: 渲染大段文本内容
-    const renderTextBlock = (label, text) => {
-        if (!text) return '';
+    // 3. 智能渲染函数,它会自动判断内容是长文本还是链接，并以合适的独立行格式进行渲染。
+    const renderSmartField = (label, value) => {
+        if (value === null || value === undefined || String(value).trim() === '') return '';
+        // 如果值是链接
+        if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+            return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a></div>`;
+        }
+         // 否则，视为普通长文本 (如培养目标)
         return `<div class="detail-text-block">
                     <h4 class="detail-text-label">${label}</h4>
-                    <p class="detail-text-content">${text}</p>
+                    <p class="detail-text-content">${value}</p>
                 </div>`;
-    };*/
-
-    // 助手函数4: 渲染链接
-    const renderLink = (label, url) => {
-        if (!url) return '';
-        return `<div class="detail-link"><span class="detail-label">${label}:</span> <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></div>`;
     };
 
     // --- 字段预处理 ---
@@ -311,13 +310,12 @@ function showPlanDetails(plan) {
         plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
     ].filter(Boolean).join(' / ');
 
-    // --- 构建HTML ---
+    // --- 构建HTML  (采用混合渲染) ---
     let html = `
         <style>
             .plan-details-content .detail-row { margin-bottom: 8px; }
             .plan-details-content .detail-item { margin-right: 20px; }
             .plan-details-content .detail-label { font-weight: 600; }
-            .plan-details-content hr { border: none; border-top: 1px solid #eee; margin: 15px 0; }
             .plan-details-content .detail-text-block, .detail-link { margin-bottom: 10px; }
             .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; }
             .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
@@ -354,15 +352,15 @@ function showPlanDetails(plan) {
             renderItem('专业排名', plan['专业排名/总数']),
             renderItem('软科专业排名', plan.软科专业排名)
         )}
-        ${renderRow(renderItem('专业水平', plan.专业水平))}
-        ${renderRow(renderItem('培养目标', plan.培养目标))}
-        ${renderRow(renderItem('主要课程', plan.主要课程))}
-        ${renderRow(renderItem('就业方向', plan.就业方向))}
-        ${renderLink('招生章程', plan.招生章程)}
-        ${renderLink('学校招生信息', plan.学校招生信息)}
-        ${renderLink('校园VR', plan.校园VR)}
-        ${renderLink('院校百科', plan.院校百科)}
-        ${renderLink('就业质量', plan.就业质量)}
+        ${renderSmartField('专业水平', plan.专业水平)}
+        ${renderSmartField('培养目标', plan.培养目标)}
+        ${renderSmartField('主要课程', plan.主要课程)}
+        ${renderSmartField('就业方向', plan.就业方向)}
+        ${renderSmartField('招生章程', plan.招生章程)}
+        ${renderSmartField('学校招生信息', plan.学校招生信息)}
+        ${renderSmartField('校园VR', plan.校园VR)}
+        ${renderSmartField('院校百科', plan.院校百科)}
+        ${renderSmartField('就业质量', plan.就业质量)}
     `;
 
     detailsContent.innerHTML = html;
