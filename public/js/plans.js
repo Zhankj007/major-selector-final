@@ -92,6 +92,8 @@ window.initializePlansTab = function() {
     let allFilterOptions = {};
     let lastQueryData = [];
     let selectedPlans = new Map();
+    let activeCharts = [];
+
 
     // --- populateFilters and other functions (no changes here) ---
     async function populateFilters() {
@@ -320,16 +322,13 @@ function showPlanDetails(plan) {
     // --- 构建HTML  (采用混合渲染) ---
     let html = `
         <style>
-            .plan-details-content .detail-row { margin-bottom: 8px; }
+            .plan-details-content .detail-row, .plan-details-content .detail-smart-row { margin-bottom: 8px; line-height: 1.6; }
             .plan-details-content .detail-item { margin-right: 20px; }
+            .plan-details-content .detail-label, .plan-details-content .detail-value, .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { font-size: 14px; font-weight: normal; }
             .plan-details-content .detail-label { font-weight: 600; }
-            .plan-details-content .detail-text-block, .detail-link { margin-bottom: 10px; }
-            .plan-details-content .detail-text-label { margin: 0 0 5px 0; font-size: 1em; }
-            .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
+            .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
-        
         <h3 style="color: #007bff;">${planTitle}</h3>
-
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -374,40 +373,26 @@ function showPlanDetails(plan) {
     detailsContent.innerHTML = html;
 
     // --- 【新增】图表功能相关代码 (V2 - 根据补充说明重构) ---
-
-    // 用于保存当前显示的图表实例，方便在更新时销毁
-    let activeCharts = [];
-
-    /**
-     * @description 渲染单个专业的历年投档数据图表 (4个图表)
-     * @param {object} plan - 单个计划的完整数据对象
-     */
     function renderMajorCharts(plan) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
-        const years = [25, 24, 23, 22]; // 定义要查找的年份
-        
-        // 【已修改】直接从独立字段读取数据，不再解析字符串
+        activeCharts.forEach(chart => chart.destroy());
+        activeCharts = [];
+        const years = [25, 24, 23, 22];
         const historicalData = years.map(year => {
             const score = plan[`${year}年分数线`];
             const rank = plan[`${year}年位次号`];
             const count = plan[`${year}年计划数`];
             const avgScore = plan[`${year}年平均分`];
-
-            // 只有当核心数据存在时，才记录该年份
             if (score && rank && count) {
                 return { year: `${year}年`, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean).reverse(); // 过滤掉空数据并反转，让图表从左到右按年份升序
-
+        }).filter(Boolean).reverse();
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
             return;
         }
-
         const labels = historicalData.map(d => d.year);
-        
-        // 【已修改】为4张图表创建各自的 canvas 容器
         chartArea.innerHTML = `
             <h3>历年投档情况</h3>
             <div class="chart-container" style="height: 200px; margin-bottom: 25px;"><canvas id="scoreChart"></canvas></div>
@@ -415,72 +400,44 @@ function showPlanDetails(plan) {
             <div class="chart-container" style="height: 180px; margin-bottom: 25px;"><canvas id="rankChart"></canvas></div>
             <div class="chart-container" style="height: 180px;"><canvas id="countChart"></canvas></div>
         `;
-        
-        // 图表1: 历年分数 (竖向柱形图)
         activeCharts.push(new Chart(document.getElementById('scoreChart'), {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{ label: '最低分数线', data: historicalData.map(d => d.score), backgroundColor: 'rgba(255, 99, 132, 0.6)' }]
-            },
+            data: { labels, datasets: [{ label: '最低分数线', data: historicalData.map(d => d.score), backgroundColor: 'rgba(255, 99, 132, 0.6)' }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年最低分数线' }}}
         }));
-
-        // 【新增】图表2: 历年平均分 (竖向柱形图)
         activeCharts.push(new Chart(document.getElementById('avgScoreChart'), {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{ label: '平均分', data: historicalData.map(d => d.avgScore), backgroundColor: 'rgba(255, 159, 64, 0.6)' }]
-            },
+            data: { labels, datasets: [{ label: '平均分', data: historicalData.map(d => d.avgScore), backgroundColor: 'rgba(255, 159, 64, 0.6)' }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年平均分' }}}
         }));
-
-        // 图表3: 历年位次 (点线图)
         activeCharts.push(new Chart(document.getElementById('rankChart'), {
             type: 'line',
-            data: {
-                labels,
-                datasets: [{ label: '最低位次号', data: historicalData.map(d => d.rank), borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.6)', tension: 0.1 }]
-            },
+            data: { labels, datasets: [{ label: '最低位次号', data: historicalData.map(d => d.rank), borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.6)', tension: 0.1 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年最低位次号' }}}
         }));
-        
-        // 图表4: 历年计划数 (横向柱形图)
         activeCharts.push(new Chart(document.getElementById('countChart'), {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{ label: '计划数', data: historicalData.map(d => d.count), backgroundColor: 'rgba(153, 102, 255, 0.6)' }]
-            },
+            data: { labels, datasets: [{ label: '计划数', data: historicalData.map(d => d.count), backgroundColor: 'rgba(153, 102, 255, 0.6)' }] },
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年计划数' }}}
         }));
     }
 
-    /**
-     * @description 渲染单个院校所有符合条件专业的25年分数线对比图 (含统计指标)
-     * @param {string} uniName - 院校名称
-     */
     function renderUniversityChart(uniName) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
+        activeCharts.forEach(chart => chart.destroy());
+        activeCharts = [];
         const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['25年分数线'] && p['25年位次号']);
-        
         if (relevantPlans.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该院校符合条件的专业暂无分数线数据。</p></div>';
             return;
         }
-
         const sortedPlans = [...relevantPlans].sort((a, b) => a['25年分数线'] - b['25年分数线']);
-        
-        // 【新增】计算4个统计指标
         const scores = relevantPlans.map(p => p['25年分数线']);
         const ranks = relevantPlans.map(p => p['25年位次号']);
         const minScore = Math.min(...scores);
-        const minRank = Math.min(...ranks); // 位次越小越好
+        const minRank = Math.min(...ranks);
         const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
         const avgRank = Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length);
-
-        // 【新增】构建用于展示统计指标的HTML
         const statsHtml = `
             <div style="display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 5px;">
                 <div style="text-align: center;"><strong>校最低分:</strong> ${minScore}</div>
@@ -489,29 +446,19 @@ function showPlanDetails(plan) {
                 <div style="text-align: center;"><strong>专业平均位次:</strong> ${avgRank}</div>
             </div>
         `;
-        
-        // 动态计算图表高度并渲染HTML
         const chartHeight = Math.max(200, sortedPlans.length * 25);
         chartArea.innerHTML = `<h3>${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
-
-        // 图表: 横向柱形图
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
             type: 'bar',
-            data: {
-                labels: sortedPlans.map(p => p.专业名称),
-                datasets: [{ label: '25年分数线', data: sortedPlans.map(p => p['25年分数线']), backgroundColor: 'rgba(54, 162, 235, 0.6)' }]
-            },
+            data: { labels: sortedPlans.map(p => p.专业), datasets: [{ label: '25年分数线', data: sortedPlans.map(p => p['25年分数线']), backgroundColor: 'rgba(54, 162, 235, 0.6)' }] },
             options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: { x: { beginAtZero: false, suggestedMin: Math.floor(minScore / 10) * 10 - 10 } }
             }
         }));
     }
     // 图表展示区函数结束
-}
 
     function handlePlanSelectionChange(checkbox) {
         const id = checkbox.value; const targetRow = checkbox.closest('[data-plan]');
@@ -691,7 +638,7 @@ function showPlanDetails(plan) {
     viewModeSwitcher.addEventListener('change', renderResults);
 
     resultsContainer.addEventListener('change', e => {
-        if (e.target.type === 'checkbox') {
+        if (e.target.type === 'checkbox' && e.target.closest('li')) {
             handlePlanSelectionChange(e.target);
         }
     });
@@ -705,35 +652,30 @@ function showPlanDetails(plan) {
     });
 
     resultsContainer.addEventListener('click', e => {
-        if (e.target.type === 'checkbox') {
+        const target = e.target;
+        if (target.type === 'checkbox') return;
+
+        const treeLabel = target.closest('.tree-label');
+        const majorLi = target.closest('li[data-plan]');
+
+        if (majorLi) {
+            renderMajorCharts(JSON.parse(decodeURIComponent(atob(majorLi.dataset.plan))));
             return;
         }
-
-        const majorTarget = e.target.closest('[data-plan]');
-        const treeLabel = e.target.closest('span.tree-label');
         
-        activeCharts.forEach(chart => chart.destroy());
-        activeCharts = [];
-
-        if (majorTarget) {
-            e.stopPropagation();
-            const plan = JSON.parse(decodeURIComponent(atob(majorTarget.dataset.plan)));
-            renderMajorCharts(plan);
-            return;
-        }
         if (treeLabel) {
             const listItem = treeLabel.closest('li');
             listItem.querySelector('.nested')?.classList.toggle('active');
             treeLabel.classList.toggle('caret-down');
-            const parentList = listItem.parentElement;
-            // 只有当点击的是第二层级的标签(院校)时，才生成图表
-            if (parentList && parentList.id !== 'result-tree' && parentList.classList.contains('nested')) {
-                const uniName = treeLabel.textContent;
-                renderUniversityChart(uniName);
+            
+            const nestedUl = listItem.querySelector('ul');
+            const isUniversity = nestedUl && nestedUl.querySelector('li[data-plan]');
+            
+            if(isUniversity) {
+                 renderUniversityChart(treeLabel.textContent);
             }
         }
     });
-
     // --- 其他按钮和筛选器的事件监听 ---
 
     planClearButton.addEventListener('click', () => {
