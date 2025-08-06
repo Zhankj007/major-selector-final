@@ -1,4 +1,12 @@
 window.initializePlansTab = function() {
+    // 确保 Chart.js 已经加载
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded. Please include it in your HTML.');
+        // 可以在这里向用户显示一个错误提示
+        const chartArea = document.querySelector('#plan-chart-area');
+        if(chartArea) chartArea.innerHTML = '<h3>图表库加载失败</h3><p>请检查网络连接或联系管理员。</p>';
+        return;
+    }
     const plansTab = document.getElementById('plans-tab');
     if (!plansTab || plansTab.dataset.initialized) return;
     plansTab.dataset.initialized = 'true';
@@ -677,24 +685,17 @@ function showPlanDetails(plan) {
     updateIntendedCities(); */
 
     
-    // --- 【最终修正】事件监听器 & 初始化 (已整合图表功能) ---
+    // --- 事件监听器 (最终版) ---
 
     queryButton.addEventListener('click', executeQuery);
-
     viewModeSwitcher.addEventListener('change', renderResults);
-    
-    // 【保留】'change' 事件：专门处理【勾选/取消勾选】专业的逻辑
+
     resultsContainer.addEventListener('change', e => {
         if (e.target.type === 'checkbox') {
             handlePlanSelectionChange(e.target);
-            const value = e.target.value;
-            resultsContainer.querySelectorAll(`input[type="checkbox"][value="${CSS.escape(value)}"]`).forEach(cb => {
-                if (cb !== e.target) cb.checked = e.target.checked;
-            });
         }
     });
 
-    // 【保留】'mouseover' 事件：专门处理【鼠标悬浮显示详情】的逻辑
     resultsContainer.addEventListener('mouseover', e => {
         const target = e.target.closest('[data-plan]');
         if (target && target.dataset.plan) {
@@ -703,52 +704,44 @@ function showPlanDetails(plan) {
         }
     });
 
-    // 【已重写】'click' 事件：处理【生成图表】和【展开/折叠树】的逻辑
     resultsContainer.addEventListener('click', e => {
-        // 如果点击的是多选框，则不执行任何操作（交由 'change' 事件处理）
         if (e.target.type === 'checkbox') {
             return;
         }
 
         const majorTarget = e.target.closest('[data-plan]');
         const treeLabel = e.target.closest('span.tree-label');
+        
+        activeCharts.forEach(chart => chart.destroy());
+        activeCharts = [];
 
-        // 场景1: 点击了任何包含专业数据的地方 (无论列表模式还是树状模式的专业行)
         if (majorTarget) {
-            e.stopPropagation(); // 防止事件冒泡触发下面的院校点击逻辑
-            activeCharts.forEach(chart => chart.destroy());
-            activeCharts = [];
+            e.stopPropagation();
             const plan = JSON.parse(decodeURIComponent(atob(majorTarget.dataset.plan)));
             renderMajorCharts(plan);
-            return; // 任务完成，退出
+            return;
         }
-
-        // 场景2: 点击了树状结构中的标签 (可能是省份或院校)
         if (treeLabel) {
             const listItem = treeLabel.closest('li');
-            
-            // 行为A: 展开/折叠节点
             listItem.querySelector('.nested')?.classList.toggle('active');
             treeLabel.classList.toggle('caret-down');
-
-            // 行为B: 判断是否为院校，如果是则生成图表
-            // (通过判断其父级列表是否为 .nested 来区分省份和院校)
             const parentList = listItem.parentElement;
-            if (parentList && parentList.classList.contains('nested')) {
-                activeCharts.forEach(chart => chart.destroy());
-                activeCharts = [];
+            // 只有当点击的是第二层级的标签(院校)时，才生成图表
+            if (parentList && parentList.id !== 'result-tree' && parentList.classList.contains('nested')) {
                 const uniName = treeLabel.textContent;
                 renderUniversityChart(uniName);
             }
         }
     });
 
-    // --- 以下所有事件监听器保持不变 ---
+    // --- 其他按钮和筛选器的事件监听 ---
+
     planClearButton.addEventListener('click', () => {
         selectedPlans.clear();
         updatePlanOutputUI();
         renderResults();
     });
+
     planCopyButton.addEventListener('click', () => {
         if (!planOutputTextarea.value) return;
         navigator.clipboard.writeText(planOutputTextarea.value).then(() => {
@@ -756,6 +749,7 @@ function showPlanDetails(plan) {
             setTimeout(() => { planCopyButton.textContent = '复制'; }, 1500);
         });
     });
+
     copyMajorButton.addEventListener('click', () => {
         const majorOutputTextarea = document.querySelector('#major-output-textarea');
         if (majorOutputTextarea && majorOutputTextarea.value) {
@@ -763,6 +757,7 @@ function showPlanDetails(plan) {
             majorSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
+
     filterContainer.addEventListener('click', e => {
         if (e.target.classList.contains('tree-label')) {
             e.preventDefault();
@@ -770,11 +765,13 @@ function showPlanDetails(plan) {
             e.target.classList.toggle('caret-down');
         }
     });
+
     filterContainer.addEventListener('change', e => {
         if (e.target.classList.contains('parent-checkbox')) {
             const isChecked = e.target.checked;
             e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
                 child.checked = isChecked;
+                handlePlanSelectionChange(child); // 联动勾选时也要更新
             });
         }
         filterContainer.querySelectorAll('.filter-group').forEach(group => {
@@ -787,6 +784,7 @@ function showPlanDetails(plan) {
             updateIntendedCities();
         }
     });
+
     const updateRangeFilterColor = () => {
         const hasValue = !!(rangeLowInput.value || rangeHighInput.value);
         rangeFilterGroup.querySelector('summary').classList.toggle('filter-active', hasValue);
@@ -796,11 +794,14 @@ function showPlanDetails(plan) {
     
     rangeTypeSwitcher.addEventListener('change', (e) => {
         if (e.target.value === 'score') {
-            rangeLowInput.placeholder = '低分'; rangeHighInput.placeholder = '高分';
+            rangeLowInput.placeholder = '低分';
+            rangeHighInput.placeholder = '高分';
         } else {
-            rangeLowInput.placeholder = '低位'; rangeHighInput.placeholder = '高位';
+            rangeLowInput.placeholder = '低位';
+            rangeHighInput.placeholder = '高位';
         }
     });
+
     clearCitiesButton.addEventListener('click', () => {
         if (!cityFilterGroup) return;
         cityFilterGroup.querySelectorAll('input[name="city"]:checked, input.parent-checkbox:checked').forEach(cb => {
