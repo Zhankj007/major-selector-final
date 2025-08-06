@@ -369,8 +369,8 @@ function showPlanDetails(plan) {
         ${renderSmartField('院校百科', plan.院校百科)}
         ${renderSmartField('就业质量', plan.就业质量)}
     `;
-
     detailsContent.innerHTML = html;
+}
 
     // --- 【新增】图表功能相关代码 (V2 - 根据补充说明重构) ---
     function renderMajorCharts(plan) {
@@ -523,7 +523,7 @@ function showPlanDetails(plan) {
         }
     });
     // Use a timeout to ensure the other tabs might have initialized, then start checking
-    setTimeout(() => {
+        setTimeout(() => {
         updateCopyMajorButtonState();
         setInterval(updateCopyMajorButtonState, 500);
     }, 200);
