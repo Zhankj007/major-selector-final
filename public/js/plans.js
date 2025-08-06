@@ -324,7 +324,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
             .plan-details-content .detail-row,
             .plan-details-content .detail-text-block,
-            .plan-details-content .detail-link { font-size: 14px; /* 您可以根据需要调整这个值，例如 13px */ }
+            .plan-details-content .detail-link { font-size: 13px; /* 您可以根据需要调整这个值，例如 13px */ }
         </style>
         
         <h3 style="color: #007bff;">${planTitle}</h3>
