@@ -316,15 +316,30 @@ function showPlanDetails(plan) {
     // --- 构建HTML  (采用混合渲染) ---
     let html = `
         <style>
-            .plan-details-content .detail-row { margin-bottom: 8px; }
-            .plan-details-content .detail-item { margin-right: 20px; }
-            .plan-details-content .detail-label { font-weight: 600; }
-            .plan-details-content .detail-text-block, .detail-link { margin-bottom: 10px; }
-            .plan-details-content .detail-text-label { margin: 0 0 5px 0; } /* <- 已移除 font-size */
-            .plan-details-content .detail-text-content, .detail-link a { line-height: 1.6; word-break: break-all; }
+            /* 【最终修正】 */
             .plan-details-content .detail-row,
-            .plan-details-content .detail-text-block,
-            .plan-details-content .detail-link { font-size: 13px; /* 您可以根据需要调整这个值，例如 13px */ }
+            .plan-details-content .detail-smart-row {
+                margin-bottom: 8px;
+                line-height: 1.6;
+            }
+            .plan-details-content .detail-item {
+                margin-right: 20px;
+            }
+            /* 直接对最终的文本和标签元素设置字体大小，确保最高优先级 */
+            .plan-details-content .detail-label,
+            .plan-details-content .detail-value,
+            .plan-details-content .detail-smart-row a {
+                font-size: 14px; /* 您可以根据需要调整这个值 */
+                font-weight: normal; /* 重置字体粗细 */
+            }
+            /* 重新设置标签为粗体 */
+            .plan-details-content .detail-label {
+                font-weight: 600;
+            }
+            .plan-details-content .detail-smart-row a,
+            .plan-details-content .detail-smart-row .detail-value {
+                word-break: break-all;
+            }
         </style>
         
         <h3 style="color: #007bff;">${planTitle}</h3>
