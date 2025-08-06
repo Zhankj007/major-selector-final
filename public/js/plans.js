@@ -675,13 +675,15 @@ function showPlanDetails(plan) {
     updatePlanOutputUI();
     updateCopyMajorButtonState();
     updateIntendedCities(); */
-   // --- 【已修改】事件监听器 & 初始化 (已整合图表功能) ---
+
+    
+    // --- 【最终修正】事件监听器 & 初始化 (已整合图表功能) ---
 
     queryButton.addEventListener('click', executeQuery);
 
     viewModeSwitcher.addEventListener('change', renderResults);
     
-    // 【保留】原有的 'change' 事件监听器，专门处理多选框的勾选逻辑
+    // 【保留】'change' 事件：专门处理【勾选/取消勾选】专业的逻辑
     resultsContainer.addEventListener('change', e => {
         if (e.target.type === 'checkbox') {
             handlePlanSelectionChange(e.target);
@@ -692,49 +694,52 @@ function showPlanDetails(plan) {
         }
     });
 
-    // 【已修改】将图表生成逻辑整合到 'click' 事件监听器中
-    resultsContainer.addEventListener('click', e => {
-        // 首先，判断点击的是否为树形结构的展开标签
-        if (e.target.classList.contains('tree-label')) {
-            e.target.closest('li').querySelector('.nested')?.classList.toggle('active');
-            e.target.classList.toggle('caret-down');
-        }
-
-        // 其次，判断点击的是否为 checkbox，如果是，则不执行后续图表逻辑
-        // （因为 checkbox 的主要逻辑由 'change' 事件处理）
-        if (e.target.type === 'checkbox') {
-            return;
-        }
-
-        // --- 开始图表生成逻辑 ---
-        const universityLabel = e.target.closest('span.tree-label');
-        const majorTarget = e.target.closest('[data-plan]');
-
-        // 清理上一次的图表
-        activeCharts.forEach(chart => chart.destroy());
-        activeCharts = [];
-
-        // 根据点击目标，生成新图表
-        if (majorTarget) {
-            // 场景1: 点击的是专业（树状或列表）
-            const plan = JSON.parse(decodeURIComponent(atob(majorTarget.dataset.plan)));
-            renderMajorCharts(plan);
-        } else if (universityLabel && !e.target.closest('li').querySelector('ul')) {
-            // 场景2: 点击的是院校名称，并且它下面没有嵌套的专业（防止误触）
-            // 这是一个简单的判断，更精确的判断可能需要检查DOM结构
-        } else if (universityLabel) {
-            // 场景3: 点击的是院校名称标签
-            const uniName = universityLabel.textContent;
-            renderUniversityChart(uniName);
-        }
-    });
-
-    // 【保留】原有的 'mouseover' 事件监听器，用于显示详情
+    // 【保留】'mouseover' 事件：专门处理【鼠标悬浮显示详情】的逻辑
     resultsContainer.addEventListener('mouseover', e => {
         const target = e.target.closest('[data-plan]');
         if (target && target.dataset.plan) {
             const plan = JSON.parse(decodeURIComponent(atob(target.dataset.plan)));
             showPlanDetails(plan);
+        }
+    });
+
+    // 【已重写】'click' 事件：处理【生成图表】和【展开/折叠树】的逻辑
+    resultsContainer.addEventListener('click', e => {
+        // 如果点击的是多选框，则不执行任何操作（交由 'change' 事件处理）
+        if (e.target.type === 'checkbox') {
+            return;
+        }
+
+        const majorTarget = e.target.closest('[data-plan]');
+        const treeLabel = e.target.closest('span.tree-label');
+
+        // 场景1: 点击了任何包含专业数据的地方 (无论列表模式还是树状模式的专业行)
+        if (majorTarget) {
+            e.stopPropagation(); // 防止事件冒泡触发下面的院校点击逻辑
+            activeCharts.forEach(chart => chart.destroy());
+            activeCharts = [];
+            const plan = JSON.parse(decodeURIComponent(atob(majorTarget.dataset.plan)));
+            renderMajorCharts(plan);
+            return; // 任务完成，退出
+        }
+
+        // 场景2: 点击了树状结构中的标签 (可能是省份或院校)
+        if (treeLabel) {
+            const listItem = treeLabel.closest('li');
+            
+            // 行为A: 展开/折叠节点
+            listItem.querySelector('.nested')?.classList.toggle('active');
+            treeLabel.classList.toggle('caret-down');
+
+            // 行为B: 判断是否为院校，如果是则生成图表
+            // (通过判断其父级列表是否为 .nested 来区分省份和院校)
+            const parentList = listItem.parentElement;
+            if (parentList && parentList.classList.contains('nested')) {
+                activeCharts.forEach(chart => chart.destroy());
+                activeCharts = [];
+                const uniName = treeLabel.textContent;
+                renderUniversityChart(uniName);
+            }
         }
     });
 
@@ -807,5 +812,5 @@ function showPlanDetails(plan) {
     populateFilters();
     updatePlanOutputUI();
     updateCopyMajorButtonState();
-    updateIntendedCities(); 
+    updateIntendedCities();
 };
