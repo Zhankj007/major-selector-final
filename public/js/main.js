@@ -1,12 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     function initializeGlobal() {
-        const versionInfo = document.getElementById('version-info');
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0');
-        const day = now.getDate().toString().padStart(2, '0');
-        versionInfo.textContent = `v${year}${month}${day}`;
+        // 【已删除】原先动态生成版本号的代码已被移除。
+        // 版本号现在将由 GitHub Action 在部署时直接写入 index.html。
 
+        // 【保留】这部分代码负责页面布局，需要保留
         const header = document.querySelector('.toolbox-header');
         const titleVersion = header.querySelector('.title-version');
         const description = header.querySelector('.description');
@@ -14,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
             titleVersion.appendChild(description);
         }
 
+        // 【保留】这部分代码是整个应用的核心，负责标签页切换，必须保留
         const tabs = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
 
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
                             window.initializeMajorsTab();
                         }
-                        // NEW: Add logic for the plans tab
                         else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
                             window.initializePlansTab();
                         }
@@ -41,8 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 【保留】调用初始化函数
     initializeGlobal();
     
+    // 【保留】初始化默认的“高校库”标签页
     if (typeof window.initializeUniversitiesTab === 'function') {
         window.initializeUniversitiesTab();
     } else {
@@ -50,4 +49,3 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
-
