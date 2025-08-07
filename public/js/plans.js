@@ -427,7 +427,6 @@ function renderUniversityChart(uniName) {
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
 
-        // 1. 筛选出该院校下所有包含25年分数线的专业
         const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['25年分数线']);
 
         if (relevantPlans.length === 0) {
@@ -435,36 +434,35 @@ function renderUniversityChart(uniName) {
             return;
         }
 
-        // 2. 直接从数据中获取预先计算好的院校整体统计数据
-        const uniStats = relevantPlans[0]; // 所有专业的该数据都相同
+        const uniStats = relevantPlans[0];
+        // 3. 上方四个关键指标，标签名称再规范一下
+        // 4. 上方标题行和四个关键指标，位置上移一些，行间距也适当缩小
         const statsHtml = `
-            <div style="display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 5px; font-size: 14px;">
-                <div style="text-align: center;"><strong>校最低分:</strong> ${uniStats['25年校最低专业分数'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>校最低位次:</strong> ${uniStats['25年校最低专业位次'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>专业平均分:</strong> ${uniStats['25年校所有专业平均分'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>专业平均位次:</strong> ${uniStats['25年校所有专业平均位次'] || 'N/A'}</div>
+            <div style="display: flex; justify-content: space-around; padding: 5px; margin-bottom: 8px; background-color: #f8f9fa; border-radius: 5px; font-size: 13px;">
+                <div style="text-align: center;"><strong>校最低专业分数:</strong> ${uniStats['25年校最低专业分数'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校最低专业位次:</strong> ${uniStats['25年校最低专业位次'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校专业平均分:</strong> ${uniStats['25年校所有专业平均分'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校专业平均位次:</strong> ${uniStats['25年校所有专业平均位次'] || 'N/A'}</div>
             </div>
         `;
 
-        // 3. 按分数线从高到低排序，并准备图表所需的数据
         const sortedPlans = [...relevantPlans].sort((a, b) => b['25年分数线'] - a['25年分数线']);
-        // 生成更详细的标签，例如: "计算机科学与技术(009)"
-        const labels = sortedPlans.map(p => `${p.专业}${p.专业代码 ? `(${p.专业代码})` : ''}`);
+        // 2. X轴的各专业，你取得是已经附专业代码的字段<专业>，因此不用再在后面跟一个专业代码
+        const labels = sortedPlans.map(p => p.专业);
         const scores = sortedPlans.map(p => p['25年分数线']);
 
-        // 4. 为图表区域设置一个固定的高度
-        const chartHeight = 450; 
-        chartArea.innerHTML = `<h3>${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+        const chartHeight = 450;
+        // 1. 标题行，请用淡红色字体
+        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px; text-align: center;">${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
 
-        // 5. 创建新的Chart.js实例，配置为纵向柱状图
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
-            type: 'bar', // 'bar' 类型默认为纵向柱状图
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
                     label: '25年分数线',
                     data: scores,
-                    backgroundColor: 'rgba(239, 108, 108, 0.7)', // 调整为参考图中的粉红色系
+                    backgroundColor: 'rgba(239, 108, 108, 0.7)',
                     borderColor: 'rgba(239, 108, 108, 1)',
                     borderWidth: 1
                 }]
@@ -473,12 +471,10 @@ function renderUniversityChart(uniName) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false // 隐藏图例
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        // 在提示框中额外展示位次和计划数
                         callbacks: {
+                            // 2. 鼠标悬停的效果也不再需要专业代码
                             footer: function(tooltipItems) {
                                 const plan = sortedPlans[tooltipItems[0].dataIndex];
                                 if (!plan) return '';
@@ -490,28 +486,51 @@ function renderUniversityChart(uniName) {
                     }
                 },
                 scales: {
-                    y: { // Y轴代表分数
+                    y: {
                         beginAtZero: false,
-                        // 根据最低分适当调整起始值，让分数差异更明显
                         suggestedMin: Math.floor((uniStats['25年校最低专业分数'] || 500) / 10) * 10 - 20,
                         title: {
                             display: true,
-                            text: '分数线'
+                            // 5. 左侧Y轴分数线三个字，改成上下排版的样式
+                            text: '分\n数\n线',
+                            font: {
+                                size: 12
+                            }
                         }
                     },
-                    x: { // X轴代表各个专业
+                    x: {
                         ticks: {
-                            autoSkip: false, // 保证所有专业名称都显示
-                            maxRotation: 45, // 标签最大旋转角度
-                            minRotation: 45, // 标签最小旋转角度
-                            font: {
-                                size: 11, // 适当调整字体大小
-                            },
-                            align: 'end', // 标签文字右对齐，防止遮挡
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: { size: 11, },
+                            align: 'end',
                         }
                     }
+                },
+            },
+            // 2. 在各柱形上方，直接显示分数，如果专业数量太多时，自动隔行显示一个
+            plugins: [{
+                id: 'custom_data_labels',
+                afterDatasetsDraw(chart, args, options) {
+                    const { ctx, data, scales: { x, y } } = chart;
+                    const isCrowded = data.labels.length > 20;
+
+                    ctx.save();
+                    ctx.font = '10px Arial';
+                    ctx.fillStyle = '#444';
+                    ctx.textAlign = 'center';
+
+                    data.datasets[0].data.forEach((value, index) => {
+                        if (isCrowded && index % 2 !== 0) {
+                            return; // 如果拥挤，则隔一个显示
+                        }
+                        const bar = chart.getDatasetMeta(0).data[index];
+                        ctx.fillText(value, bar.x, bar.y - 5);
+                    });
+                    ctx.restore();
                 }
-            }
+            }]
         }));
     }
     // 图表展示区函数结束
