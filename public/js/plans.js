@@ -422,7 +422,7 @@ function showPlanDetails(plan) {
         }));
     }
 
-function renderUniversityChart(uniName) {
+    function renderUniversityChart(uniName) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
@@ -484,10 +484,10 @@ function renderUniversityChart(uniName) {
                     y: {
                         beginAtZero: false,
                         suggestedMin: Math.floor((uniStats['25年校最低专业分数'] || 500) / 10) * 10 - 20,
+                        // 恢复为Chart.js默认的横向标题
                         title: {
                             display: true,
-                            // 1. Y轴标题标准写法：使用字符串数组实现纵向排版
-                            text: ['分', '数', '线'],
+                            text: '分数线',
                             font: {
                                 size: 12
                             }
@@ -504,7 +504,7 @@ function renderUniversityChart(uniName) {
                     }
                 },
             },
-            // 2. 实现智能判断、动态显示的分数标签插件
+            // 插件数组：只保留智能分数标签插件
             plugins: [{
                 id: 'intelligent_data_labels',
                 afterDatasetsDraw(chart, args, options) {
@@ -513,22 +513,17 @@ function renderUniversityChart(uniName) {
                     ctx.font = '10px Arial';
                     ctx.fillStyle = '#444';
                     ctx.textAlign = 'center';
-
                     const meta = chart.getDatasetMeta(0);
-                    let lastLabelXEnd = -Infinity; // 记录上一个绘制标签的结束X坐标
-
+                    let lastLabelXEnd = -Infinity;
                     meta.data.forEach((bar, index) => {
                         const score = chart.data.datasets[0].data[index].toString();
                         const textWidth = ctx.measureText(score).width;
-                        
                         const currentLabelXStart = bar.x - (textWidth / 2);
                         const currentLabelXEnd = bar.x + (textWidth / 2);
-                        const safetyMargin = 5; // 标签间的最小安全间距
-
-                        // 核心判断：当前标签的起始位置 > 上个标签的结束位置 + 安全距离
+                        const safetyMargin = 5;
                         if (currentLabelXStart > lastLabelXEnd + safetyMargin) {
                             ctx.fillText(score, bar.x, bar.y - 5);
-                            lastLabelXEnd = currentLabelXEnd; // 更新最后一个绘制标签的位置
+                            lastLabelXEnd = currentLabelXEnd;
                         }
                     });
                     ctx.restore();
