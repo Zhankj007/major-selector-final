@@ -373,25 +373,22 @@ function showPlanDetails(plan) {
     }
 
 // --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
-    function renderMajorCharts(plan) {
+function renderMajorCharts(plan) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
-        // 清理旧图表实例
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
 
         const years = [25, 24, 23, 22];
-        // 1. 准备历史数据，并确保年份从近到远 (25, 24, 23...)，因此移除 .reverse()
         const historicalData = years.map(year => {
             const score = plan[`${year}年分数线`];
             const rank = plan[`${year}年位次号`];
             const count = plan[`${year}年计划数`];
-            const avgScore = plan[`${year}年平均分`]; // 新增平均分数据
-            // 只要有任何一项数据存在，就保留该年份
+            const avgScore = plan[`${year}年平均分`];
             if (score || rank || count || avgScore) {
                 return { year: `${year}年`, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean); // 过滤掉完全没有数据的年份
+        }).filter(Boolean);
 
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
@@ -399,107 +396,134 @@ function showPlanDetails(plan) {
         }
 
         const labels = historicalData.map(d => d.year);
+
+        // 5. 标题美化：动态显示专业全称，并设为绿色
+        const fullMajorName = `${plan.院校 || ''} ${plan.专业 || ''}`;
         
-        // 2. 使用Flexbox布局，横向并列3个图表
+        // 3. 布局优化：设置 flex-grow, flex-shrink, 和 flex-basis，并添加 min-width: 0 防止溢出
         chartArea.innerHTML = `
-            <h3>历年投档情况</h3>
+            <h3 style="color: #28a745; margin-bottom: 12px;">历年投档情况: ${fullMajorName}</h3>
             <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch;">
-                
-                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
-                    <canvas id="scoreAvgChart"></canvas>
-                </div>
-
-                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
-                    <canvas id="rankChart"></canvas>
-                </div>
-
-                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
-                    <canvas id="countChart"></canvas>
-                </div>
-
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="scoreAvgChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="rankChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="countChart"></canvas></div>
             </div>
         `;
 
-        // 3. 初始化各个图表实例
+        // 1. 通用数据标签插件，用于在图表上显示数值
+        const dataLabelsPlugin = {
+            id: 'custom_data_labels',
+            afterDatasetsDraw(chart, args, options) {
+                const { ctx, data, config } = chart;
+                ctx.save();
+                ctx.font = 'bold 11px Arial';
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
 
-        // 图表一: 分数线/平均分 (分组柱形图)
+                data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return; // 如果图例被隐藏，则不显示标签
+
+                    meta.data.forEach((element, index) => {
+                        const value = dataset.data[index];
+                        if(value === null || value === undefined) return;
+
+                        ctx.fillStyle = dataset.borderColor || '#333';
+                        let x, y;
+                        if (config.options.indexAxis === 'y') { // 水平条形图
+                            x = element.x + 15;
+                            y = element.y;
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                        } else if(config.type === 'line') { // 折线图
+                            x = element.x;
+                            y = element.y - 10;
+                            ctx.textBaseline = 'bottom';
+                        } else { // 垂直柱状图
+                            x = element.x;
+                            y = element.y - 5;
+                            ctx.textBaseline = 'bottom';
+                        }
+                        ctx.fillText(value, x, y);
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
+        // --- 初始化图表 ---
+
+        // 图表一: 投档线/平均分
+        const allScores = [...historicalData.map(d=>d.score), ...historicalData.map(d=>d.avgScore)].filter(s => s != null);
+        const minScore = Math.min(...allScores);
+
         activeCharts.push(new Chart(document.getElementById('scoreAvgChart'), {
             type: 'bar',
             data: {
                 labels,
                 datasets: [
                     {
-                        label: '最低分数线',
+                        // 2. 标题和图例修改
+                        label: '投档线',
                         data: historicalData.map(d => d.score),
                         backgroundColor: 'rgba(54, 162, 235, 0.7)',
                         borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
                     },
                     {
                         label: '平均分',
                         data: historicalData.map(d => d.avgScore),
                         backgroundColor: 'rgba(75, 192, 192, 0.7)',
                         borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        // 2. Y轴动态适配
+                        beginAtZero: false,
+                        suggestedMin: Math.floor(minScore / 10) * 10 - 10
+                    }
+                },
                 plugins: {
-                    title: { display: true, text: '分数线/平均分' },
+                    title: { display: true, text: '投档线/平均分' },
                     legend: { display: true, position: 'top' }
                 }
-            }
+            },
+            plugins: [dataLabelsPlugin] // 应用数据标签插件
         }));
 
-        // 图表二: 位次号 (折线图)
+        // 图表二: 位次号
         activeCharts.push(new Chart(document.getElementById('rankChart'), {
             type: 'line',
             data: {
                 labels,
                 datasets: [{
-                    label: '最低位次号',
-                    data: historicalData.map(d => d.rank),
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    fill: true,
-                    tension: 0.1
+                    label: '最低位次号', data: historicalData.map(d => d.rank),
+                    borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true, tension: 0.1
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: '位次号' },
-                    legend: { display: false }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '位次号' }, legend: { display: false } } },
+            plugins: [dataLabelsPlugin] // 应用数据标签插件
         }));
         
-        // 图表三: 计划数 (水平条形图)
+        // 图表三: 计划数
         activeCharts.push(new Chart(document.getElementById('countChart'), {
             type: 'bar',
             data: {
                 labels,
                 datasets: [{
-                    label: '计划数',
-                    data: historicalData.map(d => d.count),
-                    backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
+                    label: '计划数', data: historicalData.map(d => d.count),
+                    backgroundColor: 'rgba(153, 102, 255, 0.7)', borderColor: 'rgba(153, 102, 255, 1)',
                 }]
             },
             options: {
-                indexAxis: 'y', // <-- 设置为水平条形图的关键
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: { display: true, text: '计划数' },
-                    legend: { display: false }
-                }
-            }
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { title: { display: true, text: '计划数' }, legend: { display: false } }
+            },
+            plugins: [dataLabelsPlugin] // 应用数据标签插件
         }));
     }
 
@@ -709,18 +733,20 @@ function showPlanDetails(plan) {
         }
     });
 
-    resultsContainer.addEventListener('click', e => {
+resultsContainer.addEventListener('click', e => {
         const target = e.target;
         if (target.type === 'checkbox') return;
 
-        const treeLabel = target.closest('.tree-label');
-        const majorLi = target.closest('li[data-plan]');
-
-        if (majorLi) {
-            renderMajorCharts(JSON.parse(decodeURIComponent(atob(majorLi.dataset.plan))));
-            return;
+        // 4. 统一处理树状和列表视图下的专业点击事件
+        const majorElement = target.closest('[data-plan]');
+        if (majorElement) {
+            // 如果点击的是具体的专业（无论是li还是div），则显示专业图表
+            renderMajorCharts(JSON.parse(decodeURIComponent(atob(majorElement.dataset.plan))));
+            return; // 动作完成，退出
         }
         
+        // 如果不是专业，再判断是否为树状视图的父节点（院校或省份）
+        const treeLabel = target.closest('.tree-label');
         if (treeLabel) {
             const listItem = treeLabel.closest('li');
             listItem.querySelector('.nested')?.classList.toggle('active');
