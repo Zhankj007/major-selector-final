@@ -328,7 +328,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-label { font-weight: 600; }
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
-        <h3 style="color: #007bff;">${planTitle}</h3>
+        <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -379,7 +379,6 @@ function showPlanDetails(plan) {
         activeCharts = [];
 
         const years = [25, 24, 23, 22];
-        // 2. 改为按22年、23年、24年、25年这样的顺序展示，因此在数据处理最后加上 .reverse()
         const historicalData = years.map(year => {
             const score = plan[`${year}年分数线`];
             const rank = plan[`${year}年位次号`];
@@ -389,7 +388,7 @@ function showPlanDetails(plan) {
                 return { year: `${year}年`, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean).reverse(); // <-- .reverse() to sort chronologically
+        }).filter(Boolean).reverse();
 
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
@@ -398,7 +397,6 @@ function showPlanDetails(plan) {
 
         const labels = historicalData.map(d => d.year);
 
-        // 1. 整个历年投档情况框的标题，改为：院校 # 专业 历年投档情况
         const fullMajorName = `${plan.院校 || ''} # ${plan.专业 || ''}`;
         
         chartArea.innerHTML = `
@@ -465,7 +463,6 @@ function showPlanDetails(plan) {
                     y: {
                         beginAtZero: false,
                         suggestedMin: Math.floor(minScore / 10) * 10 - 10,
-                        // 3. 为Y轴添加'grace'，确保顶部有空间显示数值
                         grace: '5%' 
                     }
                 },
@@ -487,7 +484,13 @@ function showPlanDetails(plan) {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                scales: { y: { grace: '10%' } }, // 也为位次号图表顶部增加空间
+                scales: { 
+                    y: { 
+                        grace: '10%',
+                        // 3. Y轴逆序排列
+                        reverse: true 
+                    } 
+                },
                 plugins: { title: { display: true, text: '位次号' }, legend: { display: false } }
             },
             plugins: [dataLabelsPlugin]
@@ -507,7 +510,6 @@ function showPlanDetails(plan) {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 scales: {
                     x: {
-                        // 3. 为X轴添加'grace'，确保右侧有空间显示数值
                         grace: 1 
                     }
                 },
@@ -544,7 +546,7 @@ function showPlanDetails(plan) {
         const scores = sortedPlans.map(p => p['25年分数线']);
 
         const chartHeight = 450;
-        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px; text-align: center;">${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px;">${uniName} 2025年各专业投档线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
 
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
             type: 'bar',
