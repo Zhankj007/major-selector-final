@@ -372,53 +372,134 @@ function showPlanDetails(plan) {
     detailsContent.innerHTML = html;
     }
 
-    // --- 【新增】图表功能相关代码 (V2 - 根据补充说明重构) ---
+// --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
     function renderMajorCharts(plan) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
+        // 清理旧图表实例
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
+
         const years = [25, 24, 23, 22];
+        // 1. 准备历史数据，并确保年份从近到远 (25, 24, 23...)，因此移除 .reverse()
         const historicalData = years.map(year => {
             const score = plan[`${year}年分数线`];
             const rank = plan[`${year}年位次号`];
             const count = plan[`${year}年计划数`];
-            const avgScore = plan[`${year}年平均分`];
-            if (score && rank && count) {
+            const avgScore = plan[`${year}年平均分`]; // 新增平均分数据
+            // 只要有任何一项数据存在，就保留该年份
+            if (score || rank || count || avgScore) {
                 return { year: `${year}年`, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean).reverse();
+        }).filter(Boolean); // 过滤掉完全没有数据的年份
+
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
             return;
         }
+
         const labels = historicalData.map(d => d.year);
+        
+        // 2. 使用Flexbox布局，横向并列3个图表
         chartArea.innerHTML = `
             <h3>历年投档情况</h3>
-            <div class="chart-container" style="height: 200px; margin-bottom: 25px;"><canvas id="scoreChart"></canvas></div>
-            <div class="chart-container" style="height: 200px; margin-bottom: 25px;"><canvas id="avgScoreChart"></canvas></div>
-            <div class="chart-container" style="height: 180px; margin-bottom: 25px;"><canvas id="rankChart"></canvas></div>
-            <div class="chart-container" style="height: 180px;"><canvas id="countChart"></canvas></div>
+            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch;">
+                
+                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
+                    <canvas id="scoreAvgChart"></canvas>
+                </div>
+
+                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
+                    <canvas id="rankChart"></canvas>
+                </div>
+
+                <div class="chart-container" style="flex: 1; position: relative; height: 280px;">
+                    <canvas id="countChart"></canvas>
+                </div>
+
+            </div>
         `;
-        activeCharts.push(new Chart(document.getElementById('scoreChart'), {
+
+        // 3. 初始化各个图表实例
+
+        // 图表一: 分数线/平均分 (分组柱形图)
+        activeCharts.push(new Chart(document.getElementById('scoreAvgChart'), {
             type: 'bar',
-            data: { labels, datasets: [{ label: '最低分数线', data: historicalData.map(d => d.score), backgroundColor: 'rgba(255, 99, 132, 0.6)' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年最低分数线' }}}
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: '最低分数线',
+                        data: historicalData.map(d => d.score),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '平均分',
+                        data: historicalData.map(d => d.avgScore),
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: '分数线/平均分' },
+                    legend: { display: true, position: 'top' }
+                }
+            }
         }));
-        activeCharts.push(new Chart(document.getElementById('avgScoreChart'), {
-            type: 'bar',
-            data: { labels, datasets: [{ label: '平均分', data: historicalData.map(d => d.avgScore), backgroundColor: 'rgba(255, 159, 64, 0.6)' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年平均分' }}}
-        }));
+
+        // 图表二: 位次号 (折线图)
         activeCharts.push(new Chart(document.getElementById('rankChart'), {
             type: 'line',
-            data: { labels, datasets: [{ label: '最低位次号', data: historicalData.map(d => d.rank), borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.6)', tension: 0.1 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年最低位次号' }}}
+            data: {
+                labels,
+                datasets: [{
+                    label: '最低位次号',
+                    data: historicalData.map(d => d.rank),
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: '位次号' },
+                    legend: { display: false }
+                }
+            }
         }));
+        
+        // 图表三: 计划数 (水平条形图)
         activeCharts.push(new Chart(document.getElementById('countChart'), {
             type: 'bar',
-            data: { labels, datasets: [{ label: '计划数', data: historicalData.map(d => d.count), backgroundColor: 'rgba(153, 102, 255, 0.6)' }] },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '历年计划数' }}}
+            data: {
+                labels,
+                datasets: [{
+                    label: '计划数',
+                    data: historicalData.map(d => d.count),
+                    backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y', // <-- 设置为水平条形图的关键
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: '计划数' },
+                    legend: { display: false }
+                }
+            }
         }));
     }
 
