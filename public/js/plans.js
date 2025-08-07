@@ -373,12 +373,13 @@ function showPlanDetails(plan) {
     }
 
 // --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
-function renderMajorCharts(plan) {
+    function renderMajorCharts(plan) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
 
         const years = [25, 24, 23, 22];
+        // 2. 改为按22年、23年、24年、25年这样的顺序展示，因此在数据处理最后加上 .reverse()
         const historicalData = years.map(year => {
             const score = plan[`${year}年分数线`];
             const rank = plan[`${year}年位次号`];
@@ -388,7 +389,7 @@ function renderMajorCharts(plan) {
                 return { year: `${year}年`, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean);
+        }).filter(Boolean).reverse(); // <-- .reverse() to sort chronologically
 
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
@@ -397,12 +398,11 @@ function renderMajorCharts(plan) {
 
         const labels = historicalData.map(d => d.year);
 
-        // 5. 标题美化：动态显示专业全称，并设为绿色
-        const fullMajorName = `${plan.院校 || ''} ${plan.专业 || ''}`;
+        // 1. 整个历年投档情况框的标题，改为：院校 # 专业 历年投档情况
+        const fullMajorName = `${plan.院校 || ''} # ${plan.专业 || ''}`;
         
-        // 3. 布局优化：设置 flex-grow, flex-shrink, 和 flex-basis，并添加 min-width: 0 防止溢出
         chartArea.innerHTML = `
-            <h3 style="color: #28a745; margin-bottom: 12px;">历年投档情况: ${fullMajorName}</h3>
+            <h3 style="color: #28a745; margin-bottom: 12px;">${fullMajorName} 历年投档情况</h3>
             <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch;">
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="scoreAvgChart"></canvas></div>
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="rankChart"></canvas></div>
@@ -410,7 +410,6 @@ function renderMajorCharts(plan) {
             </div>
         `;
 
-        // 1. 通用数据标签插件，用于在图表上显示数值
         const dataLabelsPlugin = {
             id: 'custom_data_labels',
             afterDatasetsDraw(chart, args, options) {
@@ -422,7 +421,7 @@ function renderMajorCharts(plan) {
 
                 data.datasets.forEach((dataset, i) => {
                     const meta = chart.getDatasetMeta(i);
-                    if (meta.hidden) return; // 如果图例被隐藏，则不显示标签
+                    if (meta.hidden) return;
 
                     meta.data.forEach((element, index) => {
                         const value = dataset.data[index];
@@ -430,18 +429,14 @@ function renderMajorCharts(plan) {
 
                         ctx.fillStyle = dataset.borderColor || '#333';
                         let x, y;
-                        if (config.options.indexAxis === 'y') { // 水平条形图
-                            x = element.x + 15;
-                            y = element.y;
-                            ctx.textAlign = 'left';
-                            ctx.textBaseline = 'middle';
-                        } else if(config.type === 'line') { // 折线图
-                            x = element.x;
-                            y = element.y - 10;
+                        if (config.options.indexAxis === 'y') {
+                            x = element.x + 15; y = element.y;
+                            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                        } else if(config.type === 'line') {
+                            x = element.x; y = element.y - 10;
                             ctx.textBaseline = 'bottom';
-                        } else { // 垂直柱状图
-                            x = element.x;
-                            y = element.y - 5;
+                        } else {
+                            x = element.x; y = element.y - 5;
                             ctx.textBaseline = 'bottom';
                         }
                         ctx.fillText(value, x, y);
@@ -451,47 +446,32 @@ function renderMajorCharts(plan) {
             }
         };
 
-        // --- 初始化图表 ---
-
-        // 图表一: 投档线/平均分
         const allScores = [...historicalData.map(d=>d.score), ...historicalData.map(d=>d.avgScore)].filter(s => s != null);
         const minScore = Math.min(...allScores);
 
+        // 图表一: 投档线/平均分
         activeCharts.push(new Chart(document.getElementById('scoreAvgChart'), {
             type: 'bar',
             data: {
                 labels,
                 datasets: [
-                    {
-                        // 2. 标题和图例修改
-                        label: '投档线',
-                        data: historicalData.map(d => d.score),
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                    },
-                    {
-                        label: '平均分',
-                        data: historicalData.map(d => d.avgScore),
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                    }
+                    { label: '投档线', data: historicalData.map(d => d.score), backgroundColor: 'rgba(54, 162, 235, 0.7)', borderColor: 'rgba(54, 162, 235, 1)' },
+                    { label: '平均分', data: historicalData.map(d => d.avgScore), backgroundColor: 'rgba(75, 192, 192, 0.7)', borderColor: 'rgba(75, 192, 192, 1)' }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: {
                     y: {
-                        // 2. Y轴动态适配
                         beginAtZero: false,
-                        suggestedMin: Math.floor(minScore / 10) * 10 - 10
+                        suggestedMin: Math.floor(minScore / 10) * 10 - 10,
+                        // 3. 为Y轴添加'grace'，确保顶部有空间显示数值
+                        grace: '5%' 
                     }
                 },
-                plugins: {
-                    title: { display: true, text: '投档线/平均分' },
-                    legend: { display: true, position: 'top' }
-                }
+                plugins: { title: { display: true, text: '投档线/平均分' }, legend: { display: true, position: 'top' } }
             },
-            plugins: [dataLabelsPlugin] // 应用数据标签插件
+            plugins: [dataLabelsPlugin]
         }));
 
         // 图表二: 位次号
@@ -505,8 +485,12 @@ function renderMajorCharts(plan) {
                     fill: true, tension: 0.1
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '位次号' }, legend: { display: false } } },
-            plugins: [dataLabelsPlugin] // 应用数据标签插件
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { grace: '10%' } }, // 也为位次号图表顶部增加空间
+                plugins: { title: { display: true, text: '位次号' }, legend: { display: false } }
+            },
+            plugins: [dataLabelsPlugin]
         }));
         
         // 图表三: 计划数
@@ -521,9 +505,15 @@ function renderMajorCharts(plan) {
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        // 3. 为X轴添加'grace'，确保右侧有空间显示数值
+                        grace: 1 
+                    }
+                },
                 plugins: { title: { display: true, text: '计划数' }, legend: { display: false } }
             },
-            plugins: [dataLabelsPlugin] // 应用数据标签插件
+            plugins: [dataLabelsPlugin]
         }));
     }
 
