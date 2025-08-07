@@ -1,8 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
     function initializeGlobal() {
-        // 【已删除】原先动态生成版本号的代码已被移除。
-        // 版本号现在将由 GitHub Action 在部署时直接写入 index.html。
-
+    async function updateVisitorCount() {
+        try {
+            const response = await fetch('/api/counter');
+            const data = await response.json();
+            const visitorElement = document.getElementById('visitor-counter');
+            if (visitorElement) {
+                visitorElement.textContent = data.count;
+            }
+        } catch (error) {
+            console.error('Failed to fetch visitor count:', error);
+        }
+    }
+    updateVisitorCount();
         // 【保留】这部分代码负责页面布局，需要保留
         const header = document.querySelector('.toolbox-header');
         const titleVersion = header.querySelector('.title-version');
@@ -49,3 +59,4 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('universities-tab').innerHTML = `<p style="color:red;">高校库模块加载失败。</p>`;
     }
 });
+
