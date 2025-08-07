@@ -6,7 +6,13 @@
 <title>詹老师的高考志愿工具箱</title>
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="style.css">
+<style>
+    .hidden {
+        display: none !important;
+    }
+</style>
 </head>
 <body>
 
@@ -15,22 +21,45 @@
         <div class="title-version">
             <h1>詹老师的高考志愿工具箱</h1>
             <span id="version-info">__VERSION__</span>
+             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
+                <span id="visitor-info">您是第 <span id="visitor-counter">---</span> 位访客！</span>
+                <button id="logout-button" class="hidden" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
+            </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
-            <p class="description">您是第 <span id="visitor-counter">---</span> 位访客！</p>
-        </div>
+            </div>
     </header>
 
-    <nav class="tab-navigation">
-        <button class="tab-button active" data-tab="universities">高校库</button>
-        <button class="tab-button" data-tab="majors">专业目录</button>
-        <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
-    </nav>
+    <div id="login-section" class="tab-content">
+        <div style="max-width: 400px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="text-align: center; margin-top: 0;">请登录</h2>
+            <form id="login-form">
+                <div style="margin-bottom: 15px;">
+                    <label for="email" style="display: block; margin-bottom: 5px;">邮箱:</label>
+                    <input type="email" id="email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="password" style="display: block; margin-bottom: 5px;">密码:</label>
+                    <input type="password" id="password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">登 录</button>
+                <p id="login-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+            </form>
+        </div>
+    </div>
 
-    <main class="tab-content">
-        <div id="universities-tab" class="tab-panel active"></div>
-        <div id="majors-tab" class="tab-panel"></div>
-        <div id="plans-tab" class="tab-panel"></div>
-    </main>
+    <div id="app-content" class="hidden">
+        <nav class="tab-navigation">
+            <button class="tab-button active" data-tab="universities">高校库</button>
+            <button class="tab-button" data-tab="majors">专业目录</button>
+            <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
+        </nav>
+
+        <main class="tab-content">
+            <div id="universities-tab" class="tab-panel active"></div>
+            <div id="majors-tab" class="tab-panel"></div>
+            <div id="plans-tab" class="tab-panel"></div>
+        </main>
+    </div>
 </div>
 
 <script src="/js/universities.js"></script>
@@ -39,8 +68,3 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
-
-
-
-
-
