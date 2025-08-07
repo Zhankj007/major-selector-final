@@ -422,39 +422,95 @@ function showPlanDetails(plan) {
         }));
     }
 
-    function renderUniversityChart(uniName) {
+function renderUniversityChart(uniName) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
-        const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['25年分数线'] && p['25年位次号']);
+
+        // 1. 筛选出该院校下所有包含25年分数线的专业
+        const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['25年分数线']);
+
         if (relevantPlans.length === 0) {
-            chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该院校符合条件的专业暂无分数线数据。</p></div>';
+            chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该院校符合条件的专业暂无25年分数线数据可供展示。</p></div>';
             return;
         }
-        const sortedPlans = [...relevantPlans].sort((a, b) => a['25年分数线'] - b['25年分数线']);
-        const scores = relevantPlans.map(p => p['25年分数线']);
-        const ranks = relevantPlans.map(p => p['25年位次号']);
-        const minScore = Math.min(...scores);
-        const minRank = Math.min(...ranks);
-        const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-        const avgRank = Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length);
+
+        // 2. 直接从数据中获取预先计算好的院校整体统计数据
+        const uniStats = relevantPlans[0]; // 所有专业的该数据都相同
         const statsHtml = `
-            <div style="display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 5px;">
-                <div style="text-align: center;"><strong>校最低分:</strong> ${minScore}</div>
-                <div style="text-align: center;"><strong>校最低位次:</strong> ${minRank}</div>
-                <div style="text-align: center;"><strong>专业平均分:</strong> ${avgScore}</div>
-                <div style="text-align: center;"><strong>专业平均位次:</strong> ${avgRank}</div>
+            <div style="display: flex; justify-content: space-around; padding: 10px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 5px; font-size: 14px;">
+                <div style="text-align: center;"><strong>校最低分:</strong> ${uniStats['25年校最低专业分数'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校最低位次:</strong> ${uniStats['25年校最低专业位次'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>专业平均分:</strong> ${uniStats['25年校所有专业平均分'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>专业平均位次:</strong> ${uniStats['25年校所有专业平均位次'] || 'N/A'}</div>
             </div>
         `;
-        const chartHeight = Math.max(200, sortedPlans.length * 25);
-        chartArea.innerHTML = `<h3>${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+
+        // 3. 按分数线从高到低排序，并准备图表所需的数据
+        const sortedPlans = [...relevantPlans].sort((a, b) => b['25年分数线'] - a['25年分数线']);
+        // 生成更详细的标签，例如: "计算机科学与技术(009)"
+        const labels = sortedPlans.map(p => `${p.专业}${p.专业代码 ? `(${p.专业代码})` : ''}`);
+        const scores = sortedPlans.map(p => p['25年分数线']);
+
+        // 4. 为图表区域设置一个固定的高度
+        const chartHeight = 450; 
+        chartArea.innerHTML = `<h3>${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+
+        // 5. 创建新的Chart.js实例，配置为纵向柱状图
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
-            type: 'bar',
-            data: { labels: sortedPlans.map(p => p.专业), datasets: [{ label: '25年分数线', data: sortedPlans.map(p => p['25年分数线']), backgroundColor: 'rgba(54, 162, 235, 0.6)' }] },
+            type: 'bar', // 'bar' 类型默认为纵向柱状图
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '25年分数线',
+                    data: scores,
+                    backgroundColor: 'rgba(239, 108, 108, 0.7)', // 调整为参考图中的粉红色系
+                    borderColor: 'rgba(239, 108, 108, 1)',
+                    borderWidth: 1
+                }]
+            },
             options: {
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: false, suggestedMin: Math.floor(minScore / 10) * 10 - 10 } }
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // 隐藏图例
+                    },
+                    tooltip: {
+                        // 在提示框中额外展示位次和计划数
+                        callbacks: {
+                            footer: function(tooltipItems) {
+                                const plan = sortedPlans[tooltipItems[0].dataIndex];
+                                if (!plan) return '';
+                                const rankInfo = plan['25年位次号'] ? `位次: ${plan['25年位次号']}` : '';
+                                const countInfo = plan['25年计划数'] ? `计划数: ${plan['25年计划数']}` : '';
+                                return [rankInfo, countInfo].filter(Boolean).join(' | ');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { // Y轴代表分数
+                        beginAtZero: false,
+                        // 根据最低分适当调整起始值，让分数差异更明显
+                        suggestedMin: Math.floor((uniStats['25年校最低专业分数'] || 500) / 10) * 10 - 20,
+                        title: {
+                            display: true,
+                            text: '分数线'
+                        }
+                    },
+                    x: { // X轴代表各个专业
+                        ticks: {
+                            autoSkip: false, // 保证所有专业名称都显示
+                            maxRotation: 45, // 标签最大旋转角度
+                            minRotation: 45, // 标签最小旋转角度
+                            font: {
+                                size: 11, // 适当调整字体大小
+                            },
+                            align: 'end', // 标签文字右对齐，防止遮挡
+                        }
+                    }
+                }
             }
         }));
     }
