@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>詹老师的高考志愿工具箱</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="toolbox-container">
+    <header class="toolbox-header">
+        <div class="title-version">
+            <h1>詹老师的高考志愿工具箱</h1>
+            <span id="version-info">v20250807</span>
+            <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
+        </div>
+    </header>
+
+    <nav class="tab-navigation">
+        <button class="tab-button active" data-tab="universities">高校库</button>
+        <button class="tab-button" data-tab="majors">专业目录</button>
+        <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
+    </nav>
+
+    <main class="tab-content">
+        <div id="universities-tab" class="tab-panel active"></div>
+        <div id="majors-tab" class="tab-panel"></div>
+        <div id="plans-tab" class="tab-panel"></div>
+    </main>
+</div>
+
+<script src="/js/universities.js"></script>
+<script src="/js/majors.js"></script>
+<script src="/js/plans.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>
+
+
+
+
