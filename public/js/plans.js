@@ -435,8 +435,6 @@ function renderUniversityChart(uniName) {
         }
 
         const uniStats = relevantPlans[0];
-        // 3. 上方四个关键指标，标签名称再规范一下
-        // 4. 上方标题行和四个关键指标，位置上移一些，行间距也适当缩小
         const statsHtml = `
             <div style="display: flex; justify-content: space-around; padding: 5px; margin-bottom: 8px; background-color: #f8f9fa; border-radius: 5px; font-size: 13px;">
                 <div style="text-align: center;"><strong>校最低专业分数:</strong> ${uniStats['25年校最低专业分数'] || 'N/A'}</div>
@@ -447,12 +445,10 @@ function renderUniversityChart(uniName) {
         `;
 
         const sortedPlans = [...relevantPlans].sort((a, b) => b['25年分数线'] - a['25年分数线']);
-        // 2. X轴的各专业，你取得是已经附专业代码的字段<专业>，因此不用再在后面跟一个专业代码
         const labels = sortedPlans.map(p => p.专业);
         const scores = sortedPlans.map(p => p['25年分数线']);
 
         const chartHeight = 450;
-        // 1. 标题行，请用淡红色字体
         chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px; text-align: center;">${uniName} - 25年专业分数线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
 
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
@@ -474,7 +470,6 @@ function renderUniversityChart(uniName) {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            // 2. 鼠标悬停的效果也不再需要专业代码
                             footer: function(tooltipItems) {
                                 const plan = sortedPlans[tooltipItems[0].dataIndex];
                                 if (!plan) return '';
@@ -491,8 +486,8 @@ function renderUniversityChart(uniName) {
                         suggestedMin: Math.floor((uniStats['25年校最低专业分数'] || 500) / 10) * 10 - 20,
                         title: {
                             display: true,
-                            // 5. 左侧Y轴分数线三个字，改成上下排版的样式
-                            text: '分\n数\n线',
+                            // 1. Y轴标题标准写法：使用字符串数组实现纵向排版
+                            text: ['分', '数', '线'],
                             font: {
                                 size: 12
                             }
@@ -509,24 +504,32 @@ function renderUniversityChart(uniName) {
                     }
                 },
             },
-            // 2. 在各柱形上方，直接显示分数，如果专业数量太多时，自动隔行显示一个
+            // 2. 实现智能判断、动态显示的分数标签插件
             plugins: [{
-                id: 'custom_data_labels',
+                id: 'intelligent_data_labels',
                 afterDatasetsDraw(chart, args, options) {
-                    const { ctx, data, scales: { x, y } } = chart;
-                    const isCrowded = data.labels.length > 20;
-
+                    const { ctx } = chart;
                     ctx.save();
                     ctx.font = '10px Arial';
                     ctx.fillStyle = '#444';
                     ctx.textAlign = 'center';
 
-                    data.datasets[0].data.forEach((value, index) => {
-                        if (isCrowded && index % 2 !== 0) {
-                            return; // 如果拥挤，则隔一个显示
+                    const meta = chart.getDatasetMeta(0);
+                    let lastLabelXEnd = -Infinity; // 记录上一个绘制标签的结束X坐标
+
+                    meta.data.forEach((bar, index) => {
+                        const score = chart.data.datasets[0].data[index].toString();
+                        const textWidth = ctx.measureText(score).width;
+                        
+                        const currentLabelXStart = bar.x - (textWidth / 2);
+                        const currentLabelXEnd = bar.x + (textWidth / 2);
+                        const safetyMargin = 5; // 标签间的最小安全间距
+
+                        // 核心判断：当前标签的起始位置 > 上个标签的结束位置 + 安全距离
+                        if (currentLabelXStart > lastLabelXEnd + safetyMargin) {
+                            ctx.fillText(score, bar.x, bar.y - 5);
+                            lastLabelXEnd = currentLabelXEnd; // 更新最后一个绘制标签的位置
                         }
-                        const bar = chart.getDatasetMeta(0).data[index];
-                        ctx.fillText(value, bar.x, bar.y - 5);
                     });
                     ctx.restore();
                 }
