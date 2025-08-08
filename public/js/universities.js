@@ -1,3 +1,10 @@
+window.cleanupPlansTab = function() {
+    lastQueryData = [];
+    selectedPlans.clear();
+    activeCharts.forEach(chart => chart.destroy());
+    activeCharts = [];
+};
+
 window.initializeUniversitiesTab = function() {
     const container = document.getElementById('universities-tab');
     if (!container || container.dataset.initialized) return;
@@ -333,3 +340,4 @@ window.initializeUniversitiesTab = function() {
     fetchData();
     updateUniOutputUI();
 }
+
