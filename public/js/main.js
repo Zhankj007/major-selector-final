@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.add('logged-out');
             if (userNicknameElement) userNicknameElement.textContent = '';
             tabButtons.forEach(btn => btn.style.display = 'none');
+            // 【新增】调用清理函数
+            resetAppState();
         }
     });
     
@@ -94,6 +96,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 其他功能函数 ---
     logoutButton.addEventListener('click', () => supabaseClient.auth.signOut());
+
+    // 【新增】一个用于重置所有标签页状态的函数
+    function resetAppState() {
+        console.log("重置应用状态...");
+        // 遍历所有JS模块的清理函数（如果存在）
+        if (window.cleanupUniversitiesTab) window.cleanupUniversitiesTab();
+        if (window.cleanupMajorsTab) window.cleanupMajorsTab();
+        if (window.cleanupPlansTab) window.cleanupPlansTab();
+        if (window.cleanupAdminTab) window.cleanupAdminTab();
+    
+        // 确保所有面板都被清除和标记为未初始化
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.innerHTML = ''; // 清空内容
+            delete panel.dataset.initialized; // 移除初始化标记
+        });
+    }
 
     async function displayUserProfile(userId) {
         const nicknameElement = document.getElementById('user-nickname');
@@ -217,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
