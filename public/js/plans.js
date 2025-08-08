@@ -1,3 +1,10 @@
+window.cleanupPlansTab = function() {
+    // 重置 plans.js 内部的变量
+    lastQueryData = [];
+    selectedPlans.clear();
+    activeCharts.forEach(chart => chart.destroy());
+    activeCharts = [];
+};
 window.initializePlansTab = function() {
     // 确保 Chart.js 已经加载
     if (typeof Chart === 'undefined') {
