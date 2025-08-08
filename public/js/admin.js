@@ -1,5 +1,3 @@
-// public/js/admin.js
-
 /**
  * 初始化后台管理标签页的函数
  * 这个全局函数会在用户点击“后台管理”标签页时被 main.js 调用
@@ -53,15 +51,14 @@ function initializeAdminTab() {
     // 3. 从数据库获取所有用户数据
     async function fetchData() {
         try {
-            // 从我们创建的 'user_details' 视图中获取数据，并按注册时间排序
             const { data: users, error } = await window.supabaseClient
                 .from('user_details')
                 .select('*')
-                .order('registration_time', { ascending: true }); // 按注册时间升序排列
+                .order('registration_time', { ascending: true });
 
             if (error) throw error;
 
-            allUsers = users.filter(u => u.role !== 'admin'); // 管理员列表中不显示其他管理员
+            allUsers = users.filter(u => u.role !== 'admin');
             renderTable(allUsers);
         } catch (error) {
             tableBody.innerHTML = `<tr><td colspan="8" style="color: red; padding: 20px; text-align: center;">加载用户失败: ${error.message}</td></tr>`;
@@ -70,15 +67,13 @@ function initializeAdminTab() {
 
     // 4. 将用户数据渲染成表格
     function renderTable(users) {
-        tableBody.innerHTML = ''; // 清空旧数据
+        tableBody.innerHTML = '';
         if (users.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="8" style="padding: 20px; text-align: center;">没有找到符合条件的用户。</td></tr>`;
             return;
         }
         users.forEach(user => {
-            // 【修改点】因为数据库已经返回格式化好的文本，所以直接使用，不再需要 new Date()
-            const regDate = user.registration_time || 'N/A';
-            const lastLogin = user.last_login_time || '从未';
+            const lastLogin = user.last_login_time ? user.last_login_time : '从未';
             const rowHTML = `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.email || ''}</td>
@@ -86,19 +81,29 @@ function initializeAdminTab() {
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.role || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.phone || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.unit_name || ''}</td>
-                    <td style="padding: 12px; border: 1px solid #ddd;">${regDate}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">${user.registration_time || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
                         <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">编辑</button>
+                        <button class="delete-btn" data-user-id="${user.id}" data-username="${user.username || user.email}" style="padding: 5px 10px; cursor: pointer; background-color: #dc3545; color: white; border: none; margin-left: 5px;">删除</button>
                     </td>
                 </tr>
             `;
             tableBody.insertAdjacentHTML('beforeend', rowHTML);
         });
 
-        // 为所有新生成的“编辑”按钮绑定点击事件
+        // 为“编辑”按钮绑定点击事件
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => showEditModal(e.target.dataset.userId));
+        });
+
+        // 为“删除”按钮绑定点击事件
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const userId = e.target.dataset.userId;
+                const username = e.target.dataset.username;
+                handleDeleteUser(userId, username);
+            });
         });
     }
 
@@ -106,16 +111,12 @@ function initializeAdminTab() {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         if (!searchTerm) {
-            renderTable(allUsers); // 如果搜索框为空，显示所有用户
+            renderTable(allUsers);
             return;
         }
-        const filteredUsers = allUsers.filter(user => {
-            return (user.email && user.email.toLowerCase().includes(searchTerm)) ||
-                   (user.username && user.username.toLowerCase().includes(searchTerm)) ||
-                   (user.role && user.role.toLowerCase().includes(searchTerm)) ||
-                   (user.phone && user.phone.includes(searchTerm)) ||
-                   (user.unit_name && user.unit_name.toLowerCase().includes(searchTerm));
-        });
+        const filteredUsers = allUsers.filter(user => 
+            Object.values(user).some(val => val && val.toString().toLowerCase().includes(searchTerm))
+        );
         renderTable(filteredUsers);
     });
 
@@ -161,7 +162,6 @@ function initializeAdminTab() {
         `;
         editModal.classList.remove('hidden');
 
-        // 为弹窗内的按钮绑定事件
         document.getElementById('save-permissions-btn').addEventListener('click', () => savePermissions(userId));
         document.getElementById('cancel-edit-btn').addEventListener('click', () => editModal.classList.add('hidden'));
     }
@@ -178,29 +178,17 @@ function initializeAdminTab() {
             const expiresAt = dateInput.value ? new Date(dateInput.value).toISOString() : null;
 
             if (cb.checked) {
-                // 如果勾选，则准备插入或更新
-                permissionsToUpsert.push({
-                    user_id: userId,
-                    tab_name: tabName,
-                    expires_at: expiresAt
-                });
+                permissionsToUpsert.push({ user_id: userId, tab_name: tabName, expires_at: expiresAt });
             } else {
-                // 如果未勾选，则准备删除
-                permissionsToDelete.push({
-                    user_id: userId,
-                    tab_name: tabName
-                });
+                permissionsToDelete.push({ user_id: userId, tab_name: tabName });
             }
         });
 
         try {
-            // 使用 .upsert() 批量插入和更新选中的权限
             if (permissionsToUpsert.length > 0) {
                 const { error } = await window.supabaseClient.from('user_permissions').upsert(permissionsToUpsert);
                 if (error) throw error;
             }
-
-            // 批量删除未选中的权限
             if (permissionsToDelete.length > 0) {
                 for (const perm of permissionsToDelete) {
                      const { error } = await window.supabaseClient.from('user_permissions')
@@ -209,16 +197,52 @@ function initializeAdminTab() {
                      if (error) throw error;
                 }
             }
-
             alert('权限保存成功！');
-            editModal.classList.add('hidden'); // 关闭弹窗
-            await fetchData(); // 重新加载数据以刷新界面
-
+            editModal.classList.add('hidden');
+            await fetchData();
         } catch (error) {
             alert(`保存失败: ${error.message}`);
         }
     }
+
+    // 8. 【新增】处理删除用户的函数
+    async function handleDeleteUser(userId, username) {
+        // 安全确认，防止误操作
+        if (!confirm(`您确定要永久删除用户 "${username}" 吗？此操作将删除该用户的所有相关数据，且无法撤销。`)) {
+            return;
+        }
+
+        try {
+            // 获取当前管理员的认证token，用于向后端API证明自己的身份
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                alert('您的登录会话已过期，请重新登录。');
+                return;
+            }
+
+            // 调用我们创建的后端API来执行安全删除
+            const response = await fetch('/api/delete-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ userIdToDelete: userId })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error);
+            }
+
+            alert('用户删除成功！');
+            await fetchData(); // 重新加载数据以刷新列表
+
+        } catch (error) {
+            alert(`删除失败: ${error.message}`);
+        }
+    }
     
-    // 8. 首次加载数据
+    // 9. 初始加载数据
     fetchData();
 }
