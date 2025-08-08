@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+    window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
     // --- 获取所有UI元素 ---
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -178,6 +178,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.initializeMajorsTab();
                     } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
                         window.initializePlansTab();
+                    } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
+                        // 【新增】当点击后台管理时，调用初始化函数
+                        window.initializeAdminTab();
                     }
                 }
             });
@@ -203,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
