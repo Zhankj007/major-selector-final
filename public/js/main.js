@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
         if (!nicknameElement || !adminTabButton) return;
         try {
-            // 【修改】同时查询 username 和 role 字段
+            // 【已修正】同时查询 username 和 role 字段
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
                 .select('username, role') 
@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
             if (profile) {
                 nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
-                // 【新增】检查角色，如果是 admin，就显示后台管理标签页
+                
+                // 检查角色，如果是 admin，就显示后台管理标签页
                 if (profile.role === 'admin') {
                     adminTabButton.style.display = '';
                 } else {
@@ -206,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
