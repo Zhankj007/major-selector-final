@@ -1,7 +1,3 @@
-/**
- * 初始化后台管理标签页的函数
- * 这个全局函数会在用户点击“后台管理”标签页时被 main.js 调用
- */
 function initializeAdminTab() {
     const adminPanel = document.getElementById('admin-tab');
     // 防止因重复点击标签页而重复加载内容
@@ -14,30 +10,31 @@ function initializeAdminTab() {
             <div class="admin-toolbar" style="margin-bottom: 20px;">
                 <input type="search" id="user-search-input" placeholder="查询邮箱、昵称、单位等..." style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
             </div>
-            <div class="admin-table-container" style="overflow-x: auto;">
+            <div class="admin-table-container" style="max-height: 60vh; overflow: auto;">
                 <table id="users-table" class="admin-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <thead>
                         <tr style="background-color: #f8f9fa;">
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">序号</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">登录邮箱</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">用户昵称</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">账户类型</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">手机号码</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">工作单位</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">登录次数</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">注册时间</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">最后登录</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">登录次数</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="users-table-body">
-                        <tr><td colspan="8" style="padding: 20px; text-align: center;">正在加载用户数据...</td></tr>
+                        <tr><td colspan="10" style="padding: 20px; text-align: center;">正在加载用户数据...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <div id="edit-user-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
             <div id="edit-user-panel" style="background: white; padding: 20px 30px; border-radius: 8px; width: 500px; max-height: 80vh; overflow-y: auto;">
-                </div>
+            </div>
         </div>
     `;
 
@@ -70,21 +67,24 @@ function initializeAdminTab() {
     function renderTable(users) {
         tableBody.innerHTML = '';
         if (users.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" style="padding: 20px; text-align: center;">没有找到符合条件的用户。</td></tr>`;
+            // 【修改点】colspan 增加到 10
+            tableBody.innerHTML = `<tr><td colspan="10" style="padding: 20px; text-align: center;">没有找到符合条件的用户。</td></tr>`;
             return;
         }
-        users.forEach(user => {
+        // 【修改点】forEach循环中加入 index 参数
+        users.forEach((user, index) => {
             const lastLogin = user.last_login_time ? user.last_login_time : '从未';
             const rowHTML = `
                 <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${index + 1}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.email || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.username || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.role || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.phone || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.unit_name || ''}</td>
-                    <td style="padding: 12px; border: 1px solid #ddd;">${user.login_count || 0}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.registration_time || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${user.login_count || 0}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
                         <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">编辑</button>
                         <button class="delete-btn" data-user-id="${user.id}" data-username="${user.username || user.email}" style="padding: 5px 10px; cursor: pointer; background-color: #dc3545; color: white; border: none; margin-left: 5px;">删除</button>
