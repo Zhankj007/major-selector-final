@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
             if (profile && profile.username) {
                 // 【修改点】在昵称后面加上逗号和空格
-                nicknameElement.textContent = `欢迎您, ${profile.username}，`;
+                nicknameElement.textContent = `欢迎您, ${profile.username},`;
             } else {
                 nicknameElement.textContent = '欢迎您，';
             }
@@ -193,4 +193,5 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
