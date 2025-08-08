@@ -12,6 +12,33 @@
     .hidden {
         display: none !important;
     }
+    /* 登录框的外部容器 */
+    #login-section {
+      /* 覆盖可能从 .tab-content 继承的最小高度，解决过高问题 */
+      min-height: initial; 
+      
+      /* 使用 Flexbox 布局实现完美的垂直和水平居中 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      /* 给登录框上下留出一些舒适的边距 */
+      padding: 5vh 0; /* 5vh 表示视口高度的5% */
+    }
+
+    /* 登录表单的白色卡片容器 */
+    #login-section > div {
+      /* 移除原有的行内样式，统一在这里管理 */
+      max-width: 400px;
+      width: 100%;
+      margin: 0 15px; /* 在小屏幕上左右留边距 */
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background-color: white;
+      box-sizing: border-box;
+    }
 </style>
 </head>
 <body>
@@ -68,3 +95,4 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
+
