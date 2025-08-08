@@ -96,14 +96,26 @@ document.addEventListener('DOMContentLoaded', function () {
     logoutButton.addEventListener('click', () => supabaseClient.auth.signOut());
 
     async function displayUserProfile(userId) {
-        if (!userNicknameElement) return;
+        const nicknameElement = document.getElementById('user-nickname');
+        if (!nicknameElement) return; // 增加一个安全检查
         try {
-            const { data: profile, error } = await supabaseClient.from('profiles').select('username').eq('id', userId).single();
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('username')
+                .eq('id', userId)
+                .single();
+    
             if (error) throw error;
-            userNicknameElement.textContent = profile ? `欢迎您, ${profile.username}` : '欢迎您';
+    
+            if (profile && profile.username) {
+                // 【修改点】在昵称后面加上逗号和空格
+                nicknameElement.textContent = `欢迎您, ${profile.username}，`;
+            } else {
+                nicknameElement.textContent = '欢迎您，';
+            }
         } catch (error) {
             console.error('获取用户信息失败:', error);
-            userNicknameElement.textContent = '欢迎您';
+            nicknameElement.textContent = '欢迎您，';
         }
     }
 
@@ -163,14 +175,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     async function updateVisitorCount() {
+        // 【修改点】这里的元素ID从'visitor-counter'改为了'visitor-info'
+        const visitorElement = document.getElementById('visitor-info'); 
+        if (!visitorElement) return; // 增加一个安全检查
         try {
             const response = await fetch('/api/counter');
             if (!response.ok) return;
             const data = await response.json();
-            const visitorElement = document.getElementById('visitor-counter');
-            if (visitorElement) {
-                visitorElement.textContent = data.count;
-            }
+            
+            // 【修改点】生成完整的句子
+            visitorElement.textContent = `您是第 ${data.count} 位访客！`;
+    
         } catch (error) {
             console.error('Failed to fetch visitor count:', error);
         }
@@ -178,3 +193,4 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
