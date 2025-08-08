@@ -107,7 +107,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .select('username, role') 
                 .eq('id', userId)
                 .single();
-    
+            
+            // =================================================================
+            // 【调试代码】在这里打印从数据库获取到的完整用户信息
+            // 这是破解问题的关键，请务必加上这一行！
+            console.log('User Profile Data:', profile);
+            // =================================================================
+            
             if (error) throw error;
     
             if (profile) {
@@ -207,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
