@@ -153,9 +153,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-        if (visibleTabs.length > 0) {
+        // 【修改点】在这里增加一个判断
+        // 检查当前是否已经有一个被激活的、且可见的标签页
+        const isAnyTabActive = document.querySelector('.tab-button.active[style*="display:"]');
+    
+        // 只有在没有任何标签页被激活的情况下（通常是首次登录），才默认点击第一个
+        if (!isAnyTabActive && visibleTabs.length > 0) {
             visibleTabs[0].click();
-        } else {
+        } else if (visibleTabs.length === 0) {
+            // 如果没有任何可见标签页，则清空内容区
              tabPanels.forEach(panel => {
                 panel.classList.remove('active');
                 panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
@@ -207,6 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
