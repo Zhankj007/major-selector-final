@@ -18,14 +18,14 @@ function initializeAdminTab() {
                 <table id="users-table" class="admin-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <thead>
                         <tr style="background-color: #f8f9fa;">
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">登录邮箱</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">用户昵称</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">账户类型</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">手机号码</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">工作单位</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">注册时间</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">最后登录</th>
-                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">操作</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">登录邮箱</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">用户昵称</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">账户类型</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">手机号码</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">工作单位</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">注册时间</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">最后登录</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="users-table-body">
