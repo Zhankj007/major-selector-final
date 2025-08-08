@@ -4,7 +4,7 @@ function initializeAdminTab() {
     if (adminPanel.dataset.initialized) return;
     adminPanel.dataset.initialized = 'true';
 
-    // 1. 搭建后台管理界面的HTML骨架：包含搜索框、用户表格和编辑弹窗
+    // 1. 更新HTML骨架：增加序号列的表头，并为表格容器添加滚动条样式
     adminPanel.innerHTML = `
         <div class="admin-container" style="padding: 20px;">
             <div class="admin-toolbar" style="margin-bottom: 20px;">
