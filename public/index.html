@@ -12,22 +12,32 @@
     .hidden {
         display: none !important;
     }
+
+    /* 当用户未登录时 (body有logged-out类)，显示登录框并居中 */
     body.logged-out #login-section {
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 5vh 0;
     }
+
+    /* 当用户未登录时，隐藏真正的工具箱内容 */
     body.logged-out .tab-navigation,
     body.logged-out main.tab-content {
         display: none;
     }
+    
+    /* 当用户未登录时，隐藏退出按钮 */
     body.logged-out #logout-button {
         display: none;
     }
+    
+    /* 当用户登录后，显示退出按钮 */
     #logout-button {
         display: inline-block;
     }
+
+    /* 登录表单的白色卡片容器样式 */
     #login-section > div {
       max-width: 400px;
       width: 100%;
@@ -38,6 +48,12 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       background-color: white;
       box-sizing: border-box;
+    }
+
+    /* ---【新增】修正登录后登录框不隐藏的问题 --- */
+    /* 这条规则明确指定：在登录状态下（即body没有.logged-out类时），强制隐藏登录区域 */
+    body:not(.logged-out) #login-section {
+        display: none;
     }
 </style>
 </head>
@@ -128,3 +144,4 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
+
