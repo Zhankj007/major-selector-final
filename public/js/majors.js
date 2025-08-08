@@ -1,3 +1,10 @@
+window.cleanupPlansTab = function() {
+    lastQueryData = [];
+    selectedPlans.clear();
+    activeCharts.forEach(chart => chart.destroy());
+    activeCharts = [];
+};
+
 window.initializeMajorsTab = function() {
     const majorsTab = document.getElementById('majors-tab');
     if (!majorsTab || majorsTab.dataset.initialized) return;
@@ -249,3 +256,4 @@ window.initializeMajorsTab = function() {
     fetchData('bachelor');
     updateOutputUI();
 }
+
