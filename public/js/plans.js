@@ -59,7 +59,7 @@ window.initializePlansTab = function() {
                             </div>
                         </div>
                         <div style="flex: 8; display: flex; flex-direction: column;">
-                            <div class="output-header"><h3>意向计划</h3><div class="button-group" style="display: flex; gap: 8px;"><button id="plan-copy-button" class="output-button">复制</button><button id="plan-clear-button" class="output-button">清空</button></div></div>
+                            <div class="output-header"><h3>意向计划</h3><div class="button-group" style="display: flex; gap: 5px;"><button id="plan-copy-button" class="output-button">复制</button><button id="plan-clear-button" class="output-button">清空</button></div></div>
                             <textarea id="plan-output-textarea" readonly placeholder="您勾选的专业将按选择顺序在此显示..."></textarea>
                         </div>
                     </div>
