@@ -1,8 +1,8 @@
-window.cleanupPlansTab = function() {
-    lastQueryData = [];
-    selectedPlans.clear();
-    activeCharts.forEach(chart => chart.destroy());
-    activeCharts = [];
+window.cleanupMajorsTab = function() {
+    // 在这里重置 majors.js 内部用来存储状态的变量
+    allMajorsData = [];
+    selectedMajors = new Map();
+    // ... 其他需要重置的变量
 };
 
 window.initializeMajorsTab = function() {
@@ -256,4 +256,5 @@ window.initializeMajorsTab = function() {
     fetchData('bachelor');
     updateOutputUI();
 }
+
 
