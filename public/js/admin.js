@@ -23,6 +23,7 @@ function initializeAdminTab() {
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">账户类型</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">手机号码</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">工作单位</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">登录次数</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">注册时间</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">最后登录</th>
                             <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">操作</th>
@@ -81,6 +82,7 @@ function initializeAdminTab() {
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.role || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.phone || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.unit_name || ''}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">${user.login_count || 0}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.registration_time || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
