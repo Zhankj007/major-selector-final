@@ -1,10 +1,3 @@
-window.cleanupUniversitiesTab = function() {
-    // 在这里重置 universities.js 内部用来存储状态的变量
-    allUnisData = [];
-    selectedUnis = new Map();
-    // 如果 universities.js 内部还有其他需要重置的变量，也请加在这里
-};
-
 window.initializeUniversitiesTab = function() {
     const container = document.getElementById('universities-tab');
     if (!container || container.dataset.initialized) return;
@@ -340,5 +333,6 @@ window.initializeUniversitiesTab = function() {
     fetchData();
     updateUniOutputUI();
 }
+
 
 
