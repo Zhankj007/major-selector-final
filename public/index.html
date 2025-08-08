@@ -66,20 +66,54 @@
         </div>
     </header>
 
-    <div id="login-section">
-        <div>
-            <h2 style="text-align: center; margin-top: 0;">请登录</h2>
+<div id="login-section">
+        <div style="max-width: 400px; margin: 40px auto; padding: 20px 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            
             <form id="login-form">
+                <h2 style="text-align: center; margin-top: 0;">请登录</h2>
                 <div style="margin-bottom: 15px;">
-                    <label for="email" style="display: block; margin-bottom: 5px;">邮箱:</label>
-                    <input type="email" id="email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                    <label for="login-email" style="display: block; margin-bottom: 5px;">邮箱:</label>
+                    <input type="email" id="login-email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label for="password" style="display: block; margin-bottom: 5px;">密码:</label>
-                    <input type="password" id="password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                    <label for="login-password" style="display: block; margin-bottom: 5px;">密码:</label>
+                    <input type="password" id="login-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
                 </div>
                 <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">登 录</button>
                 <p id="login-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+                    还没有账号？ <a href="#" id="show-register-link">立即注册</a>
+                </p>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <h2 style="text-align: center; margin-top: 0;">注册新账号</h2>
+                <div style="margin-bottom: 15px;">
+                    <label for="register-email">邮箱:</label>
+                    <input type="email" id="register-email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="register-password">密码 (至少6位):</label>
+                    <input type="password" id="register-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-username">用户昵称:</label>
+                    <input type="text" id="register-username" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-phone">手机号:</label>
+                    <input type="tel" id="register-phone" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-unitname">学校(单位)名称:</label>
+                    <input type="text" id="register-unitname" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">注 册</button>
+                <p id="register-message" style="color: green; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+                <p id="register-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+                    已有账号？ <a href="#" id="show-login-link">立即登录</a>
+                </p>
             </form>
         </div>
     </div>
@@ -103,4 +137,5 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
+
 
