@@ -9,29 +9,40 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="style.css">
 <style>
-    .hidden {
-        display: none !important;
-    }
-    /* 登录框的外部容器 */
+    /* 登录框专用样式 */
     #login-section {
-      /* 覆盖可能从 .tab-content 继承的最小高度，解决过高问题 */
-      min-height: initial; 
-      
-      /* 使用 Flexbox 布局实现完美的垂直和水平居中 */
+      display: none; /* 默认隐藏 */
+    }
+    
+    /* 当用户未登录时 (body有logged-out类)，显示登录框并居中 */
+    body.logged-out #login-section {
       display: flex;
       align-items: center;
       justify-content: center;
-      
-      /* 给登录框上下留出一些舒适的边距 */
-      padding: 5vh 0; /* 5vh 表示视口高度的5% */
+      padding: 5vh 0;
     }
 
-    /* 登录表单的白色卡片容器 */
+    /* 当用户未登录时，隐藏真正的工具箱内容 */
+    body.logged-out .tab-navigation,
+    body.logged-out main.tab-content {
+        display: none;
+    }
+    
+    /* 当用户未登录时，隐藏退出按钮 */
+    body.logged-out #logout-button {
+        display: none;
+    }
+    
+    /* 当用户登录后，显示退出按钮 */
+    #logout-button {
+        display: inline-block; /* 或者 block, flex 等 */
+    }
+
+    /* 登录表单的白色卡片容器样式 */
     #login-section > div {
-      /* 移除原有的行内样式，统一在这里管理 */
       max-width: 400px;
       width: 100%;
-      margin: 0 15px; /* 在小屏幕上左右留边距 */
+      margin: 0 15px;
       padding: 30px;
       border: 1px solid #ddd;
       border-radius: 8px;
@@ -41,23 +52,21 @@
     }
 </style>
 </head>
-<body>
-
-<div class="toolbox-container">
+<body class="logged-out"> <div class="toolbox-container">
     <header class="toolbox-header">
         <div class="title-version">
             <h1>詹老师的高考志愿工具箱</h1>
             <span id="version-info">__VERSION__</span>
-             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
+            <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
                 <span id="visitor-info">您是第 <span id="visitor-counter">---</span> 位访客！</span>
-                <button id="logout-button" class="hidden" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
+                <button id="logout-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
             </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
-            </div>
+        </div>
     </header>
 
-    <div id="login-section" class="tab-content">
-        <div style="max-width: 400px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div id="login-section">
+        <div>
             <h2 style="text-align: center; margin-top: 0;">请登录</h2>
             <form id="login-form">
                 <div style="margin-bottom: 15px;">
@@ -74,19 +83,17 @@
         </div>
     </div>
 
-    <div id="app-content" class="hidden">
-        <nav class="tab-navigation">
-            <button class="tab-button active" data-tab="universities">高校库</button>
-            <button class="tab-button" data-tab="majors">专业目录</button>
-            <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
-        </nav>
+    <nav class="tab-navigation">
+        <button class="tab-button active" data-tab="universities">高校库</button>
+        <button class="tab-button" data-tab="majors">专业目录</button>
+        <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
+    </nav>
 
-        <main class="tab-content">
-            <div id="universities-tab" class="tab-panel active"></div>
-            <div id="majors-tab" class="tab-panel"></div>
-            <div id="plans-tab" class="tab-panel"></div>
-        </main>
-    </div>
+    <main class="tab-content">
+        <div id="universities-tab" class="tab-panel active"></div>
+        <div id="majors-tab" class="tab-panel"></div>
+        <div id="plans-tab" class="tab-panel"></div>
+    </main>
 </div>
 
 <script src="/js/universities.js"></script>
@@ -95,4 +102,3 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
-
