@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
             adminTabButton.style.display = 'none';
         }
     }
-
+/*
     async function loadUserPermissions(userId) {
         tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
         const { data: permissions, error } = await supabaseClient
@@ -214,7 +214,69 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-    });
+    }); */
+
+    async function loadUserPermissions(userId) {
+        // 同时获取用户的权限和角色信息
+        const { data: permissions, error: permsError } = await supabaseClient
+            .from('user_permissions')
+            .select('tab_name, expires_at')
+            .eq('user_id', userId);
+    
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+    
+        if (permsError || profileError) {
+            console.error('获取用户权限或角色失败:', permsError || profileError);
+            return;
+        }
+    
+        // --- 统一处理所有标签页的可见性 ---
+        const now = new Date();
+        let visibleTabs = [];
+        
+        // 1. 根据权限表决定普通标签页的可见性
+        permissions.forEach(perm => {
+            const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
+            if (!isExpired) {
+                const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
+                if (tabButton) {
+                    visibleTabs.push(tabButton);
+                }
+            }
+        });
+    
+        // 2. 根据角色决定后台管理标签页的可见性
+        const adminTabButton = document.getElementById('admin-tab-button');
+        if (profile && profile.role === 'admin') {
+            visibleTabs.push(adminTabButton);
+        }
+    
+        // 3. 应用可见性
+        tabButtons.forEach(btn => {
+            if (visibleTabs.includes(btn)) {
+                btn.style.display = '';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+    
+        // --- 智能判断是否需要设置默认标签页 ---
+        const currentlyActiveTab = document.querySelector('.tab-button.active');
+        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
+    
+        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
+            visibleTabs[0].click();
+        } else if (visibleTabs.length === 0) {
+             tabPanels.forEach(panel => {
+                panel.classList.remove('active');
+                panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
+             });
+        }
+    }
 
     async function updateVisitorCount() {
         // 【修改点】这里的元素ID从'visitor-counter'改为了'visitor-info'
@@ -235,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
