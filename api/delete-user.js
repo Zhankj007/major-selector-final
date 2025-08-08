@@ -1,7 +1,6 @@
 // api/delete-user.js
 import { createClient } from '@supabase/supabase-js';
 
-// 使用环境变量初始化Supabase客户端
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
@@ -23,9 +22,12 @@ export default async function handler(request, response) {
 
   try {
     // 1. 验证发起请求的用户是否是管理员
-    const { user: adminUser, error: adminError } = await supabase.auth.getUser(
-      request.headers.get('Authorization')?.split('Bearer ')[1]
-    );
+    // 【已修正】Vercel (Node.js环境) 中获取header的正确方式
+    const authHeader = request.headers['authorization']; // 使用小写'authorization'
+    const jwt = authHeader?.split('Bearer ')[1]; // 从 "Bearer [TOKEN]" 中提取 TOKEN
+
+    const { data: { user: adminUser }, error: adminError } = await supabase.auth.getUser(jwt);
+
     if (adminError || !adminUser) {
       return response.status(401).json({ error: '无权访问：无效的管理员凭证。' });
     }
