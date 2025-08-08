@@ -45,6 +45,8 @@ export default async function handler(request, response) {
         user_id: authData.user.id,
         ip_address: ip_address,
       }).then();
+      // 【新增】调用数据库函数，为该用户的登录次数+1
+      supabase.rpc('increment_login_count', { user_id_to_increment: authData.user.id }).then();
     }
 
     return response.status(200).json({
