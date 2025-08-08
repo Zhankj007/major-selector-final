@@ -12,13 +12,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 核心逻辑：通过控制 body 的 class 来切换UI状态 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (session && session.user) {
-            // 用户已登录: 移除 .logged-out 类
             document.body.classList.remove('logged-out');
             loadUserPermissions(session.user.id);
+            displayUserProfile(session.user.id); // <-- 【新增】调用新函数
         } else {
-            // 用户未登录: 添加 .logged-out 类
             document.body.classList.add('logged-out');
-            tabButtons.forEach(btn => btn.style.display = 'none'); // 隐藏所有标签页按钮
+            document.getElementById('user-nickname').textContent = ''; // <-- 【新增】退出时清空昵称
+            tabButtons.forEach(btn => btn.style.display = 'none');
         }
     });
 
@@ -120,4 +120,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     updateVisitorCount();
+
+    // 在 main.js 文件底部，添加这个新函数
+    async function displayUserProfile(userId) {
+        const nicknameElement = document.getElementById('user-nickname');
+        try {
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('username') // 只查询我们需要的 username 字段
+                .eq('id', userId)
+                .single(); // .single() 表示我们只期望获取一条记录
+
+            if (error) throw error;
+
+            if (profile && profile.username) {
+                nicknameElement.textContent = `欢迎您, ${profile.username}`;
+            } else {
+                nicknameElement.textContent = '欢迎您';
+            }
+        } catch (error) {
+            console.error('获取用户信息失败:', error);
+            nicknameElement.textContent = '欢迎您';
+        }
+    }
 });
+
