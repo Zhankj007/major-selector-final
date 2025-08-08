@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             adminTabButton.style.display = 'none';
         }
     }
-/*
+
     async function loadUserPermissions(userId) {
         tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
         const { data: permissions, error } = await supabaseClient
@@ -196,8 +196,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-    }); */
-
+    }); 
+/*
     async function loadUserPermissions(userId) {
         try {
             // 使用 Promise.all 并发执行两次查询，速度更快
@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("loadUserPermissions 函数内部发生未知错误:", error);
         }
     }
-
+*/
     async function updateVisitorCount() {
         // 【修改点】这里的元素ID从'visitor-counter'改为了'visitor-info'
         const visitorElement = document.getElementById('visitor-info'); 
@@ -285,3 +285,4 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
