@@ -76,8 +76,9 @@ function initializeAdminTab() {
             return;
         }
         users.forEach(user => {
-            // 处理可能的null值，避免在表格中显示'null'
-            const lastLogin = user.last_login_time ? user.last_login_time : '从未';
+            // 【修改点】因为数据库已经返回格式化好的文本，所以直接使用，不再需要 new Date()
+            const regDate = user.registration_time || 'N/A';
+            const lastLogin = user.last_login_time || '从未';
             const rowHTML = `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.email || ''}</td>
@@ -85,7 +86,7 @@ function initializeAdminTab() {
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.role || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.phone || ''}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${user.unit_name || ''}</td>
-                    <td style="padding: 12px; border: 1px solid #ddd;">${user.registration_time || ''}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">${regDate}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
                         <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">编辑</button>
