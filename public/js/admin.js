@@ -1,14 +1,14 @@
 function initializeAdminTab() {
     const adminPanel = document.getElementById('admin-tab');
-    // 防止因重复点击标签页而重复加载内容
     if (adminPanel.dataset.initialized) return;
     adminPanel.dataset.initialized = 'true';
 
-    // 1. 更新HTML骨架：增加序号列的表头，并为表格容器添加滚动条样式
+    // 1. 在HTML骨架中，搜索框旁边增加一个“刷新列表”按钮
     adminPanel.innerHTML = `
         <div class="admin-container" style="padding: 20px;">
-            <div class="admin-toolbar" style="margin-bottom: 20px;">
+            <div class="admin-toolbar" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                 <input type="search" id="user-search-input" placeholder="查询邮箱、昵称、单位等..." style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
+                <button id="refresh-users-btn" style="padding: 8px 15px; cursor: pointer;">刷新列表</button>
             </div>
             <div class="admin-table-container" style="max-height: 60vh; overflow: auto;">
                 <table id="users-table" class="admin-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
@@ -43,8 +43,12 @@ function initializeAdminTab() {
     const tableBody = document.getElementById('users-table-body');
     const editModal = document.getElementById('edit-user-modal');
     const editPanel = document.getElementById('edit-user-panel');
+    const refreshButton = document.getElementById('refresh-users-btn'); // 获取刷新按钮
 
-    let allUsers = []; // 全局变量，用于存储所有用户数据，方便前端搜索
+    let allUsers = [];
+
+    // 为刷新按钮绑定点击事件，让它调用 fetchData 函数
+    refreshButton.addEventListener('click', fetchData);
 
     // 3. 从数据库获取所有用户数据
     async function fetchData() {
