@@ -712,7 +712,8 @@ function showPlanDetails(plan) {
     viewModeSwitcher.addEventListener('change', renderResults);
 
     resultsContainer.addEventListener('change', e => {
-        if (e.target.type === 'checkbox' && e.target.closest('li')) {
+        // 【已修正】检查复选框是否存在于任何带有 [data-plan] 属性的父元素中
+        if (e.target.type === 'checkbox' && e.target.closest('[data-plan]')) {
             handlePlanSelectionChange(e.target);
         }
     });
