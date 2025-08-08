@@ -1,3 +1,7 @@
+window.cleanupAdminTab = function() {
+    allUsers = []; // 重置用户列表
+};
+
 function initializeAdminTab() {
     const adminPanel = document.getElementById('admin-tab');
     if (adminPanel.dataset.initialized) return;
