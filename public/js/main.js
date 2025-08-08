@@ -97,25 +97,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function displayUserProfile(userId) {
         const nicknameElement = document.getElementById('user-nickname');
-        if (!nicknameElement) return; // 增加一个安全检查
+        const adminTabButton = document.getElementById('admin-tab-button'); // 获取后台管理按钮
+    
+        if (!nicknameElement || !adminTabButton) return;
         try {
+            // 【修改】同时查询 username 和 role 字段
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
-                .select('username')
+                .select('username, role') 
                 .eq('id', userId)
                 .single();
     
             if (error) throw error;
     
-            if (profile && profile.username) {
-                // 【修改点】在昵称后面加上逗号和空格
-                nicknameElement.textContent = `欢迎您, ${profile.username},`;
+            if (profile) {
+                nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
+                // 【新增】检查角色，如果是 admin，就显示后台管理标签页
+                if (profile.role === 'admin') {
+                    adminTabButton.style.display = '';
+                } else {
+                    adminTabButton.style.display = 'none';
+                }
             } else {
-                nicknameElement.textContent = '欢迎您，';
+                 nicknameElement.textContent = '欢迎您';
+                 adminTabButton.style.display = 'none';
             }
         } catch (error) {
             console.error('获取用户信息失败:', error);
-            nicknameElement.textContent = '欢迎您，';
+            nicknameElement.textContent = '欢迎您';
+            adminTabButton.style.display = 'none';
         }
     }
 
@@ -193,5 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
