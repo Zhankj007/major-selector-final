@@ -9,36 +9,25 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="style.css">
 <style>
-    /* 登录框专用样式 */
-    #login-section {
-      display: none; /* 默认隐藏 */
+    .hidden {
+        display: none !important;
     }
-    
-    /* 当用户未登录时 (body有logged-out类)，显示登录框并居中 */
     body.logged-out #login-section {
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 5vh 0;
     }
-
-    /* 当用户未登录时，隐藏真正的工具箱内容 */
     body.logged-out .tab-navigation,
     body.logged-out main.tab-content {
         display: none;
     }
-    
-    /* 当用户未登录时，隐藏退出按钮 */
     body.logged-out #logout-button {
         display: none;
     }
-    
-    /* 当用户登录后，显示退出按钮 */
     #logout-button {
-        display: inline-block; /* 或者 block, flex 等 */
+        display: inline-block;
     }
-
-    /* 登录表单的白色卡片容器样式 */
     #login-section > div {
       max-width: 400px;
       width: 100%;
@@ -52,7 +41,9 @@
     }
 </style>
 </head>
-<body class="logged-out"> <div class="toolbox-container">
+<body class="logged-out">
+
+<div class="toolbox-container">
     <header class="toolbox-header">
         <div class="title-version">
             <h1>詹老师的高考志愿工具箱</h1>
@@ -60,13 +51,13 @@
             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
                 <span id="user-nickname" style="margin-right: 15px;"></span>
                 <span id="visitor-info">您是第 <span id="visitor-counter">---</span> 位访客！</span>
-                <button id="logout-button" style="margin-left: 20px; ...">退出登录</button>
+                <button id="logout-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
             </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
         </div>
     </header>
 
-<div id="login-section">
+    <div id="login-section">
         <div style="max-width: 400px; margin: 40px auto; padding: 20px 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             
             <form id="login-form">
@@ -105,7 +96,7 @@
                     <input type="tel" id="register-phone" required style="width: 100%; padding: 8px; box-sizing: border-box;">
                 </div>
                  <div style="margin-bottom: 15px;">
-                    <label for="register-unitname">学校(单位)名称:</label>
+                    <label for="register-unitname">单位名称:</label>
                     <input type="text" id="register-unitname" required style="width: 100%; padding: 8px; box-sizing: border-box;">
                 </div>
                 <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">注 册</button>
@@ -137,5 +128,3 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
-
-
