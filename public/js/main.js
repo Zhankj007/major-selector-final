@@ -1,35 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- 1. 初始化 SUPABASE 客户端 ---
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-    // 【已修正】使用全局的 supabase 对象来创建我们自己的客户端实例，并赋予新名称
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- 2. 获取所有需要操作的页面元素 ---
-    const loginSection = document.getElementById('login-section');
-    const appContent = document.getElementById('app-content');
     const loginForm = document.getElementById('login-form');
     const loginError = document.getElementById('login-error');
     const logoutButton = document.getElementById('logout-button');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
 
-    // --- 3. 核心逻辑：监听用户认证状态的变化 ---
+    // --- 核心逻辑：通过控制 body 的 class 来切换UI状态 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (session && session.user) {
-            loginSection.classList.add('hidden');
-            appContent.classList.remove('hidden');
-            logoutButton.classList.remove('hidden');
+            // 用户已登录: 移除 .logged-out 类
+            document.body.classList.remove('logged-out');
             loadUserPermissions(session.user.id);
         } else {
-            loginSection.classList.remove('hidden');
-            appContent.classList.add('hidden');
-            logoutButton.classList.add('hidden');
-            tabButtons.forEach(btn => btn.classList.add('hidden'));
+            // 用户未登录: 添加 .logged-out 类
+            document.body.classList.add('logged-out');
+            tabButtons.forEach(btn => btn.style.display = 'none'); // 隐藏所有标签页按钮
         }
     });
 
-    // --- 4. 登录表单提交事件 ---
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         loginError.textContent = '';
@@ -55,14 +47,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- 5. 退出登录按钮点击事件 ---
     logoutButton.addEventListener('click', async () => {
         await supabaseClient.auth.signOut();
     });
 
-    // --- 6. 获取并应用用户权限的函数 ---
     async function loadUserPermissions(userId) {
-        tabButtons.forEach(btn => btn.classList.add('hidden'));
+        tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
         const { data: permissions, error } = await supabaseClient
             .from('user_permissions')
             .select('tab_name, expires_at')
@@ -79,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!isExpired) {
                 const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
                 if (tabButton) {
-                    tabButton.classList.remove('hidden');
+                    tabButton.style.display = ''; // 恢复显示
                     visibleTabs.push(tabButton);
                 }
             }
@@ -94,10 +84,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- 7. 原有的功能 ---
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
-            if (tab.classList.contains('hidden')) return;
+            if (tab.style.display === 'none') return;
             const targetId = tab.dataset.tab;
             tabButtons.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
