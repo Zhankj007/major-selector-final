@@ -131,12 +131,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadUserPermissions(userId) {
-        tabButtons.forEach(btn => btn.style.display = 'none');
+        tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
         const { data: permissions, error } = await supabaseClient
             .from('user_permissions')
             .select('tab_name, expires_at')
             .eq('user_id', userId);
-
+    
         if (error) {
             console.error('获取用户权限失败:', error);
             return;
@@ -148,17 +148,21 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!isExpired) {
                 const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
                 if (tabButton) {
-                    tabButton.style.display = '';
+                    tabButton.style.display = ''; // 恢复显示
                     visibleTabs.push(tabButton);
                 }
             }
         });
-        // 【修改点】在这里增加一个判断
-        // 检查当前是否已经有一个被激活的、且可见的标签页
-        const isAnyTabActive = document.querySelector('.tab-button.active[style*="display:"]');
     
-        // 只有在没有任何标签页被激活的情况下（通常是首次登录），才默认点击第一个
-        if (!isAnyTabActive && visibleTabs.length > 0) {
+        // --- 【关键修正点】 ---
+        // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页
+        const currentlyActiveTab = document.querySelector('.tab-button.active');
+        
+        // 判断当前激活的标签页是否在本次权限检查后依然可见
+        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
+    
+        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
+            // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
             visibleTabs[0].click();
         } else if (visibleTabs.length === 0) {
             // 如果没有任何可见标签页，则清空内容区
@@ -213,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
 
 
 
