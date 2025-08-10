@@ -1,11 +1,8 @@
-// public/js/main.js (回退到修改前的稳定版本)
-
 document.addEventListener('DOMContentLoaded', function () {
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient; // 将客户端实例挂载到全局
-
+    window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
     // --- 获取所有UI元素 ---
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -19,15 +16,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
 
-    // --- 核心认证状态管理 (原始逻辑) ---
+    // --- 核心认证状态管理 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (session && session.user) {
-            // 用户已登录：移除 logged-out 状态，加载用户权限和信息
             document.body.classList.remove('logged-out');
             loadUserPermissions(session.user.id);
             displayUserProfile(session.user.id);
         } else {
-            // 用户未登录：添加 logged-out 状态，清空欢迎语，隐藏所有标签页
             document.body.classList.add('logged-out');
             if (userNicknameElement) userNicknameElement.textContent = '';
             tabButtons.forEach(btn => btn.style.display = 'none');
@@ -74,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         registerError.textContent = '';
         registerMessage.textContent = '';
+        
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         const username = document.getElementById('register-username').value;
@@ -86,8 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const data = await response.json();
             if (!response.ok) { throw new Error(data.error); }
+
             registerMessage.textContent = '注册成功！现在您可以登录了。';
-            setTimeout(() => { showLoginLink.click(); }, 2000);
+            setTimeout(() => {
+                 showLoginLink.click();
+            }, 2000);
         } catch (error) {
             registerError.textContent = error.message;
         }
@@ -98,27 +97,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function displayUserProfile(userId) {
         const nicknameElement = document.getElementById('user-nickname');
-        const adminTabButton = document.getElementById('admin-tab-button');
+        const adminTabButton = document.getElementById('admin-tab-button'); // 获取后台管理按钮
+    
         if (!nicknameElement || !adminTabButton) return;
         try {
-            const { data: profile, error } = await supabaseClient.from('profiles').select('username, role').eq('id', userId).single();
+            // 【已修正】同时查询 username 和 role 字段
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('username, role') 
+                .eq('id', userId)
+                .single();
+            
             if (error) throw error;
+    
             if (profile) {
                 nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
+                
+                // 检查角色，如果是 admin，就显示后台管理标签页
                 if (profile.role === 'admin') {
                     adminTabButton.style.display = '';
                 } else {
                     adminTabButton.style.display = 'none';
                 }
+            } else {
+                 nicknameElement.textContent = '欢迎您';
+                 adminTabButton.style.display = 'none';
             }
         } catch (error) {
             console.error('获取用户信息失败:', error);
+            nicknameElement.textContent = '欢迎您';
+            adminTabButton.style.display = 'none';
         }
     }
 
     async function loadUserPermissions(userId) {
         tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
-        const { data: permissions, error } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', userId);
+        const { data: permissions, error } = await supabaseClient
+            .from('user_permissions')
+            .select('tab_name, expires_at')
+            .eq('user_id', userId);
+    
         if (error) {
             console.error('获取用户权限失败:', error);
             return;
@@ -130,17 +148,31 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!isExpired) {
                 const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
                 if (tabButton) {
-                    tabButton.style.display = '';
+                    tabButton.style.display = ''; // 恢复显示
                     visibleTabs.push(tabButton);
                 }
             }
         });
-        if (visibleTabs.length > 0) {
+    
+        // --- 【关键修正点】 ---
+        // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页
+        const currentlyActiveTab = document.querySelector('.tab-button.active');
+        
+        // 判断当前激活的标签页是否在本次权限检查后依然可见
+        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
+    
+        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
+            // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
             visibleTabs[0].click();
+        } else if (visibleTabs.length === 0) {
+            // 如果没有任何可见标签页，则清空内容区
+             tabPanels.forEach(panel => {
+                panel.classList.remove('active');
+                panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
+             });
         }
     }
 
-    // 标签页点击切换逻辑
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
             if (tab.style.display === 'none') return;
@@ -151,29 +183,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isActive = panel.id === `${targetId}-tab`;
                 panel.classList.toggle('active', isActive);
                 if (isActive && !panel.dataset.initialized) {
-                    if (targetId === 'universities') window.initializeUniversitiesTab?.();
-                    else if (targetId === 'majors') window.initializeMajorsTab?.();
-                    else if (targetId === 'plans') window.initializePlansTab?.();
-                    else if (targetId === 'admin') window.initializeAdminTab?.();
+                    if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
+                        window.initializeUniversitiesTab();
+                    } else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
+                        window.initializeMajorsTab();
+                    } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
+                        window.initializePlansTab();
+                    } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
+                        // 【新增】当点击后台管理时，调用初始化函数
+                        window.initializeAdminTab();
+                    }
                 }
             });
         });
-    });
+    }); 
 
-    document.querySelector('.tab-button[data-tab="universities"]')?.click();
-
-    // 访客计数器
     async function updateVisitorCount() {
-        const visitorElement = document.getElementById('visitor-info');
-        if (!visitorElement) return;
+        // 【修改点】这里的元素ID从'visitor-counter'改为了'visitor-info'
+        const visitorElement = document.getElementById('visitor-info'); 
+        if (!visitorElement) return; // 增加一个安全检查
         try {
             const response = await fetch('/api/counter');
-            if (response.ok) {
-                const data = await response.json();
-                visitorElement.textContent = `您是第 ${data.count} 位访客！`;
-            }
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            // 【修改点】生成完整的句子
+            visitorElement.textContent = `您是第 ${data.count} 位访客！`;
+    
         } catch (error) {
-            console.error('获取访客数失败:', error);
+            console.error('Failed to fetch visitor count:', error);
         }
     }
     
