@@ -1,4 +1,4 @@
-// public/js/main.js (最终修复版 - 100%完整代码)
+// public/js/main.js (最终修复版 - 解决竞争条件)
 
 document.addEventListener('DOMContentLoaded', function () {
     // 1. --- 初始化和元素获取 ---
@@ -35,22 +35,24 @@ document.addEventListener('DOMContentLoaded', function () {
      * @param {object|null} user - Supabase的用户对象
      */
     async function updateUserInterface(user) {
-        // 第一部分：处理登录/退出按钮、欢迎语和登录框
-        if (user) {
+        // 等待所有必需的数据（权限和用户信息）都获取完毕
+        const [permittedTabs, profile] = await Promise.all([
+            getPermittedTabs(user),
+            user ? supabaseClient.from('profiles').select('username').eq('id', user.id).single() : Promise.resolve({ data: null })
+        ]);
+
+        // 根据获取到的数据，一次性、同步地更新所有UI元素
+        if (user && profile) {
             authButton.textContent = '退出登录';
             document.body.classList.remove('logged-out');
-            const { data: profile } = await supabaseClient.from('profiles').select('username').eq('id', user.id).single();
-            userNicknameElement.textContent = profile ? `欢迎您, ${profile.username}` : '欢迎您';
+            userNicknameElement.textContent = profile.data ? `欢迎您, ${profile.data.username}` : '欢迎您';
         } else {
             authButton.textContent = '登录/注册';
             userNicknameElement.textContent = '';
             document.body.classList.remove('logged-out');
         }
 
-        // 第二部分：处理所有标签页的可见性
-        const permittedTabs = await getPermittedTabs(user);
         let firstVisibleTab = null;
-
         tabButtons.forEach(btn => {
             const tabName = btn.dataset.tab;
             if (permittedTabs.has(tabName)) {
@@ -61,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // 第三部分：确保总有一个激活的标签页
         const activeTab = document.querySelector('.tab-button.active');
         if (!activeTab || activeTab.style.display === 'none') {
             firstVisibleTab?.click();
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 【核心修正】登录表单的提交事件，强制调用后端API
+    // 【核心修正】登录表单的提交事件，成功后强制刷新页面
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         loginError.textContent = '';
@@ -111,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const passwordInput = document.getElementById('login-password');
         
         try {
-            // 确保调用您自己的后端API，而不是前端方法
+            // 调用后端的 /api/login 接口 (这会增加 login_count)
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -123,12 +124,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(data.error || '登录失败，请稍后再试。');
             }
 
-            // 使用从后端安全返回的session来设置前端状态
+            // 使用后端返回的session来设置前端状态
             const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
             if (sessionError) {
                 throw sessionError;
             }
-            // 登录成功后，onAuthStateChange会自动处理后续UI更新
+            
+            // 登录成功后，重新加载页面，彻底解决竞争条件问题
+            location.reload();
 
         } catch (error) {
             loginError.textContent = error.message;
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 panel.classList.toggle('active', isActive);
                 if (isActive && !panel.dataset.initialized) {
                     if (tab.dataset.tab === 'universities') window.initializeUniversitiesTab?.();
-                    else if (tab.dataset.tab === 'majors') window.initializeMajorsTab?.();
+                    else if (tab.dataset.tab === 'majors') window.initializeUniversitiesTab?.();
                     else if (tab.dataset.tab === 'plans') window.initializePlansTab?.();
                     else if (tab.dataset.tab === 'admin') window.initializeAdminTab?.();
                 }
