@@ -1,14 +1,14 @@
-// public/js/main.js (最终稳定版, 完整代码, 中文注释)
+// public/js/main.js (带调试信息的最终诊断版 - 100%完整代码)
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log("【调试】: 页面DOM加载完成，开始执行main.js。");
+
     // 1. --- 初始化和元素获取 ---
-    // 从环境变量占位符初始化Supabase客户端
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient; // 将客户端挂载到全局，方便其他脚本使用
+    window.supabaseClient = supabaseClient;
 
-    // 缓存所有需要操作的DOM元素，提高性能
     const loginSection = document.getElementById('login-section');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -22,130 +22,129 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanels = document.querySelectorAll('.tab-panel');
     const authButton = document.getElementById('auth-button');
 
-    // 2. --- 应用状态和配置 ---
-    const publicTabs = new Set(['universities', 'majors']); // 始终对所有用户可见的标签页
-    let currentUser = null; // 用于存储当前登录的用户信息
+    const publicTabs = new Set(['universities', 'majors']);
+    let currentUser = null;
 
-    // 3. --- 核心认证逻辑 ---
-    // 监听认证状态的任何变化（包括页面首次加载、登录、退出）
-    // 这是驱动所有UI变化的核心函数
+    // 2. --- 核心认证逻辑 ---
+    console.log("【调试】: 即将挂载 onAuthStateChange 监听器。");
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        currentUser = session?.user || null; // 更新当前用户状态
-        await updateUserInterface(currentUser); // 根据新的用户状态，更新整个界面
+        console.log(`%c【调试】: onAuthStateChange 事件触发! 事件类型: ${event}`, 'color: green; font-weight: bold;');
+        
+        currentUser = session?.user || null;
+        if (currentUser) {
+            console.log("【调试】: 判断为已登录状态。用户对象:", currentUser);
+        } else {
+            console.log("【调试】: 判断为未登录状态。");
+        }
+        
+        await updateUserInterface(currentUser);
     });
 
     /**
-     * 统一的UI更新函数，所有与认证状态相关的界面变化都在这里处理
-     * @param {object|null} user - Supabase的用户对象，如果未登录则为null
+     * 统一的UI更新函数
      */
     async function updateUserInterface(user) {
-        // 第一部分：处理登录/退出按钮、欢迎语和登录框的显示状态
+        console.log("【调试】: 进入 updateUserInterface 函数。");
+        
         if (user) {
-            // --- 用户已登录 ---
             authButton.textContent = '退出登录';
-            document.body.classList.remove('logged-out'); // 移除logged-out类，隐藏登录框
-
-            // 从数据库异步获取用户名并显示
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('username')
-                .eq('id', user.id)
-                .single();
-            userNicknameElement.textContent = `欢迎您, ${profile?.username || ''}`;
+            document.body.classList.remove('logged-out');
+            
+            console.log(`【调试】: 准备从 'profiles' 表查询 id 为 ${user.id} 的用户信息...`);
+            const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username').eq('id', user.id).single();
+            
+            if (profileError) {
+                console.error("【调试】: 查询 'profiles' 表出错!", profileError);
+            }
+            if (profile) {
+                console.log("【调试】: 成功获取到 profile 数据:", profile);
+                userNicknameElement.textContent = `欢迎您, ${profile.username || ''}`;
+            } else {
+                console.log("【调试】: 未能获取到 profile 数据。");
+                userNicknameElement.textContent = '欢迎您';
+            }
         } else {
-            // --- 用户未登录 ---
             authButton.textContent = '登录/注册';
-            userNicknameElement.textContent = ''; // 清空欢迎语
-            // 默认显示公共页面，不显示登录框
+            userNicknameElement.textContent = '';
             document.body.classList.remove('logged-out');
         }
 
-        // 第二部分：处理所有标签页的可见性
         const permittedTabs = await getPermittedTabs(user);
+        console.log("【调试】: 获取到的最终权限列表:", permittedTabs);
         let firstVisibleTab = null;
-
         tabButtons.forEach(btn => {
             const tabName = btn.dataset.tab;
             if (permittedTabs.has(tabName)) {
-                btn.style.display = ''; // 如果有权限，则显示
-                if (!firstVisibleTab) firstVisibleTab = btn; // 记录第一个可见的标签页
+                btn.style.display = '';
+                if (!firstVisibleTab) firstVisibleTab = btn;
             } else {
-                btn.style.display = 'none'; // 没有权限则隐藏
+                btn.style.display = 'none';
             }
         });
 
-        // 第三部分：确保页面上总有一个激活的标签页
         const activeTab = document.querySelector('.tab-button.active');
-        // 如果当前激活的标签页被隐藏了，或者没有任何标签页被激活，则自动点击第一个可见的标签页
         if (!activeTab || activeTab.style.display === 'none') {
+            console.log("【调试】: 当前无激活标签页或激活页被隐藏，准备点击第一个可见标签页。");
             firstVisibleTab?.click();
         }
     }
 
     /**
-     * 根据用户身份，获取所有其有权访问的标签页集合
-     * @param {object|null} user - Supabase的用户对象
-     * @returns {Promise<Set<string>>} - 返回一个包含所有可访问标签页名称的集合
+     * 获取用户权限
      */
     async function getPermittedTabs(user) {
-        const permitted = new Set(publicTabs); // 基础权限：公开的标签页
-        if (!user) return permitted; // 如果未登录，直接返回基础权限
+        const permitted = new Set(publicTabs);
+        if (!user) return permitted;
 
-        // 用户已登录，并发查询其角色和特殊权限
+        console.log("【调试】: 准备并发查询 role 和 permissions...");
         const [profileRes, permsRes] = await Promise.all([
             supabaseClient.from('profiles').select('role').eq('id', user.id).single(),
             supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', user.id)
         ]);
 
-        if (profileRes.data?.role === 'admin') {
-            permitted.add('admin'); // 如果是管理员，添加后台管理权限
-        }
+        console.log("【调试】: Role 查询结果:", profileRes.data);
+        console.log("【调试】: Permissions 查询结果:", permsRes.data);
 
+        if (profileRes.data?.role === 'admin') permitted.add('admin');
         if (permsRes.data) {
             const now = new Date();
             permsRes.data.forEach(p => {
-                // 如果权限未设置到期日，或未到期，则添加该权限
-                if (!p.expires_at || new Date(p.expires_at) >= now) {
-                    permitted.add(p.tab_name);
-                }
+                if (!p.expires_at || new Date(p.expires_at) >= now) permitted.add(p.tab_name);
             });
         }
         return permitted;
     }
 
+    // 3. --- 事件监听器 (完整版) ---
 
-    // 4. --- 事件监听器 ---
-
-    // 为认证按钮设置一个唯一的、永久的点击事件
     authButton.addEventListener('click', () => {
+        console.log(`%c【调试】: 认证按钮被点击! 当前登录状态 (currentUser): ${!!currentUser}`, 'color: blue; font-weight: bold;');
         if (currentUser) {
-            // 如果当前是登录状态，则执行退出操作
+            console.log("【调试】: 执行退出登录操作...");
             supabaseClient.auth.signOut();
         } else {
-            // 如果当前是未登录状态，则显示登录框，并滚动到视图中央
+            console.log("【调试】: 执行显示登录框操作...");
             document.body.classList.add('logged-out');
             loginSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 
-    // 为登录表单设置提交事件
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginError.textContent = '';
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        console.log(`【调试】: 准备使用邮箱 ${email} 尝试登录...`);
         try {
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) throw error;
+            console.log("【调试】: signInWithPassword 调用成功，等待 onAuthStateChange 更新UI。");
         } catch (error) {
-            // 根据Supabase返回的错误信息，显示更友好的提示
-            loginError.textContent = error.message.includes("Invalid login credentials") 
-                ? "邮箱或密码错误，请重试。" 
-                : error.message;
+            console.error("【调试】: 登录时捕获到错误!", error);
+            loginError.textContent = error.message.includes("Invalid login credentials") ? "邮箱或密码错误，请重试。" : error.message;
         }
     });
 
-    // 为注册表单设置提交事件（完整版）
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         registerError.textContent = '';
@@ -155,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const username = document.getElementById('register-username').value;
         const phone = document.getElementById('register-phone').value;
         const unit_name = document.getElementById('register-unitname').value;
+        console.log(`【调试】: 准备注册新用户，邮箱: ${email}`);
         try {
             const response = await fetch('/api/register', {
                 method: 'POST',
@@ -166,25 +166,23 @@ document.addEventListener('DOMContentLoaded', function () {
             registerMessage.textContent = '注册成功！现在您可以登录了。';
             setTimeout(() => showLoginLink.click(), 2000);
         } catch (error) {
+            console.error("【调试】: 注册时捕获到错误!", error);
             registerError.textContent = error.message;
         }
     });
 
-    // 标签页的点击切换逻辑
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
+            console.log(`【调试】: 标签页 "${tab.dataset.tab}" 被点击。`);
             if (tab.style.display === 'none') return;
-            // 当点击任意标签页时，如果用户是登录状态，则确保登录框是隐藏的
-            if (currentUser) {
-                document.body.classList.remove('logged-out');
-            }
+            if (currentUser) document.body.classList.remove('logged-out');
             tabButtons.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             tabPanels.forEach(panel => {
                 const isActive = panel.id === `${tab.dataset.tab}-tab`;
                 panel.classList.toggle('active', isActive);
-                // "懒加载" - 仅在标签页第一次被点击时初始化其内容
                 if (isActive && !panel.dataset.initialized) {
+                    console.log(`【调试】: 首次加载标签页 "${tab.dataset.tab}" 的内容...`);
                     if (tab.dataset.tab === 'universities') window.initializeUniversitiesTab?.();
                     else if (tab.dataset.tab === 'majors') window.initializeMajorsTab?.();
                     else if (tab.dataset.tab === 'plans') window.initializePlansTab?.();
@@ -193,25 +191,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
-
-    // “立即注册”和“立即登录”链接的点击逻辑
-    showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginError.textContent = ''; registerError.textContent = ''; registerMessage.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
-    showLoginLink.addEventListener('click', e => { e.preventDefault(); loginError.textContent = ''; registerError.textContent = ''; registerMessage.textContent = ''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
-
-
-    // 5. --- 页面初始化 ---
     
-    // 解决“首页标签内容空白”的问题：在脚本加载最后，显式点击默认标签页来触发内容加载
+    showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginError.textContent=''; registerError.textContent=''; registerMessage.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
+    showLoginLink.addEventListener('click', e => { e.preventDefault(); registerError.textContent=''; registerMessage.textContent=''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
+
+    // 4. --- 页面初始化 ---
+    console.log("【调试】: 准备自动点击第一个标签页以加载内容...");
     document.querySelector('.tab-button[data-tab="universities"]')?.click();
     
-    // 异步获取访客计数器
-    fetch('/api/counter').then(res => {
-        if (res.ok) return res.json();
-        return { count: 'N/A' };
-    }).then(data => {
+    fetch('/api/counter').then(res => res.json()).then(data => {
         document.getElementById('visitor-info').textContent = `您是第 ${data.count} 位访客！`;
-    }).catch(err => {
-        console.error('获取访客数失败:', err);
-        document.getElementById('visitor-info').textContent = '访客计数加载失败';
-    });
+    }).catch(err => console.error('获取访客数失败:', err));
+
+    console.log("【调试】: main.js 脚本执行完毕。");
 });
