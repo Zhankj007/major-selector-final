@@ -1,4 +1,4 @@
-// public/js/main.js (Final Version)
+// public/js/main.js (Final Stable Version)
 
 document.addEventListener('DOMContentLoaded', function () {
     const SUPABASE_URL = '__SUPABASE_URL__';
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.supabaseClient = supabaseClient;
 
-    // --- 获取所有UI元素 (新增 authButton) ---
+    // --- 获取所有UI元素 ---
     const loginSection = document.getElementById('login-section');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -18,10 +18,35 @@ document.addEventListener('DOMContentLoaded', function () {
     const userNicknameElement = document.getElementById('user-nickname');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
-    const authButton = document.getElementById('auth-button'); // 获取新的认证按钮
+    const authButton = document.getElementById('auth-button');
 
-    // --- 新的权限控制核心逻辑 ---
     const publicTabs = ['universities', 'majors'];
+
+    // --- 定义清晰的事件处理函数 ---
+    const handleLogout = () => {
+        supabaseClient.auth.signOut();
+    };
+
+    const handleShowLogin = () => {
+        document.body.classList.add('logged-out');
+        if (loginSection) {
+            loginSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+    
+    // --- 更健壮的按钮行为设置函数 ---
+    function setAuthButtonAction(action) {
+        authButton.removeEventListener('click', handleLogout);
+        authButton.removeEventListener('click', handleShowLogin);
+
+        if (action === 'logout') {
+            authButton.textContent = '退出登录';
+            authButton.addEventListener('click', handleLogout);
+        } else { // 'login'
+            authButton.textContent = '登录/注册';
+            authButton.addEventListener('click', handleShowLogin);
+        }
+    }
 
     function updateTabVisibility(permittedTabs) {
         let firstVisibleTab = null;
@@ -42,28 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
             firstVisibleTab.click();
         }
     }
-    
-    // --- 【核心修改】为认证按钮添加事件处理器 ---
-    let authButtonHandler = null; // 用于存储当前的点击事件处理函数
-
-    function setAuthButtonAction(action) {
-        // 先移除旧的事件监听器，防止重复绑定
-        if (authButtonHandler) {
-            authButton.removeEventListener('click', authButtonHandler);
-        }
-
-        if (action === 'logout') {
-            authButton.textContent = '退出登录';
-            authButtonHandler = () => supabaseClient.auth.signOut();
-        } else { // 'login'
-            authButton.textContent = '登录/注册';
-            authButtonHandler = () => {
-                 document.body.classList.add('logged-out'); // 强制显示登录/注册界面
-            };
-        }
-        authButton.addEventListener('click', authButtonHandler);
-    }
-
 
     async function handleAuthStateChange(event, session) {
         const permittedTabs = new Set(publicTabs);
@@ -71,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (session && session.user) {
             // --- 用户已登录 ---
             document.body.classList.remove('logged-out');
-            setAuthButtonAction('logout'); // 设置按钮为“退出登录”
+            setAuthButtonAction('logout');
 
             const [profileResponse, permissionsResponse] = await Promise.all([
                 supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single(),
@@ -98,14 +101,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             // --- 用户已退出 ---
-            document.body.classList.add('logged-out');
             userNicknameElement.textContent = '';
-            setAuthButtonAction('login'); // 设置按钮为“登录/注册”
+            setAuthButtonAction('login');
         }
         
         updateTabVisibility(permittedTabs);
     }
 
+    // --- 挂载核心的认证状态监听器 ---
     supabaseClient.auth.onAuthStateChange(handleAuthStateChange);
 
 
@@ -177,9 +180,9 @@ document.addEventListener('DOMContentLoaded', function () {
         tab.addEventListener('click', () => {
             if (tab.style.display === 'none') return;
             const targetId = tab.dataset.tab;
-            // 当点击任意标签页时，如果登录/注册框是显示的，就隐藏它
-            if (!document.body.classList.contains('logged-out')) {
-                // 只有在登录状态下才执行此操作
+            
+            if (supabaseClient.auth.getSession()) {
+                document.body.classList.remove('logged-out');
             }
 
             tabButtons.forEach(t => t.classList.remove('active'));
@@ -188,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isActive = panel.id === `${targetId}-tab`;
                 panel.classList.toggle('active', isActive);
                 if (isActive && !panel.dataset.initialized) {
-                    // Initialize tab content...
                     if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') window.initializeUniversitiesTab();
                     else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') window.initializeMajorsTab();
                     else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') window.initializePlansTab();
@@ -212,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --- 初始化 ---
+    // 自动点击第一个标签页来加载初始内容
     const firstTab = document.querySelector('.tab-button[data-tab="universities"]');
     if(firstTab) firstTab.click();
 
