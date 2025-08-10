@@ -1,24 +1,16 @@
 // api/register.js
 import { createClient } from '@supabase/supabase-js';
 
-// 从环境变量读取（只在服务端使用）
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// 简单的注册频率限制（IP -> 时间戳数组）
-const registerAttempts = {};
-const MAX_ATTEMPTS = 5;        // 5分钟内最多5次
-const TIME_WINDOW_MS = 5 * 60 * 1000;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(request, response) {
-  // --- CORS ---
-  const allowedOrigin = 'https://www.igaokao.top';
-  response.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  // --- CORS and Method Pre-checks ---
+  response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (request.method === 'OPTIONS') {
     return response.status(200).end();
   }
@@ -26,64 +18,58 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // --- 获取 IP ---
-  const ip_address = (request.headers['x-forwarded-for'] || request.socket.remoteAddress || '')
-    .split(',')[0].trim();
-
-  // --- 注册频率限制 ---
-  const now = Date.now();
-  if (!registerAttempts[ip_address]) registerAttempts[ip_address] = [];
-  registerAttempts[ip_address] = registerAttempts[ip_address].filter(ts => now - ts < TIME_WINDOW_MS);
-  if (registerAttempts[ip_address].length >= MAX_ATTEMPTS) {
-    return response.status(429).json({ error: '注册次数过多，请稍后再试。' });
-  }
-  registerAttempts[ip_address].push(now);
-
-  // --- 参数验证 ---
+  // --- Input Validation ---
   const { email, password, username, phone, unit_name } = request.body;
   if (!email || !password || !username || !phone || !unit_name) {
     return response.status(400).json({ error: '所有字段均为必填项。' });
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return response.status(400).json({ error: '邮箱格式不正确。' });
-  }
-  if (password.length < 6) {
-    return response.status(400).json({ error: '密码长度至少为 6 位。' });
-  }
-if (!/^1[3-9]\d{9}$/.test(phone)) {
-    return response.status(400).json({ error: '请输入有效的中国大陆手机号。' });
-}
 
   try {
-    // --- Step 1: 注册 Supabase Auth 用户 ---
+    // --- Step 1: Create the user in Supabase Auth ---
+    // 这会触发我们在第一阶段设置的第一个触发器，自动在 profiles 表中创建一条空记录
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email: email,
       password: password,
     });
-    if (signUpError) throw signUpError;
-    if (!authData.user) throw new Error('注册失败，未能成功创建用户。');
 
-    // --- Step 2: 更新 profiles 表 ---
+    if (signUpError) {
+      throw signUpError;
+    }
+    if (!authData.user) {
+      // 虽然罕见，但这是一个额外的安全检查
+      throw new Error('注册失败，未能成功创建用户。');
+    }
+
+    // --- Step 2: Update the user's profile with the extra information ---
+    // 此时，触发器已经创建了 profiles 记录，我们只需用表单提交的额外信息去更新它
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         username: username,
         phone: phone,
-        unit_name: unit_name
+        unit_name: unit_name,
       })
       .eq('id', authData.user.id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      // 如果个人信息更新失败，这是一个需要关注的问题。
+      // 在更复杂的系统中，可能会在这里删除刚刚创建的 auth 用户以保持数据一致性。
+      // 目前我们只报告错误。
+      throw updateError;
+    }
 
-    // --- 返回成功信息 ---
+    // --- Success ---
+    // 同时，我们设置的第二个触发器也已运行，为用户赋予了默认权限。
     return response.status(201).json({ message: '注册成功！请检查您的邮箱以确认账户。' });
 
   } catch (error) {
+    // --- Error Handling ---
     let errorMessage = error.message || '发生未知错误。';
+    // 将Supabase返回的常见英文错误翻译成中文
     if (errorMessage.includes('User already registered')) {
-      errorMessage = '此邮箱已被注册，请直接登录。';
+        errorMessage = '此邮箱已被注册，请直接登录。';
     } else if (errorMessage.includes('Password should be at least 6 characters')) {
-      errorMessage = '密码长度至少需要6位。';
+        errorMessage = '密码长度至少需要6位。';
     }
     return response.status(400).json({ error: errorMessage });
   }
