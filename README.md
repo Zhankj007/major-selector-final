@@ -15,4 +15,34 @@
 :heart:**后台管理** <br>该标签页仅对系统管理员开放，管理员可在这里查看所有的普通注册用户（不含管理员用户），列表展示了用户的注册邮箱、昵称、手机、工作单位、注册时间、最后登录时间、登录次数等信息，还提供了编辑的功能，管理员可在该页面下给普通注册用户增删权限，改动权限截止日期等，还可以删除用户。<br><br>
 
 ### 备注
-1.系统不提供邮箱验证、找回密码、修改密码的功能，请在注册时牢记密码。
+1.系统不提供邮箱验证、找回密码、修改密码的功能，请在注册时牢记密码。<br>
+2.文件夹 PATH 列表<br>
+major-selector-final/<br>
+|&nbsp;&nbsp;&nbsp; package.json<br>
+|&nbsp;&nbsp;&nbsp; README.md<br>
+|<br>
++---api<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       counter.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       delete-user.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       getMajors.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       getPlanFilterOptions.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       getPlans.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       getUniversities.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       login.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       register.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       test.js<br>
+|<br>
++---public<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |&nbsp;&nbsp;&nbsp;   favicon.ico<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |&nbsp;&nbsp;&nbsp;   index.html<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |&nbsp;&nbsp;&nbsp;   style.css<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   \---js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           admin.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           main.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           majors.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           plans.js<br>
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;           universities.js<br>
+|<br>
+\---_data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;        universities.csv<br>
