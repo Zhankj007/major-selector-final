@@ -50,9 +50,9 @@ export default async function handler(request, response) {
   if (password.length < 6) {
     return response.status(400).json({ error: '密码长度至少为 6 位。' });
   }
-  if (!/^\d{6,15}$/.test(phone)) {
-    return response.status(400).json({ error: '手机号格式不正确。' });
-  }
+if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return response.status(400).json({ error: '请输入有效的中国大陆手机号。' });
+}
 
   try {
     // --- Step 1: 注册 Supabase Auth 用户 ---
