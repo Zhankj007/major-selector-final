@@ -1,183 +1,104 @@
-// public/js/main.js (最终修复版 - 解决ReferenceError)
+// public/js/main.js (全新诊断版 - 追踪点击事件)
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. --- 初始化和元素获取 ---
-    const SUPABASE_URL = '__SUPABASE_URL__';
-    const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
+    // 确保脚本只在页面完全加载后执行
+    console.log("【诊断】: 1. 页面DOM加载完成，main.js开始执行。");
 
-    // 一次性获取所有需要的元素，确保没有遗漏
-    const loginSection = document.getElementById('login-section');
-    const loginForm = document.getElementById('login-form');
-    // 【关键修复】: 确保 registerForm 在脚本最开始就被正确定义
-    const registerForm = document.getElementById('register-form');
-    const loginError = document.getElementById('login-error');
-    const registerError = document.getElementById('register-error');
-    const registerMessage = document.getElementById('register-message');
-    const showRegisterLink = document.getElementById('show-register-link');
-    const showLoginLink = document.getElementById('show-login-link');
-    const userNicknameElement = document.getElementById('user-nickname');
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanels = document.querySelectorAll('.tab-panel');
-    const authButton = document.getElementById('auth-button');
+    try {
+        // --- 2. 初始化 Supabase 客户端 ---
+        const SUPABASE_URL = '__SUPABASE_URL__';
+        const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supabaseClient;
+        console.log("【诊断】: 2. Supabase 客户端初始化成功。");
 
-    // 2. --- 应用状态和配置 ---
-    const publicTabs = new Set(['universities', 'majors']);
-    let currentUser = null;
+        // --- 3. 获取所有需要的 HTML 元素 ---
+        const loginForm = document.getElementById('login-form');
+        const authButton = document.getElementById('auth-button');
+        const userNicknameElement = document.getElementById('user-nickname');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        
+        // 检查关键元素是否存在
+        if (!loginForm) console.error("【诊断错误】: 找不到 ID 为 'login-form' 的登录表单！");
+        if (!authButton) console.error("【诊断错误】: 找不到 ID 为 'auth-button' 的认证按钮！");
+        
+        console.log("【诊断】: 3. 核心HTML元素获取完毕。");
 
-    // 3. --- 核心认证逻辑 ---
-    supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        currentUser = session?.user || null;
-        await updateUserInterface(currentUser);
-    });
+        // --- 4. 定义核心函数 ---
+        let currentUser = null;
 
-    /**
-     * 统一的UI更新函数，是所有界面变化的总指挥
-     */
-    async function updateUserInterface(user) {
-        // 等待所有必需的数据（权限和用户信息）都获取完毕
-        const [permittedTabs, profile] = await Promise.all([
-            getPermittedTabs(user),
-            user ? supabaseClient.from('profiles').select('username').eq('id', user.id).single() : Promise.resolve({ data: null })
-        ]);
-
-        // 根据获取到的数据，一次性、同步地更新所有UI元素
-        if (user && profile) {
-            authButton.textContent = '退出登录';
-            document.body.classList.remove('logged-out');
-            userNicknameElement.textContent = profile.data ? `欢迎您, ${profile.data.username}` : '欢迎您';
-        } else {
-            authButton.textContent = '登录/注册';
-            userNicknameElement.textContent = '';
-            document.body.classList.remove('logged-out');
+        async function updateUserInterface(user) {
+            console.log(`%c【诊断】: A. updateUserInterface 函数被调用。当前用户状态: ${user ? '已登录' : '未登录'}`, 'color: green;');
+            
+            // 此处省略了复杂的UI更新逻辑，只保留最核心的按钮和欢迎语
+            if (user) {
+                authButton.textContent = '退出登录';
+                const { data: profile } = await supabaseClient.from('profiles').select('username').eq('id', user.id).single();
+                userNicknameElement.textContent = profile ? `欢迎您, ${profile.username}` : '欢迎您';
+            } else {
+                authButton.textContent = '登录/注册';
+                userNicknameElement.textContent = '';
+            }
         }
 
-        let firstVisibleTab = null;
-        tabButtons.forEach(btn => {
-            const tabName = btn.dataset.tab;
-            if (permittedTabs.has(tabName)) {
-                btn.style.display = '';
-                if (!firstVisibleTab) firstVisibleTab = btn;
+        // --- 5. 绑定核心事件监听器 ---
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            console.log(`%c【诊断】: B. onAuthStateChange 事件触发! 类型: ${event}`, 'color: green; font-weight: bold;');
+            currentUser = session?.user || null;
+            await updateUserInterface(currentUser);
+        });
+        console.log("【诊断】: 4. onAuthStateChange 监听器已挂载。");
+
+        authButton.addEventListener('click', () => {
+            console.log(`%c【诊断】: C. authButton (”${authButton.textContent}“) 被点击!`, 'color: blue; font-weight: bold;');
+            if (currentUser) {
+                supabaseClient.auth.signOut();
             } else {
-                btn.style.display = 'none';
+                document.body.classList.add('logged-out');
             }
         });
+        console.log("【诊断】: 5. authButton 点击事件已绑定。");
 
-        const activeTab = document.querySelector('.tab-button.active');
-        if (!activeTab || activeTab.style.display === 'none') {
-            firstVisibleTab?.click();
-        }
-    }
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            console.log('%c【诊断】: D. 登录表单被提交!', 'color: red; font-weight: bold;');
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = '正在登录中...';
 
-    /**
-     * 获取用户所有有权访问的标签页
-     */
-    async function getPermittedTabs(user) {
-        const permitted = new Set(publicTabs);
-        if (!user) return permitted;
+            try {
+                console.log("【诊断】: D1. 准备调用后端 /api/login...");
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
 
-        const [profileRes, permsRes] = await Promise.all([
-            supabaseClient.from('profiles').select('role').eq('id', user.id).single(),
-            supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', user.id)
-        ]);
+                const data = await response.json();
+                console.log("【诊断】: D2. 后端 /api/login 返回结果:", data);
 
-        if (profileRes.data?.role === 'admin') permitted.add('admin');
-        if (permsRes.data) {
-            const now = new Date();
-            permsRes.data.forEach(p => {
-                if (!p.expires_at || new Date(p.expires_at) >= now) permitted.add(p.tab_name);
-            });
-        }
-        return permitted;
-    }
+                if (!response.ok) throw new Error(data.error);
 
-    // 4. --- 事件监听器 ---
+                console.log("【诊断】: D3. 准备在前端设置session...");
+                const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
+                if (sessionError) throw sessionError;
 
-    // 认证按钮的唯一点击事件
-    authButton.addEventListener('click', () => {
-        if (currentUser) {
-            supabaseClient.auth.signOut();
-        } else {
-            document.body.classList.add('logged-out');
-            loginSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    });
-
-    // 登录表单的提交事件
-    loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        loginError.textContent = '';
-        const emailInput = document.getElementById('login-email');
-        const passwordInput = document.getElementById('login-password');
-        
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: emailInput.value, password: passwordInput.value }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
-            if (sessionError) throw sessionError;
-        } catch (error) {
-            loginError.textContent = error.message;
-        }
-    });
-
-    // 注册表单的提交事件 (使用在顶部已定义的 registerForm 变量)
-    registerForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        registerError.textContent = '';
-        registerMessage.textContent = '';
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        const username = document.getElementById('register-username').value;
-        const phone = document.getElementById('register-phone').value;
-        const unit_name = document.getElementById('register-unitname').value;
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, username, phone, unit_name }),
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            registerMessage.textContent = '注册成功！现在您可以登录了。';
-            setTimeout(() => showLoginLink.click(), 2000);
-        } catch (error) {
-            registerError.textContent = error.message;
-        }
-    });
-
-    // 标签页点击逻辑
-    tabButtons.forEach(tab => {
-        tab.addEventListener('click', () => {
-            if (tab.style.display === 'none') return;
-            if (currentUser) document.body.classList.remove('logged-out');
-            tabButtons.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            tabPanels.forEach(panel => {
-                const isActive = panel.id === `${tab.dataset.tab}-tab`;
-                panel.classList.toggle('active', isActive);
-                if (isActive && !panel.dataset.initialized) {
-                    if (tab.dataset.tab === 'universities') window.initializeUniversitiesTab?.();
-                    else if (tab.dataset.tab === 'majors') window.initializeUniversitiesTab?.();
-                    else if (tab.dataset.tab === 'plans') window.initializePlansTab?.();
-                    else if (tab.dataset.tab === 'admin') window.initializeAdminTab?.();
-                }
-            });
+                console.log("【诊断】: D4. 前端session设置成功。等待 onAuthStateChange 触发...");
+                loginError.textContent = '';
+                
+            } catch (error) {
+                console.error("【诊断】: D-ERROR. 登录过程中捕获到错误:", error);
+                loginError.textContent = error.message;
+            }
         });
-    });
+        console.log("【诊断】: 6. loginForm 提交事件已绑定。");
 
-    // “立即注册”和“立即登录”链接的点击逻辑
-    showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginError.textContent = ''; registerError.textContent = ''; registerMessage.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
-    showLoginLink.addEventListener('click', e => { e.preventDefault(); registerError.textContent = ''; registerMessage.textContent = ''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
+        // --- 6. 脚本执行完毕 ---
+        console.log("【诊断】: 7. main.js 脚本主体执行完毕。");
 
-    // 5. --- 页面初始化 ---
-    document.querySelector('.tab-button[data-tab="universities"]')?.click();
-    fetch('/api/counter').then(res => res.json()).then(data => {
-        document.getElementById('visitor-info').textContent = `您是第 ${data.count} 位访客！`;
-    }).catch(err => console.error('获取访客数失败:', err));
+    } catch (error) {
+        console.error("【诊断】: 脚本在初始化过程中发生致命错误!", error);
+    }
 });
