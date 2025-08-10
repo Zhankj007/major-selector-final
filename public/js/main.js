@@ -153,10 +153,21 @@ document.addEventListener('DOMContentLoaded', function () {
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         loginError.textContent = '';
+
+        // 使用 ID 获取输入框，并增加健壮性检查
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
+
+        if (!emailInput || !passwordInput) {
+            loginError.textContent = '页面结构错误：找不到登录输入框。';
+            return;
+        }
+
         try {
             const response = await fetch('/api/login', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: loginForm.email.value, password: loginForm.password.value }),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value, password: passwordInput.value }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
@@ -172,13 +183,19 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         registerError.textContent = '';
         registerMessage.textContent = '';
+
+        // 使用 ID 获取所有输入框
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const username = document.getElementById('register-username').value;
+        const phone = document.getElementById('register-phone').value;
+        const unit_name = document.getElementById('register-unitname').value;
+
         try {
             const response = await fetch('/api/register', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: registerForm.email.value, password: registerForm.password.value,
-                    username: registerForm.username.value, phone: registerForm.phone.value, unit_name: registerForm.unit_name.value
-                }),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, username, phone, unit_name }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
