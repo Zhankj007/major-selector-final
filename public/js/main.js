@@ -129,19 +129,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // 正确版本：调用后端的 /api/login 接口
+    loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
         loginError.textContent = '';
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        console.log(`【调试】: 准备使用邮箱 ${email} 尝试登录...`);
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
         try {
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value, password: passwordInput.value }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            
+            // 使用后端返回的 session 来设置前端的认证状态
+            const { error } = await supabaseClient.auth.setSession(data.session);
             if (error) throw error;
-            console.log("【调试】: signInWithPassword 调用成功，等待 onAuthStateChange 更新UI。");
+
         } catch (error) {
-            console.error("【调试】: 登录时捕获到错误!", error);
-            loginError.textContent = error.message.includes("Invalid login credentials") ? "邮箱或密码错误，请重试。" : error.message;
+            loginError.textContent = error.message;
         }
     });
 
