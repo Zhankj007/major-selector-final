@@ -1,4 +1,4 @@
-// public/js/main.js (最终修复版 - 完整代码)
+// public/js/main.js (最终修复版 - 100%完整代码)
 
 document.addEventListener('DOMContentLoaded', function () {
     // 1. --- 初始化和元素获取 ---
