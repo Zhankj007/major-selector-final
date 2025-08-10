@@ -1,111 +1,59 @@
-// public/js/main.js (最终修复版 - 100%完整代码)
+// public/js/main.js (回退到修改前的稳定版本)
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. --- 初始化和元素获取 ---
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
+    window.supabaseClient = supabaseClient; // 将客户端实例挂载到全局
 
-    const loginSection = document.getElementById('login-section');
+    // --- 获取所有UI元素 ---
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
     const registerMessage = document.getElementById('register-message');
+    const logoutButton = document.getElementById('logout-button');
     const showRegisterLink = document.getElementById('show-register-link');
     const showLoginLink = document.getElementById('show-login-link');
     const userNicknameElement = document.getElementById('user-nickname');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
-    const authButton = document.getElementById('auth-button');
 
-    // 2. --- 应用状态 ---
-    let currentUser = null;
-
-    // 3. --- 核心认证逻辑 ---
-    supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        // 初始加载时，如果URL中有#access_token，说明是刚登录跳转回来，先不急着更新UI
-        // 等待 loginForm 的 setSession 完成并触发后续的 SIGNED_IN 事件
-        if (event === 'INITIAL_SESSION' && window.location.hash.includes('access_token')) {
-            return;
+    // --- 核心认证状态管理 (原始逻辑) ---
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session && session.user) {
+            // 用户已登录：移除 logged-out 状态，加载用户权限和信息
+            document.body.classList.remove('logged-out');
+            loadUserPermissions(session.user.id);
+            displayUserProfile(session.user.id);
+        } else {
+            // 用户未登录：添加 logged-out 状态，清空欢迎语，隐藏所有标签页
+            document.body.classList.add('logged-out');
+            if (userNicknameElement) userNicknameElement.textContent = '';
+            tabButtons.forEach(btn => btn.style.display = 'none');
         }
-        currentUser = session?.user || null;
-        await updateUserInterface(currentUser);
     });
     
-    /**
-     * 【核心修正】: UI更新函数，采用更稳妥的串行查询
-     * @param {object|null} user - Supabase的用户对象
-     */
-    async function updateUserInterface(user) {
-        if (!user) {
-            // --- 未登录状态 ---
-            authButton.textContent = '登录/注册';
-            userNicknameElement.textContent = '';
-            document.body.classList.remove('logged-out');
-            
-            // 只显示公开标签页
-            const publicTabs = new Set(['universities', 'majors']);
-            tabButtons.forEach(btn => {
-                btn.style.display = publicTabs.has(btn.dataset.tab) ? '' : 'none';
-            });
-            // 确保默认标签页被激活
-            const activeTab = document.querySelector('.tab-button.active');
-            if (!activeTab || activeTab.style.display === 'none') {
-                 document.querySelector('.tab-button[data-tab="universities"]')?.click();
-            }
-            return;
-        }
-
-        // --- 已登录状态 ---
-        authButton.textContent = '退出登录';
-        document.body.classList.remove('logged-out');
-
-        // 【关键修改】: 将并发查询 Promise.all 改为串行查询
-        // 1. 先查询 profiles 表
-        const profileRes = await supabaseClient.from('profiles').select('username, role').eq('id', user.id).single();
-        if (profileRes.error) {
-            console.error("获取用户信息失败:", profileRes.error);
-            userNicknameElement.textContent = '用户状态异常';
-            return;
-        }
-        userNicknameElement.textContent = `欢迎您, ${profileRes.data.username || ''}`;
-
-        // 2. 再查询 user_permissions 表
-        const permsRes = await supabaseClient.from('user_permissions').select('tab_name').eq('user_id', user.id);
-        if (permsRes.error) {
-            console.error("获取用户权限失败:", permsRes.error);
-        }
-
-        // 3. 最后根据所有查询结果，更新UI
-        const permittedTabs = new Set(['universities', 'majors']);
-        if (profileRes.data.role === 'admin') {
-            permittedTabs.add('admin');
-        }
-        if (permsRes.data) {
-            permsRes.data.forEach(p => permittedTabs.add(p.tab_name));
-        }
-        
-        tabButtons.forEach(btn => {
-            btn.style.display = permittedTabs.has(btn.dataset.tab) ? '' : 'none';
-        });
-
-        const activeTab = document.querySelector('.tab-button.active');
-        if (!activeTab || activeTab.style.display === 'none') {
-            document.querySelector('.tab-button[data-tab="universities"]')?.click();
-        }
-    }
-
-    // 4. --- 事件监听器 ---
-    authButton.addEventListener('click', () => {
-        if (currentUser) supabaseClient.auth.signOut();
-        else document.body.classList.add('logged-out');
+    // --- 登录/注册表单切换 ---
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginError.textContent = ''; // 清空错误提示
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
     });
 
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerError.textContent = ''; // 清空错误提示
+        registerMessage.textContent = ''; // 清空成功提示
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+    });
+
+    // --- 表单提交逻辑 ---
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        loginError.textContent = '正在登录中...';
+        loginError.textContent = '';
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         try {
@@ -114,16 +62,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({ email, password }),
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
-            if (sessionError) throw sessionError;
-            // 登录成功后，onAuthStateChange 会自动处理所有UI更新，无需在这里做任何事
+            if (!response.ok) { throw new Error(data.error); }
+            const { error } = await supabaseClient.auth.setSession(data.session);
+            if (error) throw error;
         } catch (error) {
             loginError.textContent = error.message;
         }
     });
 
-    // 【完整版】注册表单的事件监听器
     registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         registerError.textContent = '';
@@ -135,46 +81,101 @@ document.addEventListener('DOMContentLoaded', function () {
         const unit_name = document.getElementById('register-unitname').value;
         try {
             const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, username, phone, unit_name }),
             });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
+            if (!response.ok) { throw new Error(data.error); }
             registerMessage.textContent = '注册成功！现在您可以登录了。';
-            setTimeout(() => showLoginLink.click(), 2000);
+            setTimeout(() => { showLoginLink.click(); }, 2000);
         } catch (error) {
             registerError.textContent = error.message;
         }
     });
-    
-    // 标签页点击逻辑
+
+    // --- 其他功能函数 ---
+    logoutButton.addEventListener('click', () => supabaseClient.auth.signOut());
+
+    async function displayUserProfile(userId) {
+        const nicknameElement = document.getElementById('user-nickname');
+        const adminTabButton = document.getElementById('admin-tab-button');
+        if (!nicknameElement || !adminTabButton) return;
+        try {
+            const { data: profile, error } = await supabaseClient.from('profiles').select('username, role').eq('id', userId).single();
+            if (error) throw error;
+            if (profile) {
+                nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
+                if (profile.role === 'admin') {
+                    adminTabButton.style.display = '';
+                } else {
+                    adminTabButton.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('获取用户信息失败:', error);
+        }
+    }
+
+    async function loadUserPermissions(userId) {
+        tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
+        const { data: permissions, error } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', userId);
+        if (error) {
+            console.error('获取用户权限失败:', error);
+            return;
+        }
+        const now = new Date();
+        let visibleTabs = [];
+        permissions.forEach(perm => {
+            const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
+            if (!isExpired) {
+                const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
+                if (tabButton) {
+                    tabButton.style.display = '';
+                    visibleTabs.push(tabButton);
+                }
+            }
+        });
+        if (visibleTabs.length > 0) {
+            visibleTabs[0].click();
+        }
+    }
+
+    // 标签页点击切换逻辑
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
             if (tab.style.display === 'none') return;
-            if (currentUser) document.body.classList.remove('logged-out');
+            const targetId = tab.dataset.tab;
             tabButtons.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             tabPanels.forEach(panel => {
-                const isActive = panel.id === `${tab.dataset.tab}-tab`;
+                const isActive = panel.id === `${targetId}-tab`;
                 panel.classList.toggle('active', isActive);
                 if (isActive && !panel.dataset.initialized) {
-                    if (tab.dataset.tab === 'universities') window.initializeUniversitiesTab?.();
-                    else if (tab.dataset.tab === 'majors') window.initializeMajorsTab?.();
-                    else if (tab.dataset.tab === 'plans') window.initializePlansTab?.();
-                    else if (tab.dataset.tab === 'admin') window.initializeAdminTab?.();
+                    if (targetId === 'universities') window.initializeUniversitiesTab?.();
+                    else if (targetId === 'majors') window.initializeMajorsTab?.();
+                    else if (targetId === 'plans') window.initializePlansTab?.();
+                    else if (targetId === 'admin') window.initializeAdminTab?.();
                 }
             });
         });
     });
 
-    // “立即注册”和“立即登录”链接的点击逻辑
-    showRegisterLink.addEventListener('click', e => { e.preventDefault(); loginError.textContent = ''; registerError.textContent = ''; registerMessage.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
-    showLoginLink.addEventListener('click', e => { e.preventDefault(); registerError.textContent = ''; registerMessage.textContent = ''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
-
-    // 5. --- 页面初始化 ---
     document.querySelector('.tab-button[data-tab="universities"]')?.click();
-    fetch('/api/counter').then(res => res.json()).then(data => {
-        document.getElementById('visitor-info').textContent = `您是第 ${data.count} 位访客！`;
-    }).catch(err => console.error('获取访客数失败:', err));
+
+    // 访客计数器
+    async function updateVisitorCount() {
+        const visitorElement = document.getElementById('visitor-info');
+        if (!visitorElement) return;
+        try {
+            const response = await fetch('/api/counter');
+            if (response.ok) {
+                const data = await response.json();
+                visitorElement.textContent = `您是第 ${data.count} 位访客！`;
+            }
+        } catch (error) {
+            console.error('获取访客数失败:', error);
+        }
+    }
+    
+    updateVisitorCount();
 });
