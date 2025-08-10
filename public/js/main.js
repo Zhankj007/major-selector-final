@@ -1,129 +1,128 @@
-// public/js/main.js (增强调试版 - 追踪点击事件)
+// public/js/main.js (最终诊断版 - 追踪点击事件)
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("【调试】: 页面DOM加载完成，开始执行main.js。");
+    console.log("【1】 main.js 开始执行");
 
-    // 1. --- 初始化和元素获取 ---
-    const SUPABASE_URL = '__SUPABASE_URL__';
-    const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
-
-    const loginSection = document.getElementById('login-section');
+    // --- 获取核心HTML元素 ---
+    const supabaseClient = supabase.createClient('__SUPABASE_URL__', '__SUPABASE_ANON_KEY__');
     const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const loginError = document.getElementById('login-error');
+    const authButton = document.getElementById('auth-button');
     const userNicknameElement = document.getElementById('user-nickname');
     const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanels = document.querySelectorAll('.tab-panel');
-    const authButton = document.getElementById('auth-button');
 
-    // 2. --- 应用状态和配置 ---
-    const publicTabs = new Set(['universities', 'majors']);
     let currentUser = null;
 
-    // 3. --- 核心认证逻辑 ---
+    // --- 核心认证状态监听器 ---
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        console.log(`%c【调试】: onAuthStateChange 事件触发! 事件类型: ${event}`, 'color: green; font-weight: bold;');
+        console.log(`%c【A】 认证状态发生变化: ${event}`, 'color: green; font-weight: bold;');
         currentUser = session?.user || null;
         await updateUserInterface(currentUser);
     });
 
     /**
-     * 统一的UI更新函数
-     * @param {object|null} user - Supabase的用户对象
+     * 唯一的UI更新函数
      */
     async function updateUserInterface(user) {
-        console.log("【调试】: 进入 updateUserInterface 函数。");
-        const [permittedTabs, profile] = await Promise.all([
-            getPermittedTabs(user),
-            user ? supabaseClient.from('profiles').select('username').eq('id', user.id).single() : Promise.resolve({ data: null })
-        ]);
-        console.log("【调试】: 已获取权限和用户信息。");
+        console.log("【B】 updateUserInterface 函数开始执行", user ? `用户ID: ${user.id}`: "用户: null");
 
-        if (user && profile) {
+        if (user) {
+            // 已登录状态的UI更新
             authButton.textContent = '退出登录';
             document.body.classList.remove('logged-out');
-            userNicknameElement.textContent = profile.data ? `欢迎您, ${profile.data.username}` : '欢迎您';
+            
+            console.log("【C】 准备查询用户信息和权限...");
+            const [profileRes, permsRes] = await Promise.all([
+                supabaseClient.from('profiles').select('username, role').eq('id', user.id).single(),
+                supabaseClient.from('user_permissions').select('tab_name').eq('user_id', user.id)
+            ]);
+            console.log("【D】 用户信息和权限查询完成");
+
+            // 更新欢迎语
+            if (profileRes.data) {
+                userNicknameElement.textContent = `欢迎您, ${profileRes.data.username || ''}`;
+            } else {
+                userNicknameElement.textContent = '欢迎您';
+                console.error("【错误】未能获取到用户 profile:", profileRes.error);
+            }
+
+            // 更新标签页
+            const permittedTabs = new Set(['universities', 'majors']);
+            if (profileRes.data?.role === 'admin') permittedTabs.add('admin');
+            if (permsRes.data) permsRes.data.forEach(p => permittedTabs.add(p.tab_name));
+            
+            console.log("【E】 最终计算出的权限为:", permittedTabs);
+            tabButtons.forEach(btn => {
+                btn.style.display = permittedTabs.has(btn.dataset.tab) ? '' : 'none';
+            });
+
         } else {
+            // 未登录状态的UI更新
             authButton.textContent = '登录/注册';
             userNicknameElement.textContent = '';
             document.body.classList.remove('logged-out');
-        }
-
-        let firstVisibleTab = null;
-        tabButtons.forEach(btn => {
-            const tabName = btn.dataset.tab;
-            if (permittedTabs.has(tabName)) {
-                btn.style.display = '';
-                if (!firstVisibleTab) firstVisibleTab = btn;
-            } else {
-                btn.style.display = 'none';
-            }
-        });
-
-        const activeTab = document.querySelector('.tab-button.active');
-        if (!activeTab || activeTab.style.display === 'none') {
-            firstVisibleTab?.click();
+            tabButtons.forEach(btn => {
+                 btn.style.display = new Set(['universities', 'majors']).has(btn.dataset.tab) ? '' : 'none';
+            });
         }
     }
 
-    async function getPermittedTabs(user) {
-        const permitted = new Set(publicTabs);
-        if (!user) return permitted;
-        const [profileRes, permsRes] = await Promise.all([
-            supabaseClient.from('profiles').select('role').eq('id', user.id).single(),
-            supabaseClient.from('user_permissions').select('tab_name').eq('user_id', user.id)
-        ]);
-        if (profileRes.data?.role === 'admin') permitted.add('admin');
-        if (permsRes.data) permsRes.data.forEach(p => permitted.add(p.tab_name));
-        return permitted;
-    }
 
-    // 4. --- 事件监听器 ---
-
-    // 【调试增强】: 检查认证按钮是否存在
+    // --- 事件监听器绑定 ---
+    
+    // “登录/注册” 或 “退出登录” 按钮
     if (authButton) {
-        console.log("【调试】: 成功找到认证按钮(authButton)，准备绑定点击事件。");
+        console.log("【2】 找到 authButton，绑定点击事件");
         authButton.addEventListener('click', () => {
-            console.log(`%c【调试】: “${authButton.textContent}” 按钮被点击!`, 'color: blue; font-weight: bold;');
+            console.log(`%c【CLICK】 authButton 被点击! 当前状态: ${currentUser ? '已登录' : '未登录'}`, 'color: blue');
             if (currentUser) {
                 supabaseClient.auth.signOut();
             } else {
                 document.body.classList.add('logged-out');
-                loginSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
     } else {
-        console.error("【调试】: 致命错误 - 找不到ID为 'auth-button' 的按钮！");
+        console.error("【错误】 找不到 authButton 元素!");
     }
 
-    // 【调试增强】: 检查登录表单是否存在
+    // 登录表单的提交按钮
     if (loginForm) {
-        console.log("【调试】: 成功找到登录表单(loginForm)，准备绑定提交事件。");
+        console.log("【3】 找到 loginForm，绑定提交事件");
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            console.log("%c【调试】: 登录表单被提交！", 'color: red; font-weight: bold;');
-            loginError.textContent = '';
-            const emailInput = document.getElementById('login-email');
-            const passwordInput = document.getElementById('login-password');
+            console.log('%c【SUBMIT】 登录表单被提交!', 'color: red; font-weight: bold;');
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = '正在登录中...';
+
             try {
+                console.log("【SUBMIT】 准备调用后端 /api/login...");
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: emailInput.value, password: passwordInput.value }),
+                    body: JSON.stringify({ email, password }),
                 });
+
                 const data = await response.json();
+                console.log("【SUBMIT】 后端 /api/login 返回结果:", data);
+
                 if (!response.ok) throw new Error(data.error);
+
+                console.log("【SUBMIT】 准备在前端设置session...");
                 const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
                 if (sessionError) throw sessionError;
-                location.reload();
+
+                console.log("【SUBMIT】 前端session设置成功。等待 onAuthStateChange 触发...");
+                loginError.textContent = '';
+                
             } catch (error) {
+                console.error("【SUBMIT-ERROR】 登录过程中捕获到错误:", error);
                 loginError.textContent = error.message;
             }
         });
     } else {
-        console.error("【调试】: 致命错误 - 找不到ID为 'login-form' 的表单！");
+        console.error("【错误】 找不到 loginForm 元素!");
     }
     
     // 省略其他非核心事件监听器，保持不变
