@@ -47,21 +47,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 表单提交逻辑 ---
     loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        loginError.textContent = '';
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+        event.preventDefault(); // 阻止表单默认的刷新页面行为
+        loginError.textContent = ''; // 清空之前的错误信息
+    
+        // 【新增】获取登录按钮元素
+        const loginButton = loginForm.querySelector('button[type="submit"]');
+    
         try {
+            // 【新增】在请求开始前，禁用按钮并显示“登录中...”
+            loginButton.disabled = true;
+            loginButton.textContent = '登录中...';
+    
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+    
             const response = await fetch('/api/login', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
             const data = await response.json();
-            if (!response.ok) { throw new Error(data.error); }
-            const { error } = await supabaseClient.auth.setSession(data.session);
-            if (error) throw error;
+            if (!response.ok) { throw new Error(data.error || '登录失败，请检查您的邮箱和密码。'); }
+    
+            const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
+            if (sessionError) throw sessionError;
+            // 登录成功后，onAuthStateChange 会自动处理UI更新，我们无需额外操作
+    
         } catch (error) {
             loginError.textContent = error.message;
+        } finally {
+            // 【新增】无论成功还是失败，最终都恢复按钮的原始状态
+            loginButton.disabled = false;
+            loginButton.textContent = '登 录';
         }
     });
 
@@ -217,3 +234,4 @@ document.addEventListener('DOMContentLoaded', function () {
     
     updateVisitorCount();
 });
+
