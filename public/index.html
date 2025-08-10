@@ -49,11 +49,31 @@
       background-color: white;
       box-sizing: border-box;
     }
-
-    /* ---【新增】修正登录后登录框不隐藏的问题 --- */
     /* 这条规则明确指定：在登录状态下（即body没有.logged-out类时），强制隐藏登录区域 */
     body:not(.logged-out) #login-section {
         display: none;
+    }
+    /* 为所有按钮添加过渡效果，让变化更平滑 */
+    .query-button, .output-button, #logout-button, #refresh-users-btn, .edit-btn, .delete-btn {
+        transition: filter 0.2s, transform 0.1s;
+    }
+    
+    /* 鼠标悬停时，按钮变亮 */
+    .query-button:hover, .output-button:hover, #logout-button:hover, #refresh-users-btn:hover, .edit-btn:hover, .delete-btn:hover {
+        filter: brightness(1.1);
+    }
+    
+    /* 鼠标按下时，按钮有轻微缩小和变暗的效果，模拟按压感 */
+    .query-button:active, .output-button:active, #logout-button:active, #refresh-users-btn:active, .edit-btn:active, .delete-btn:active {
+        transform: scale(0.98);
+        filter: brightness(0.95);
+    }
+    
+    /* 当按钮被禁用时，显示为灰色且不可点击 */
+    .query-button:disabled, .output-button:disabled, #logout-button:disabled, #refresh-users-btn:disabled {
+        background-color: #ccc !important; /* 使用 !important 确保覆盖行内样式 */
+        cursor: not-allowed;
+        filter: none;
     }
 </style>
 </head>
@@ -147,6 +167,7 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
+
 
 
 
