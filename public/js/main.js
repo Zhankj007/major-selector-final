@@ -1,46 +1,126 @@
+// public/js/main.js (Final Version)
+
 document.addEventListener('DOMContentLoaded', function () {
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
-    // --- 获取所有UI元素 ---
+    window.supabaseClient = supabaseClient;
+
+    // --- 获取所有UI元素 (新增 authButton) ---
+    const loginSection = document.getElementById('login-section');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
     const registerMessage = document.getElementById('register-message');
-    const logoutButton = document.getElementById('logout-button');
     const showRegisterLink = document.getElementById('show-register-link');
     const showLoginLink = document.getElementById('show-login-link');
     const userNicknameElement = document.getElementById('user-nickname');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
+    const authButton = document.getElementById('auth-button'); // 获取新的认证按钮
 
-    // --- 核心认证状态管理 ---
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session && session.user) {
-            document.body.classList.remove('logged-out');
-            loadUserPermissions(session.user.id);
-            displayUserProfile(session.user.id);
-        } else {
-            document.body.classList.add('logged-out');
-            if (userNicknameElement) userNicknameElement.textContent = '';
-            tabButtons.forEach(btn => btn.style.display = 'none');
+    // --- 新的权限控制核心逻辑 ---
+    const publicTabs = ['universities', 'majors'];
+
+    function updateTabVisibility(permittedTabs) {
+        let firstVisibleTab = null;
+        tabButtons.forEach(btn => {
+            const tabName = btn.dataset.tab;
+            if (permittedTabs.has(tabName)) {
+                btn.style.display = '';
+                if (!firstVisibleTab) firstVisibleTab = btn;
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab && activeTab.style.display === 'none') {
+            if (firstVisibleTab) firstVisibleTab.click();
+        } else if (!activeTab && firstVisibleTab) {
+            firstVisibleTab.click();
         }
-    });
+    }
     
+    // --- 【核心修改】为认证按钮添加事件处理器 ---
+    let authButtonHandler = null; // 用于存储当前的点击事件处理函数
+
+    function setAuthButtonAction(action) {
+        // 先移除旧的事件监听器，防止重复绑定
+        if (authButtonHandler) {
+            authButton.removeEventListener('click', authButtonHandler);
+        }
+
+        if (action === 'logout') {
+            authButton.textContent = '退出登录';
+            authButtonHandler = () => supabaseClient.auth.signOut();
+        } else { // 'login'
+            authButton.textContent = '登录/注册';
+            authButtonHandler = () => {
+                 document.body.classList.add('logged-out'); // 强制显示登录/注册界面
+            };
+        }
+        authButton.addEventListener('click', authButtonHandler);
+    }
+
+
+    async function handleAuthStateChange(event, session) {
+        const permittedTabs = new Set(publicTabs);
+
+        if (session && session.user) {
+            // --- 用户已登录 ---
+            document.body.classList.remove('logged-out');
+            setAuthButtonAction('logout'); // 设置按钮为“退出登录”
+
+            const [profileResponse, permissionsResponse] = await Promise.all([
+                supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single(),
+                supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id)
+            ]);
+
+            if (profileResponse.data) {
+                userNicknameElement.textContent = `欢迎您, ${profileResponse.data.username || ''}`;
+                if (profileResponse.data.role === 'admin') permittedTabs.add('admin');
+            } else {
+                 userNicknameElement.textContent = '欢迎您';
+            }
+            if(profileResponse.error) console.error("获取用户信息失败:", profileResponse.error);
+
+            if (permissionsResponse.data) {
+                 const now = new Date();
+                 permissionsResponse.data.forEach(perm => {
+                    if (!perm.expires_at || new Date(perm.expires_at) >= now) {
+                        permittedTabs.add(perm.tab_name);
+                    }
+                });
+            }
+            if(permissionsResponse.error) console.error("获取用户权限失败:", permissionsResponse.error);
+
+        } else {
+            // --- 用户已退出 ---
+            document.body.classList.add('logged-out');
+            userNicknameElement.textContent = '';
+            setAuthButtonAction('login'); // 设置按钮为“登录/注册”
+        }
+        
+        updateTabVisibility(permittedTabs);
+    }
+
+    supabaseClient.auth.onAuthStateChange(handleAuthStateChange);
+
+
     // --- 登录/注册表单切换 ---
     showRegisterLink.addEventListener('click', (e) => {
         e.preventDefault();
-        loginError.textContent = ''; // 清空错误提示
+        loginError.textContent = '';
         loginForm.classList.add('hidden');
         registerForm.classList.remove('hidden');
     });
 
     showLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
-        registerError.textContent = ''; // 清空错误提示
-        registerMessage.textContent = ''; // 清空成功提示
+        registerError.textContent = '';
+        registerMessage.textContent = '';
         registerForm.classList.add('hidden');
         loginForm.classList.remove('hidden');
     });
@@ -92,197 +172,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- 其他功能函数 ---
-    logoutButton.addEventListener('click', () => supabaseClient.auth.signOut());
-
-    async function displayUserProfile(userId) {
-        const nicknameElement = document.getElementById('user-nickname');
-        const adminTabButton = document.getElementById('admin-tab-button'); // 获取后台管理按钮
-    
-        if (!nicknameElement || !adminTabButton) return;
-        try {
-            // 【已修正】同时查询 username 和 role 字段
-            const { data: profile, error } = await supabaseClient
-                .from('profiles')
-                .select('username, role') 
-                .eq('id', userId)
-                .single();
-            
-            if (error) throw error;
-    
-            if (profile) {
-                nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
-                
-                // 检查角色，如果是 admin，就显示后台管理标签页
-                if (profile.role === 'admin') {
-                    adminTabButton.style.display = '';
-                } else {
-                    adminTabButton.style.display = 'none';
-                }
-            } else {
-                 nicknameElement.textContent = '欢迎您';
-                 adminTabButton.style.display = 'none';
-            }
-        } catch (error) {
-            console.error('获取用户信息失败:', error);
-            nicknameElement.textContent = '欢迎您';
-            adminTabButton.style.display = 'none';
-        }
-    }
-
-    async function loadUserPermissions(userId) {
-        tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
-        const { data: permissions, error } = await supabaseClient
-            .from('user_permissions')
-            .select('tab_name, expires_at')
-            .eq('user_id', userId);
-    
-        if (error) {
-            console.error('获取用户权限失败:', error);
-            return;
-        }
-        const now = new Date();
-        let visibleTabs = [];
-        permissions.forEach(perm => {
-            const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
-            if (!isExpired) {
-                const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
-                if (tabButton) {
-                    tabButton.style.display = ''; // 恢复显示
-                    visibleTabs.push(tabButton);
-                }
-            }
-        });
-    
-        // --- 【关键修正点】 ---
-        // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页
-        const currentlyActiveTab = document.querySelector('.tab-button.active');
-        
-        // 判断当前激活的标签页是否在本次权限检查后依然可见
-        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
-    
-        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
-            // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
-            visibleTabs[0].click();
-        } else if (visibleTabs.length === 0) {
-            // 如果没有任何可见标签页，则清空内容区
-             tabPanels.forEach(panel => {
-                panel.classList.remove('active');
-                panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
-             });
-        }
-    }
-
+    // --- 标签页点击切换逻辑 ---
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
             if (tab.style.display === 'none') return;
             const targetId = tab.dataset.tab;
+            // 当点击任意标签页时，如果登录/注册框是显示的，就隐藏它
+            if (!document.body.classList.contains('logged-out')) {
+                // 只有在登录状态下才执行此操作
+            }
+
             tabButtons.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             tabPanels.forEach(panel => {
                 const isActive = panel.id === `${targetId}-tab`;
                 panel.classList.toggle('active', isActive);
                 if (isActive && !panel.dataset.initialized) {
-                    if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
-                        window.initializeUniversitiesTab();
-                    } else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
-                        window.initializeMajorsTab();
-                    } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
-                        window.initializePlansTab();
-                    } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
-                        // 【新增】当点击后台管理时，调用初始化函数
-                        window.initializeAdminTab();
-                    }
+                    // Initialize tab content...
+                    if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') window.initializeUniversitiesTab();
+                    else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') window.initializeMajorsTab();
+                    else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') window.initializePlansTab();
+                    else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') window.initializeAdminTab();
                 }
             });
         });
-    }); 
-/*
-    async function loadUserPermissions(userId) {
-        try {
-            // 使用 Promise.all 并发执行两次查询，速度更快
-            const [
-                { data: permissions, error: permsError },
-                { data: profile, error: profileError }
-            ] = await Promise.all([
-                supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', userId),
-                supabaseClient.from('profiles').select('role').eq('id', userId).single()
-            ]);
-    
-            if (permsError || profileError) {
-                // 如果查询出错，在控制台打印详细错误，然后退出
-                console.error('获取用户权限或角色失败:', permsError || profileError);
-                // 可以在此处向用户显示一个通用错误提示
-                tabPanels.forEach(panel => {
-                    panel.innerHTML = '<p style="padding: 20px; text-align: center;">无法加载用户信息，请稍后重试。</p>';
-                });
-                return;
-            }
-    
-            const now = new Date();
-            // 使用 Set 结构来存储允许访问的标签页名称，更高效
-            const visibleTabNames = new Set(); 
-    
-            // 1. 根据权限表决定普通标签页的可见性
-            if (permissions) {
-                permissions.forEach(perm => {
-                    const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
-                    if (!isExpired) {
-                        visibleTabNames.add(perm.tab_name);
-                    }
-                });
-            }
-    
-            // 2. 根据角色决定后台管理标签页的可见性
-            if (profile && profile.role === 'admin') {
-                visibleTabNames.add('admin');
-            }
-    
-            // 3. 统一应用可见性（使用 hidden 类，而不是直接操作style）
-            tabButtons.forEach(btn => {
-                const tabName = btn.dataset.tab;
-                // 如果 Set 中有这个标签名，就移除 hidden 类（显示）；否则就添加 hidden 类（隐藏）
-                btn.classList.toggle('hidden', !visibleTabNames.has(tabName));
-            });
-    
-            // 4. 智能判断是否需要设置默认标签页
-            const currentlyActiveTab = document.querySelector('.tab-button.active');
-            // 检查当前激活的标签页是否仍然可见
-            const isActiveTabStillVisible = currentlyActiveTab && visibleTabNames.has(currentlyActiveTab.dataset.tab);
-    
-            if (visibleTabNames.size > 0 && !isActiveTabStillVisible) {
-                // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
-                const firstVisibleTab = document.querySelector('.tab-button:not(.hidden)');
-                if(firstVisibleTab) firstVisibleTab.click();
-            } else if (visibleTabNames.size === 0) {
-                // 如果没有任何可见标签页，则清空内容区并显示提示
-                tabPanels.forEach(panel => {
-                    panel.classList.remove('active');
-                    panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
-                });
-            }
-        } catch (error) {
-            console.error("loadUserPermissions 函数内部发生未知错误:", error);
-        }
-    }
-*/
+    });
+
+    // --- 访客计数器 ---
     async function updateVisitorCount() {
-        // 【修改点】这里的元素ID从'visitor-counter'改为了'visitor-info'
-        const visitorElement = document.getElementById('visitor-info'); 
-        if (!visitorElement) return; // 增加一个安全检查
+        const visitorElement = document.getElementById('visitor-info');
+        if (!visitorElement) return;
         try {
             const response = await fetch('/api/counter');
             if (!response.ok) return;
             const data = await response.json();
-            
-            // 【修改点】生成完整的句子
             visitorElement.textContent = `您是第 ${data.count} 位访客！`;
-    
         } catch (error) {
             console.error('Failed to fetch visitor count:', error);
         }
     }
     
+    // --- 初始化 ---
+    const firstTab = document.querySelector('.tab-button[data-tab="universities"]');
+    if(firstTab) firstTab.click();
+
     updateVisitorCount();
 });
-

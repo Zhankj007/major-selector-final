@@ -71,11 +71,9 @@ function initializeAdminTab() {
     function renderTable(users) {
         tableBody.innerHTML = '';
         if (users.length === 0) {
-            // 【修改点】colspan 增加到 10
             tableBody.innerHTML = `<tr><td colspan="10" style="padding: 20px; text-align: center;">没有找到符合条件的用户。</td></tr>`;
             return;
         }
-        // 【修改点】forEach循环中加入 index 参数
         users.forEach((user, index) => {
             const lastLogin = user.last_login_time ? user.last_login_time : '从未';
             const rowHTML = `
@@ -90,7 +88,8 @@ function initializeAdminTab() {
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
                     <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${user.login_count || 0}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
-                        <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">编辑</button>
+                        {/* --- 修改点在这里 --- */}
+                        <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">权限</button>
                         <button class="delete-btn" data-user-id="${user.id}" data-username="${user.username || user.email}" style="padding: 5px 10px; cursor: pointer; background-color: #dc3545; color: white; border: none; margin-left: 5px;">删除</button>
                     </td>
                 </tr>
@@ -98,12 +97,10 @@ function initializeAdminTab() {
             tableBody.insertAdjacentHTML('beforeend', rowHTML);
         });
 
-        // 为“编辑”按钮绑定点击事件
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => showEditModal(e.target.dataset.userId));
         });
 
-        // 为“删除”按钮绑定点击事件
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const userId = e.target.dataset.userId;
@@ -136,12 +133,18 @@ function initializeAdminTab() {
             return;
         }
         
-        const availableTabs = { universities: '高校库', majors: '专业目录', plans: '2025浙江高考招生计划' };
+        // --- 修改点在这里：只保留需要授权的标签页 ---
+        const availableTabs = {
+            'plans': '2025浙江高考招生计划' 
+            // 未来如果增加新的需授权功能，在这里添加即可
+        };
+        
         let permissionsHTML = '';
 
         for (const tabKey in availableTabs) {
             const currentPerm = permissions.find(p => p.tab_name === tabKey);
             const isChecked = !!currentPerm;
+            // 检查是否有到期时间，并格式化为 YYYY-MM-DD
             const expiresAt = currentPerm && currentPerm.expires_at ? currentPerm.expires_at.split('T')[0] : '';
             permissionsHTML += `
                 <div style="margin-bottom: 15px; display: flex; align-items: center;">

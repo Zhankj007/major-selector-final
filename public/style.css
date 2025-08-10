@@ -123,3 +123,24 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
   这可以精确地指向“院校名称关键字”和“专业名称关键字”下方的输入框，
   而不会影响到右侧的“意向计划”输出框。*/
 #app-container-plans .input-column textarea { min-height: 80px; /* 设置一个较小的最小高度 */ flex-grow: 0; /* 取消其在垂直方向上的弹性增长 */ }
+/* --- 新增：头部认证按钮样式 --- */
+.header-auth-button {
+    margin-left: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--primary-color); /* 主题蓝色 */
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.header-auth-button:hover {
+    background-color: #0056b3; /* 悬停时深蓝色 */
+}
+
+.header-auth-button:active {
+    transform: scale(0.98); /* 点击时轻微缩小 */
+}
