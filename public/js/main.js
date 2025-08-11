@@ -1,3 +1,4 @@
+console.log("main.js 脚本已开始执行！");
 document.addEventListener('DOMContentLoaded', function () {
     // --- 1. 初始化 SUPABASE 客户端 ---
     const SUPABASE_URL = '__SUPABASE_URL__';
