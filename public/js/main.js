@@ -1,34 +1,33 @@
-// main.js (极简调试版)
-
+// main.js (调试第二步)
 console.log("main.js 脚本已开始执行！");
 
 document.addEventListener('DOMContentLoaded', function () {
-    
+
     console.log("DOM内容已完全加载，开始执行初始化...");
 
-    // --- 1. 初始化 SUPABASE 客户端 ---
-    // (我们暂时将它注释掉，以排除密钥或初始化本身的问题)
-    /*
+    // --- 1. 【取消本段注释】---
+    // 我们现在只恢复 Supabase 客户端的初始化，看看问题是否在这里
     const SUPABASE_URL = '__SUPABASE_URL__';
     const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.supabaseClient = supabaseClient;
-    */
+    console.log("Supabase client has been initialized."); // 添加一个新的日志，确认执行到这里
 
-    // --- 2. 获取UI元素 (暂时注释掉) ---
+    // --- 2. 获取UI元素 (继续保持注释) ---
     /*
     const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
     // ... 其他所有 getElementById 和 querySelectorAll ...
     */
-    
-    // --- 3. 核心认证逻辑 (暂时完全注释掉) ---
+
+    // --- 3. 核心认证逻辑 (继续保持注释) ---
     /*
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         // ... 所有复杂的登录/退出/权限逻辑 ...
     });
     */
 
-    // --- 4. 其他所有事件监听器和函数 (暂时完全注释掉) ---
+    // --- 4. 其他所有事件监听器和函数 (继续保持注释) ---
     /*
     // ... loginForm.addEventListener ...
     // ... registerForm.addEventListener ...
