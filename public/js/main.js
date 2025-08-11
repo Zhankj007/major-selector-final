@@ -158,50 +158,47 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadUserPermissions(userId) {
-        tabButtons.forEach(btn => {
-                const tabName = btn.dataset.tab;
-                const isPublic = tabName === 'universities' || tabName === 'majors';
-                const hasPermission = visibleTabNames.has(tabName);
-                btn.classList.toggle('hidden', !(isPublic || hasPermission));
-            });
+        // 默认情况下，所有登录用户都能看到公开的标签页
+        const visibleTabNames = new Set(['universities', 'majors']);
+
+        // 现在只查询非公开的、需要特殊授权的权限
         const { data: permissions, error } = await supabaseClient
             .from('user_permissions')
             .select('tab_name, expires_at')
             .eq('user_id', userId);
-    
+
+        // --- 【调试代码】在这里打印从数据库获取到的原始权限数据 ---
+        console.log('Fetched Permissions for user:', userId, permissions);
+        // -----------------------------------------------------------
+
         if (error) {
-            console.error('获取用户权限失败:', error);
-            return;
-        }
-        const now = new Date();
-        let visibleTabs = [];
-        permissions.forEach(perm => {
-            const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
-            if (!isExpired) {
-                const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
-                if (tabButton) {
-                    tabButton.style.display = ''; // 恢复显示
-                    visibleTabs.push(tabButton);
+            console.error('获取用户专属权限失败:', error);
+        } else if (permissions) {
+            const now = new Date();
+            permissions.forEach(perm => {
+                const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
+                if (!isExpired) {
+                    visibleTabNames.add(perm.tab_name);
                 }
+            });
+        }
+
+        // 根据最终的权限集合，统一设置所有标签页的可见性
+        tabButtons.forEach(btn => {
+            const tabName = btn.dataset.tab;
+            // admin标签页的可见性由 displayUserProfile 函数独立控制，这里我们不处理它
+            if (tabName !== 'admin') {
+                 btn.classList.toggle('hidden', !visibleTabNames.has(tabName));
             }
         });
-    
-        // --- 【关键修正点】 ---
-        // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页
+
+        // 智能判断并激活默认标签页
         const currentlyActiveTab = document.querySelector('.tab-button.active');
-        
-        // 判断当前激活的标签页是否在本次权限检查后依然可见
-        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
-    
-        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
-            // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
-            visibleTabs[0].click();
-        } else if (visibleTabs.length === 0) {
-            // 如果没有任何可见标签页，则清空内容区
-             tabPanels.forEach(panel => {
-                panel.classList.remove('active');
-                panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
-             });
+        const isActiveTabStillVisible = currentlyActiveTab && !currentlyActiveTab.classList.contains('hidden');
+
+        if (!isActiveTabStillVisible) {
+            const firstVisibleTab = document.querySelector('.tab-button:not(.hidden)');
+            if (firstVisibleTab) firstVisibleTab.click();
         }
     }
 
