@@ -1,8 +1,8 @@
-// main.js (调试第四步)
+// main.js (调试第四步 - 已修正语法错误)
 console.log("main.js 脚本已开始执行！");
 
 document.addEventListener('DOMContentLoaded', function () {
-
+    
     console.log("DOM内容已完全加载，开始执行初始化...");
 
     // --- 1. 已确认正常，保持开启 ---
@@ -26,31 +26,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanels = document.querySelectorAll('.tab-panel');
     console.log("DOM elements have been selected.");
 
-    // --- 3. 【恢复 else 部分的逻辑】---
+    // --- 3. 【已修正】恢复 if/else 结构，但只让 else 逻辑生效 ---
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         console.log("Auth state has changed! Event:", event);
 
-        // if 块依然保持注释
-        /* if (session && session.user) {
-            // ... 用户登录逻辑 ...
-        } 
-        */
-
-        // 【取消本段注释】
-        else {
+        // 保持 if/else 结构完整，但 if 内部为空
+        if (session && session.user) {
+            // 用户已登录的逻辑，在这一步暂时不执行
+            console.log("User is logged in, logic is paused for debugging.");
+        } else {
             // --- 用户未登录 (游客状态) ---
             console.log("Executing guest/logged-out logic...");
-            document.body.classList.add('logged-out'); // 确保 body class 正确
+            document.body.classList.add('logged-out');
             authButton.textContent = '登录/注册';
             if (userNicknameElement) userNicknameElement.textContent = '';
-
+            
             // 只显示公开的标签页
             tabButtons.forEach(btn => {
                 const tabName = btn.dataset.tab;
                 const isPublic = tabName === 'universities' || tabName === 'majors';
                 btn.classList.toggle('hidden', !isPublic);
             });
-
+            
             // 默认激活高校库
             const uniTab = document.querySelector('.tab-button[data-tab="universities"]');
             if (uniTab && !uniTab.classList.contains('active')) {
@@ -91,6 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
-
+    
     // --- 5. 其他函数暂时不恢复 ---
 });
