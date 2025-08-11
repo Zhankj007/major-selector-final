@@ -109,12 +109,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- 其他功能函数 ---
-    authButton.addEventListener('click', () => {
-        const { data: { session } } = supabaseClient.auth.getSession();
+    authButton.addEventListener('click', async () => { // 【修改点】将函数声明为 async
+        // 【修改点】使用 await 等待获取 session 的结果
+        const { data: { session } } = await supabaseClient.auth.getSession(); 
+        
         if (session) {
+            // 如果用户已登录，则执行退出操作
             supabaseClient.auth.signOut();
         } else {
-            // 如果是游客，点击“登录/注册”按钮时，显示登录界面
+            // 如果用户未登录，则显示登录窗口
             document.body.classList.add('show-login-section');
         }
     });
