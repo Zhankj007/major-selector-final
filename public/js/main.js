@@ -1,4 +1,4 @@
-// main.js (调试第三步)
+// main.js (调试第四步)
 console.log("main.js 脚本已开始执行！");
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -12,8 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.supabaseClient = supabaseClient;
     console.log("Supabase client has been initialized.");
 
-    // --- 2. 【取消本段注释】---
-    // 恢复获取所有页面元素
+    // --- 2. 已确认正常，保持开启 ---
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const loginError = document.getElementById('login-error');
@@ -27,34 +26,71 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanels = document.querySelectorAll('.tab-panel');
     console.log("DOM elements have been selected.");
 
-    // --- 3. 【取消本段注释，但保留其内部逻辑为注释】---
-    // 我们先恢复监听器本身，看看挂载这个监听器是否就会导致问题
+    // --- 3. 【恢复 else 部分的逻辑】---
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        console.log("Auth state has changed! Event:", event); // 添加日志以确认监听器被触发
+        console.log("Auth state has changed! Event:", event);
 
-        /*
-        // 内部的复杂逻辑暂时保持注释
-        if (session && session.user) {
+        // if 块依然保持注释
+        /* if (session && session.user) {
             // ... 用户登录逻辑 ...
-        } else {
-            // ... 用户未登录逻辑 ...
-        }
+        } 
         */
+
+        // 【取消本段注释】
+        else {
+            // --- 用户未登录 (游客状态) ---
+            console.log("Executing guest/logged-out logic...");
+            document.body.classList.add('logged-out'); // 确保 body class 正确
+            authButton.textContent = '登录/注册';
+            if (userNicknameElement) userNicknameElement.textContent = '';
+
+            // 只显示公开的标签页
+            tabButtons.forEach(btn => {
+                const tabName = btn.dataset.tab;
+                const isPublic = tabName === 'universities' || tabName === 'majors';
+                btn.classList.toggle('hidden', !isPublic);
+            });
+
+            // 默认激活高校库
+            const uniTab = document.querySelector('.tab-button[data-tab="universities"]');
+            if (uniTab && !uniTab.classList.contains('active')) {
+                 uniTab.click();
+            }
+            console.log("Guest/logged-out logic finished.");
+        }
     });
     console.log("Auth state change listener has been attached.");
 
-    // --- 4. 其他所有事件监听器和函数 (继续保持注释) ---
-    /*
-    loginForm.addEventListener('submit', async (event) => { //...
-    // ... 所有其他代码 ...
-    */
+    // --- 4. 恢复标签页点击切换逻辑，因为游客状态需要它 ---
+    tabButtons.forEach(tab => {
+        tab.addEventListener('click', async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const tabName = tab.dataset.tab;
+            const requiresAuth = tabName === 'plans' || tabName === 'admin';
+            if (requiresAuth && !session) {
+                alert('此功能需要登录后才能使用。');
+                document.body.classList.add('show-login-section');
+                return;
+            }
+            tabButtons.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabPanels.forEach(panel => {
+                const isActive = panel.id === `${tabName}-tab`;
+                panel.classList.toggle('active', isActive);
+                if (isActive && !panel.dataset.initialized) {
+                    if (tabName === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
+                        window.initializeUniversitiesTab();
+                    } else if (tabName === 'majors' && typeof window.initializeMajorsTab === 'function') {
+                        window.initializeMajorsTab();
+                    } else if (tabName === 'plans' && typeof window.initializePlansTab === 'function') {
+                        window.initializePlansTab();
+                    } else if (tabName === 'admin' && typeof window.initializeAdminTab === 'function') {
+                        window.initializeAdminTab();
+                    }
+                }
+            });
+        });
+    });
 
-    // --- 5. 最终测试信号 ---
-    try {
-        document.body.style.backgroundColor = 'lightgreen';
-        console.log("脚本成功执行到底！背景已变绿。");
-    } catch (e) {
-        console.error("在最后一步设置背景色时发生错误:", e);
-    }
-
+    // --- 5. 其他函数暂时不恢复 ---
 });
