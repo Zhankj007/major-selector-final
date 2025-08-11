@@ -35,7 +35,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (session) {
                         console.log("DEBUG: access_token 是否存在?", !!session.access_token);
                     }
+                
+                console.log("DEBUG: 正在获取 'profiles' 数据...");
 
+                    // 获取当前用户 ID（以防 session 里出错）
+                    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+                    if (userError) {
+                        console.error("获取当前用户信息失败:", userError);
+                    } else {
+                        console.log("DEBUG: 当前用户 ID:", userData?.user?.id);
+                    }
+                    
+                    // 改成调试版本，避免 .single() 直接抛错
+                    const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
+                        .from('profiles')
+                        .select('id, username, role')
+                        .eq('id', session.user.id);
+                    
+                    console.log("DEBUG: profiles 查询返回状态码:", profilesStatus);
+                    console.log("DEBUG: profiles 查询结果数据:", profilesData);
+                    console.log("DEBUG: profiles 查询错误信息:", profilesError);
+                    
+                    if (profilesError) {
+                        if (profilesError.message && profilesError.message.includes("permission denied")) {
+                            console.error("❌ RLS 拒绝访问：当前用户无权读取 profiles 这行记录，请检查 RLS 策略和 ID 匹配。");
+                        }
+                        throw profilesError;
+                    }
+                    
+                    if (!profilesData || profilesData.length === 0) {
+                        console.warn("⚠️ 查询结果为空：profiles 表中可能没有该用户的记录。");
+                        throw new Error("profiles 表中没有找到该用户记录，请检查触发器或手动添加。");
+                    }
+                    
+                    // 如果有记录，取第一条
+                    const profile = profilesData[0];
+                    console.log("✅ 成功获取 profiles 记录:", profile);
+
+                
+                        /*
                 try {
                     // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
                     console.log("DEBUG: 正在获取 'profiles' 数据...");
@@ -72,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error("加载用户信息或权限时出错:", error);
                     authButton.textContent = '退出登录';
                     tabButtons.forEach(btn => btn.classList.add('hidden'));
-                }
+                } */
 
             } else {
                 // --- 用户未登录 (游客) ---
@@ -205,4 +243,5 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("捕获到致命错误:", error);
     }
 });
+
 
