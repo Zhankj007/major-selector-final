@@ -34,27 +34,41 @@ document.addEventListener('DOMContentLoaded', function () {
         if (session && session.user) {
             // 用户已登录的逻辑，在这一步暂时不执行
             console.log("User is logged in, logic is paused for debugging.");
-        } else {
-            // --- 用户未登录 (游客状态) ---
-            console.log("Executing guest/logged-out logic...");
-            document.body.classList.add('logged-out');
-            authButton.textContent = '登录/注册';
-            if (userNicknameElement) userNicknameElement.textContent = '';
-            
-            // 只显示公开的标签页
-            tabButtons.forEach(btn => {
-                const tabName = btn.dataset.tab;
-                const isPublic = tabName === 'universities' || tabName === 'majors';
-                btn.classList.toggle('hidden', !isPublic);
-            });
-            
-            // 默认激活高校库
-            const uniTab = document.querySelector('.tab-button[data-tab="universities"]');
-            if (uniTab && !uniTab.classList.contains('active')) {
-                 uniTab.click();
+        } 
+            else {
+                // --- 用户未登录 (游客状态) ---
+                console.log("Executing guest/logged-out logic...");
+                document.body.classList.add('logged-out');
+                authButton.textContent = '登录/注册';
+                if (userNicknameElement) userNicknameElement.textContent = '';
+                
+                // 1. 只显示公开的标签页
+                tabButtons.forEach(btn => {
+                    const tabName = btn.dataset.tab;
+                    const isPublic = tabName === 'universities' || tabName === 'majors';
+                    btn.classList.toggle('hidden', !isPublic);
+                });
+                
+                // 2. 【已修正】直接激活默认标签页并加载其内容
+                const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
+                const defaultTabPanel = document.getElementById('universities-tab');
+
+                if (defaultTabButton && defaultTabPanel) {
+                    // 确保其他标签页和面板都处于非激活状态
+                    tabButtons.forEach(t => t.classList.remove('active'));
+                    tabPanels.forEach(p => p.classList.remove('active'));
+
+                    // 明确激活“高校库”
+                    defaultTabButton.classList.add('active');
+                    defaultTabPanel.classList.add('active');
+
+                    // 直接调用初始化函数来加载内容
+                    if (typeof window.initializeUniversitiesTab === 'function' && !defaultTabPanel.dataset.initialized) {
+                        window.initializeUniversitiesTab();
+                    }
+                }
+                console.log("Guest/logged-out logic finished.");
             }
-            console.log("Guest/logged-out logic finished.");
-        }
     });
     console.log("Auth state change listener has been attached.");
 
