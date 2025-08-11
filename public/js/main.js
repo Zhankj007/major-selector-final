@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 authButton.textContent = '退出登录';
                 console.log("DEBUG: 用户已登录，准备获取数据...");
 
+                console.log("DEBUG: 当前 session 对象:", session);
+                    if (session) {
+                        console.log("DEBUG: access_token 是否存在?", !!session.access_token);
+                    }
+
                 try {
                     // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
                     console.log("DEBUG: 正在获取 'profiles' 数据...");
@@ -200,3 +205,4 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("捕获到致命错误:", error);
     }
 });
+
