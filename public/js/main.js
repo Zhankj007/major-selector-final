@@ -15,56 +15,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const showRegisterLink = document.getElementById('show-register-link');
     const showLoginLink = document.getElementById('show-login-link');
     const userNicknameElement = document.getElementById('user-nickname');
+    const visitorInfoElement = document.getElementById('visitor-info');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
 
-    // --- 3. 核心认证状态管理 (最终整合版) ---
+    // --- 3. 核心认证状态管理 (最终重构版) ---
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        document.body.classList.remove('show-login-section'); // 切换状态时，先确保登录框是隐藏的
+        document.body.classList.remove('show-login-section');
         
         if (session && session.user) {
             // --- 用户已登录 ---
             authButton.textContent = '退出登录';
 
             try {
-                // 并发获取个人信息和权限，效率更高
-                const [
-                    { data: profile, error: profileError },
-                    { data: permissions, error: permsError }
-                ] = await Promise.all([
-                    supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single(),
-                    supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id)
-                ]);
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles').select('username, role').eq('id', session.user.id).single();
+                if (profileError) throw profileError;
 
-                if (profileError || permsError) {
-                    throw profileError || permsError;
+                const { data: permissions, error: permsError } = await supabaseClient
+                    .from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id);
+                if (permsError) throw permsError;
+
+                // 1. 显示欢迎语
+                if (userNicknameElement) {
+                   userNicknameElement.textContent = profile && profile.username ? `欢迎您, ${profile.username}，` : '欢迎您，';
                 }
 
-                // 1. 确定该用户所有可见的标签页名称
-                const visibleTabNames = new Set(['universities', 'majors']); // 公开的标签页对所有登录用户也可见
+                // 2. 确定该用户所有可见的标签页
+                const visibleTabs = new Set(['universities', 'majors']);
                 const now = new Date();
                 if (permissions) {
                     permissions.forEach(p => {
                         if (!p.expires_at || new Date(p.expires_at) > now) {
-                            visibleTabNames.add(p.tab_name);
+                            visibleTabs.add(p.tab_name);
                         }
                     });
                 }
                 if (profile && profile.role === 'admin') {
-                    visibleTabNames.add('admin');
+                    visibleTabs.add('admin');
                 }
 
-                // 2. 根据最终权限，统一设置所有按钮的可见性
-                tabButtons.forEach(btn => {
-                    btn.classList.toggle('hidden', !visibleTabNames.has(btn.dataset.tab));
-                });
+                // 3. 应用标签页可见性
+                tabButtons.forEach(btn => btn.classList.toggle('hidden', !visibleTabs.has(btn.dataset.tab)));
                 
-                // 3. 显示欢迎信息
-                if (userNicknameElement) {
-                   userNicknameElement.textContent = profile && profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
-                }
-
-                // 4. 智能激活标签页
+                // 4. 智能激活默认标签页
                 const currentlyActive = document.querySelector('.tab-button.active');
                 if (!currentlyActive || currentlyActive.classList.contains('hidden')) {
                     const firstVisibleTab = document.querySelector('.tab-button:not(.hidden)');
@@ -74,11 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (error) {
                 console.error("加载用户信息或权限时出错:", error);
                 authButton.textContent = '退出登录';
-                // 出错时，为安全起见只显示公开的标签页
-                tabButtons.forEach(btn => {
-                    const isPublic = btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors';
-                    btn.classList.toggle('hidden', !isPublic);
-                });
+                tabButtons.forEach(btn => btn.classList.add('hidden')); // 出错时隐藏所有标签页
             }
 
         } else {
@@ -92,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.toggle('hidden', !isPublic);
             });
             
-            // 直接激活默认标签页并加载其内容
+            // 默认激活高校库并加载内容
             const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
             const defaultTabPanel = document.getElementById('universities-tab');
             if (defaultTabButton && defaultTabPanel) {
@@ -107,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // --- 4. 其他所有事件监听器和辅助函数 (保持不变) ---
+    // --- 4. 其他所有事件监听器和辅助函数 ---
     
     showRegisterLink.addEventListener('click', (e) => {
         e.preventDefault();
@@ -165,8 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const data = await response.json();
             if (!response.ok) { throw new Error(data.error); }
-            registerMessage.textContent = '注册成功！现在您可以登录了。';
-            setTimeout(() => { showLoginLink.click(); }, 2000);
+            registerMessage.textContent = '注册成功！请检查邮箱确认或直接登录。';
+            setTimeout(() => { showLoginLink.click(); }, 3000);
         } catch (error) {
             registerError.textContent = error.message;
         }
@@ -175,7 +165,8 @@ document.addEventListener('DOMContentLoaded', function () {
     authButton.addEventListener('click', async () => {
         const { data: { session } } = await supabaseClient.auth.getSession(); 
         if (session) {
-            supabaseClient.auth.signOut();
+            await supabaseClient.auth.signOut();
+            window.location.reload(); // 退出后刷新页面，确保状态完全重置
         } else {
             document.body.classList.add('show-login-section');
         }
@@ -212,18 +203,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     async function updateVisitorCount() {
+        if (!visitorInfoElement) return;
         try {
             const response = await fetch('/api/counter');
             if (!response.ok) return;
             const data = await response.json();
-            const visitorElement = document.getElementById('visitor-info');
-            if (visitorElement) {
-                visitorElement.textContent = `您是第 ${data.count} 位访客！`;
-            }
+            visitorInfoElement.textContent = `您是第 ${data.count} 位访客！`;
         } catch (error) {
             console.error('Failed to fetch visitor count:', error);
         }
     }
     
+    // 初始调用
     updateVisitorCount();
 });
