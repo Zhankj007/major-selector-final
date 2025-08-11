@@ -12,72 +12,40 @@
     .hidden {
         display: none !important;
     }
-
-    /* 当用户未登录时 (body有logged-out类)，显示登录框并居中 */
-    body.logged-out #login-section {
+    /* 【修改】登录框的样式现在由 .show-login-section 控制 */
+    #login-section {
+      display: none; /* 默认隐藏 */
+    }
+    .show-login-section #login-section {
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 5vh 0;
     }
-
-    /* 当用户未登录时，隐藏真正的工具箱内容 */
-    body.logged-out .tab-navigation,
-    body.logged-out main.tab-content {
+    /* 当需要显示登录时，隐藏主应用 */
+    .show-login-section .tab-navigation,
+    .show-login-section main.tab-content {
         display: none;
     }
-    
-    /* 当用户未登录时，隐藏退出按钮 */
-    body.logged-out #logout-button {
-        display: none;
-    }
-    
-    /* 当用户登录后，显示退出按钮 */
-    #logout-button {
-        display: inline-block;
-    }
-
-    /* 登录表单的白色卡片容器样式 */
-    #login-section > div {
-      max-width: 400px;
-      width: 100%;
-      margin: 0 15px;
-      padding: 30px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      background-color: white;
-      box-sizing: border-box;
-    }
-    /* 这条规则明确指定：在登录状态下（即body没有.logged-out类时），强制隐藏登录区域 */
-    body:not(.logged-out) #login-section {
-        display: none;
-    }
-    /* 为所有按钮添加过渡效果，让变化更平滑 */
-    .query-button, .output-button, #logout-button, #refresh-users-btn, .edit-btn, .delete-btn {
+    /* 按钮交互样式 (保持不变) */
+    .query-button, .output-button, #auth-button, #refresh-users-btn, .edit-btn, .delete-btn {
         transition: filter 0.2s, transform 0.1s;
     }
-    
-    /* 鼠标悬停时，按钮变亮 */
-    .query-button:hover, .output-button:hover, #logout-button:hover, #refresh-users-btn:hover, .edit-btn:hover, .delete-btn:hover {
+    .query-button:hover, .output-button:hover, #auth-button:hover, #refresh-users-btn:hover, .edit-btn:hover, .delete-btn:hover {
         filter: brightness(1.1);
     }
-    
-    /* 鼠标按下时，按钮有轻微缩小和变暗的效果，模拟按压感 */
-    .query-button:active, .output-button:active, #logout-button:active, #refresh-users-btn:active, .edit-btn:active, .delete-btn:active {
+    .query-button:active, .output-button:active, #auth-button:active, #refresh-users-btn:active, .edit-btn:active, .delete-btn:active {
         transform: scale(0.98);
         filter: brightness(0.95);
     }
-    
-    /* 当按钮被禁用时，显示为灰色且不可点击 */
-    .query-button:disabled, .output-button:disabled, #logout-button:disabled, #refresh-users-btn:disabled {
-        background-color: #ccc !important; /* 使用 !important 确保覆盖行内样式 */
+    .query-button:disabled, .output-button:disabled, #auth-button:disabled, #refresh-users-btn:disabled {
+        background-color: #ccc !important;
         cursor: not-allowed;
         filter: none;
     }
 </style>
 </head>
-<body class="logged-out">
+<body>
 
 <div class="toolbox-container">
     <header class="toolbox-header">
@@ -87,7 +55,7 @@
             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
                 <span id="user-nickname"></span>
                 <span id="visitor-info" style="margin-right: 15px;"></span>
-                <button id="logout-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
+                <button id="auth-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">登录/注册</button>
             </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
         </div>
@@ -95,7 +63,6 @@
 
     <div id="login-section">
         <div style="max-width: 400px; margin: 40px auto; padding: 20px 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            
             <form id="login-form">
                 <h2 style="text-align: center; margin-top: 0;">请登录</h2>
                 <div style="margin-bottom: 15px;">
@@ -106,42 +73,14 @@
                     <label for="login-password" style="display: block; margin-bottom: 5px;">密码:</label>
                     <input type="password" id="login-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
                 </div>
-                <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">登 录</button>
+                <button type="submit" class="query-button" style="width: 100%; padding: 10px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">登 录</button>
                 <p id="login-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
                 <p style="text-align: center; margin-top: 15px; font-size: 14px;">
                     还没有账号？ <a href="#" id="show-register-link">立即注册</a>
                 </p>
             </form>
-
             <form id="register-form" class="hidden">
-                <h2 style="text-align: center; margin-top: 0;">注册新账号</h2>
-                <div style="margin-bottom: 15px;">
-                    <label for="register-email">邮箱:</label>
-                    <input type="email" id="register-email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label for="register-password">密码 (至少6位):</label>
-                    <input type="password" id="register-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-                </div>
-                 <div style="margin-bottom: 15px;">
-                    <label for="register-username">用户昵称:</label>
-                    <input type="text" id="register-username" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-                </div>
-                 <div style="margin-bottom: 15px;">
-                    <label for="register-phone">手机号:</label>
-                    <input type="tel" id="register-phone" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-                </div>
-                 <div style="margin-bottom: 15px;">
-                    <label for="register-unitname">单位名称:</label>
-                    <input type="text" id="register-unitname" required style="width: 100%; padding: 8px; box-sizing: border-box;">
-                </div>
-                <button type="submit" style="width: 100%; padding: 10px; border: none; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">注 册</button>
-                <p id="register-message" style="color: green; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
-                <p id="register-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
-                <p style="text-align: center; margin-top: 15px; font-size: 14px;">
-                    已有账号？ <a href="#" id="show-login-link">立即登录</a>
-                </p>
-            </form>
+                 </form>
         </div>
     </div>
 
@@ -149,9 +88,8 @@
         <button class="tab-button active" data-tab="universities">高校库</button>
         <button class="tab-button" data-tab="majors">专业目录</button>
         <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
-        <button class="tab-button" id="admin-tab-button" data-tab="admin" style="display: none;">后台管理</button>
+        <button class="tab-button" id="admin-tab-button" data-tab="admin">后台管理</button>
     </nav>
-    
     <main class="tab-content">
         <div id="universities-tab" class="tab-panel active"></div>
         <div id="majors-tab" class="tab-panel"></div>
@@ -167,8 +105,3 @@
 <script src="/js/main.js"></script>
 </body>
 </html>
-
-
-
-
-
