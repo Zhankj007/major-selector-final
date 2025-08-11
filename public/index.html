@@ -55,7 +55,7 @@
             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
                 <span id="user-nickname"></span>
                 <span id="visitor-info" style="margin-right: 15px;"></span>
-                <button id="auth-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">登录/注册</button>
+                <button id="auth-button" class="query-button" style="padding: 8px 15px;">登录/注册</button>
             </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
         </div>
@@ -63,6 +63,7 @@
 
     <div id="login-section">
         <div style="max-width: 400px; margin: 40px auto; padding: 20px 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            
             <form id="login-form">
                 <h2 style="text-align: center; margin-top: 0;">请登录</h2>
                 <div style="margin-bottom: 15px;">
@@ -79,8 +80,36 @@
                     还没有账号？ <a href="#" id="show-register-link">立即注册</a>
                 </p>
             </form>
+
             <form id="register-form" class="hidden">
-                 </form>
+                <h2 style="text-align: center; margin-top: 0;">注册新账号</h2>
+                <div style="margin-bottom: 15px;">
+                    <label for="register-email">邮箱:</label>
+                    <input type="email" id="register-email" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="register-password">密码 (至少6位):</label>
+                    <input type="password" id="register-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-username">用户昵称:</label>
+                    <input type="text" id="register-username" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-phone">手机号:</label>
+                    <input type="tel" id="register-phone" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                 <div style="margin-bottom: 15px;">
+                    <label for="register-unitname">单位名称:</label>
+                    <input type="text" id="register-unitname" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                <button type="submit" class="query-button" style="width: 100%; padding: 10px; border: none; background-color: #28a745; color: white; border-radius: 5px; cursor: pointer; font-size: 16px;">注 册</button>
+                <p id="register-message" style="color: green; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+                <p id="register-error" style="color: red; margin-top: 10px; text-align: center; min-height: 1.2em;"></p>
+                <p style="text-align: center; margin-top: 15px; font-size: 14px;">
+                    已有账号？ <a href="#" id="show-login-link">立即登录</a>
+                </p>
+            </form>
         </div>
     </div>
 
