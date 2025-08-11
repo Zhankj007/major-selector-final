@@ -1,21 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 【调试】用一个巨大的 try...catch 包裹所有代码，以捕获任何隐藏的错误
+    // 这个try...catch是为了捕获任何可能的初始化同步错误
     try {
-        console.log("DEBUG: 脚本在 master try-catch 块中开始执行。");
-
-        // --- 1. 初始化 SUPABASE 客户端 ---
         const SUPABASE_URL = '__SUPABASE_URL__';
         const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-        
         if (SUPABASE_URL.startsWith('__')) {
-            throw new Error("Supabase URL 占位符未被替换。请检查 Vercel 的构建命令和环境变量。");
+            throw new Error("Supabase URL 占位符未被替换。");
         }
-        
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         window.supabaseClient = supabaseClient;
-        console.log("DEBUG: Supabase 客户端已初始化。");
 
-        // --- 2. 获取所有UI元素 ---
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const loginError = document.getElementById('login-error');
@@ -28,51 +21,47 @@ document.addEventListener('DOMContentLoaded', function () {
         const visitorInfoElement = document.getElementById('visitor-info');
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabPanels = document.querySelectorAll('.tab-panel');
-        console.log("DEBUG: 所有DOM元素已选择。");
 
-        // --- 3. 核心认证状态管理 ---
+        // --- 核心认证状态管理 ---
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            console.log("DEBUG: Auth 状态发生改变，事件:", event);
             document.body.classList.remove('show-login-section');
             
             if (session && session.user) {
                 // --- 用户已登录 ---
-                console.log("DEBUG: 检测到用户已登录，开始处理UI...");
                 authButton.textContent = '退出登录';
+                console.log("DEBUG: 用户已登录，准备获取数据...");
 
                 try {
+                    // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
+                    console.log("DEBUG: 正在获取 'profiles' 数据...");
                     const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single();
+                    console.log("DEBUG: 'profiles' 数据获取完成。", { profile, profileError });
+
                     if (profileError) throw profileError;
 
+                    console.log("DEBUG: 正在获取 'user_permissions' 数据...");
                     const { data: permissions, error: permsError } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id);
+                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
+
                     if (permsError) throw permsError;
                     
-                    console.log("DEBUG: 成功获取 Profile 和 Permissions 数据。", { profile, permissions });
-
+                    // --- 后续UI渲染逻辑 (与之前版本相同) ---
                     if (userNicknameElement) {
                        userNicknameElement.textContent = profile && profile.username ? `欢迎您, ${profile.username}，` : '欢迎您，';
                     }
-
                     const visibleTabs = new Set(['universities', 'majors']);
                     const now = new Date();
                     if (permissions) {
                         permissions.forEach(p => {
-                            if (!p.expires_at || new Date(p.expires_at) > now) {
-                                visibleTabs.add(p.tab_name);
-                            }
+                            if (!p.expires_at || new Date(p.expires_at) > now) { visibleTabs.add(p.tab_name); }
                         });
                     }
-                    if (profile && profile.role === 'admin') {
-                        visibleTabs.add('admin');
-                    }
-
+                    if (profile && profile.role === 'admin') { visibleTabs.add('admin'); }
                     tabButtons.forEach(btn => btn.classList.toggle('hidden', !visibleTabs.has(btn.dataset.tab)));
-                    
                     const currentlyActive = document.querySelector('.tab-button.active');
                     if (!currentlyActive || currentlyActive.classList.contains('hidden')) {
                         document.querySelector('.tab-button:not(.hidden)')?.click();
                     }
-                    console.log("DEBUG: 用户UI处理完成。");
 
                 } catch (error) {
                     console.error("加载用户信息或权限时出错:", error);
@@ -82,25 +71,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } else {
                 // --- 用户未登录 (游客) ---
-                console.log("DEBUG: 检测到游客状态，开始处理UI...");
                 authButton.textContent = '登录/注册';
                 if (userNicknameElement) userNicknameElement.textContent = '';
-                
                 tabButtons.forEach(btn => {
                     const isPublic = btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors';
                     btn.classList.toggle('hidden', !isPublic);
-                });
-                
+});
                 const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
                 const defaultTabPanel = document.getElementById('universities-tab');
                 if (defaultTabButton && defaultTabPanel) {
-                    if (!defaultTabButton.classList.contains('active')) {
-                        defaultTabButton.click();
-                    } else if (typeof window.initializeUniversitiesTab === 'function' && !defaultTabPanel.dataset.initialized) {
-                        window.initializeUniversitiesTab();
-                    }
+                    if (!defaultTabButton.classList.contains('active')) { defaultTabButton.click(); }
+                    else if (typeof window.initializeUniversitiesTab === 'function' && !defaultTabPanel.dataset.initialized) { window.initializeUniversitiesTab(); }
                 }
-                console.log("DEBUG: 游客UI处理完成。");
             }
         });
         console.log("DEBUG: Auth 状态监听器已挂载。");
@@ -213,9 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("DEBUG: 所有事件监听器已挂载，初始函数已调用。");
 
     } catch (error) {
-        // --- 终极错误捕获 ---
-        const errorMessage = `发生了一个严重的JavaScript错误，导致应用无法运行。\n\n错误信息:\n${error.name}: ${error.message}\n\n堆栈信息:\n${error.stack}`;
-        alert(errorMessage); // 用弹窗强制显示错误
+        const errorMessage = `发生了一个严重的JavaScript错误...\n\n错误信息:\n${error.name}: ${error.message}\n\n堆栈信息:\n${error.stack}`;
+        alert(errorMessage);
         console.error("捕获到致命错误:", error);
     }
 });
