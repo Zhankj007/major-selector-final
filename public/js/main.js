@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // 这个try...catch是为了捕获任何可能的初始化同步错误
     try {
         const SUPABASE_URL = '__SUPABASE_URL__';
         const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
@@ -23,99 +24,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // --- 核心认证状态管理 ---
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            console.log("DEBUG: Auth 状态监听器触发, event =", event);
             document.body.classList.remove('show-login-section');
-
+            
             if (session && session.user) {
-                // 登录后调试信息
+                // --- 用户已登录 ---
+                authButton.textContent = '退出登录';
                 console.log("DEBUG: 用户已登录，准备获取数据...");
-                console.log("DEBUG: 当前 session 对象:", session);
-                console.log("DEBUG: access_token 是否存在?", !!session.access_token);
-                console.log("DEBUG: supabaseClient exists?", !!supabaseClient);
-                console.log("DEBUG: SUPABASE_URL =", SUPABASE_URL);
 
-                // ⬇️ 新增调试代码（放在这里）
-                console.log("DEBUG: 当前 session.user.id =", session?.user?.id);
-                const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-                if (userError) {
-                    console.error("获取当前用户信息失败:", userError);
-                } else {
-                    console.log("DEBUG: getUser() 返回 ID =", userData?.user?.id);
-                }
-                if (!session?.user?.id) {
-                    console.error("❌ session.user.id 为空，无法查询 profiles");
-                    return;
-                }
-                // ⬆️ 新增调试代码结束
+                try {
+                    // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
+                    console.log("DEBUG: 正在获取 'profiles' 数据...");
+                    const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single();
+                    console.log("DEBUG: 'profiles' 数据获取完成。", { profile, profileError });
 
-                console.log("DEBUG: 正在获取 'profiles' 数据...");
-                const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
-                    .from('profiles')
-                    .select('id, username, role')
-                    .eq('id', session.user.id);
+                    if (profileError) throw profileError;
 
-                console.log("DEBUG: profiles 查询返回状态码:", profilesStatus);
-                console.log("DEBUG: profiles 查询结果数据:", profilesData);
-                console.log("DEBUG: profiles 查询错误信息:", profilesError);
+                    console.log("DEBUG: 正在获取 'user_permissions' 数据...");
+                    const { data: permissions, error: permsError } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id);
+                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
 
-                if (profilesError) {
-                    if (profilesError.message?.includes("permission denied")) {
-                        console.error("❌ RLS 拒绝访问：当前用户无权读取 profiles 这行记录，请检查 RLS 策略和 ID 匹配。");
+                    if (permsError) throw permsError;
+                    
+                    // --- 后续UI渲染逻辑 (与之前版本相同) ---
+                    if (userNicknameElement) {
+                       userNicknameElement.textContent = profile && profile.username ? `欢迎您, ${profile.username}，` : '欢迎您，';
                     }
-                    throw profilesError;
-                }
-                if (!profilesData || profilesData.length === 0) {
-                    console.warn("⚠️ 查询结果为空：profiles 表中可能没有该用户的记录。");
-                    throw new Error("profiles 表中没有找到该用户记录，请检查触发器或手动添加。");
-                }
+                    const visibleTabs = new Set(['universities', 'majors']);
+                    const now = new Date();
+                    if (permissions) {
+                        permissions.forEach(p => {
+                            if (!p.expires_at || new Date(p.expires_at) > now) { visibleTabs.add(p.tab_name); }
+                        });
+                    }
+                    if (profile && profile.role === 'admin') { visibleTabs.add('admin'); }
+                    tabButtons.forEach(btn => btn.classList.toggle('hidden', !visibleTabs.has(btn.dataset.tab)));
+                    const currentlyActive = document.querySelector('.tab-button.active');
+                    if (!currentlyActive || currentlyActive.classList.contains('hidden')) {
+                        document.querySelector('.tab-button:not(.hidden)')?.click();
+                    }
 
-                const profile = profilesData[0];
-                console.log("✅ 成功获取 profiles 记录:", profile);
-
-                // 获取 user_permissions
-                console.log("DEBUG: 正在获取 'user_permissions' 数据...");
-                const { data: permissions, error: permsError } = await supabaseClient
-                    .from('user_permissions')
-                    .select('tab_name, expires_at')
-                    .eq('user_id', session.user.id);
-
-                console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
-                if (permsError) throw permsError;
-
-                // UI 渲染
-                if (userNicknameElement) {
-                    userNicknameElement.textContent = profile?.username ? `欢迎您, ${profile.username}，` : '欢迎您，';
-                }
-                const visibleTabs = new Set(['universities', 'majors']);
-                const now = new Date();
-                if (permissions) {
-                    permissions.forEach(p => {
-                        if (!p.expires_at || new Date(p.expires_at) > now) visibleTabs.add(p.tab_name);
-                    });
-                }
-                if (profile?.role === 'admin') visibleTabs.add('admin');
-
-                tabButtons.forEach(btn => btn.classList.toggle('hidden', !visibleTabs.has(btn.dataset.tab)));
-                const currentlyActive = document.querySelector('.tab-button.active');
-                if (!currentlyActive || currentlyActive.classList.contains('hidden')) {
-                    document.querySelector('.tab-button:not(.hidden)')?.click();
+                } catch (error) {
+                    console.error("加载用户信息或权限时出错:", error);
+                    authButton.textContent = '退出登录';
+                    tabButtons.forEach(btn => btn.classList.add('hidden'));
                 }
 
             } else {
-                // 游客模式
+                // --- 用户未登录 (游客) ---
                 authButton.textContent = '登录/注册';
                 if (userNicknameElement) userNicknameElement.textContent = '';
                 tabButtons.forEach(btn => {
                     const isPublic = btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors';
                     btn.classList.toggle('hidden', !isPublic);
-                });
+});
                 const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
-                if (defaultTabButton) defaultTabButton.click();
+                const defaultTabPanel = document.getElementById('universities-tab');
+                if (defaultTabButton && defaultTabPanel) {
+                    if (!defaultTabButton.classList.contains('active')) { defaultTabButton.click(); }
+                    else if (typeof window.initializeUniversitiesTab === 'function' && !defaultTabPanel.dataset.initialized) { window.initializeUniversitiesTab(); }
+                }
             }
         });
         console.log("DEBUG: Auth 状态监听器已挂载。");
 
-        // 事件绑定（保持原样）
+        // --- 4. 其他所有事件监听器和辅助函数 ---
         showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginError.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerError.textContent = ''; registerMessage.textContent = ''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
 
@@ -133,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify({ email, password }),
                 });
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) { throw new Error(data.error); }
                 const { error } = await supabaseClient.auth.setSession(data.session);
                 if (error) throw error;
             } catch (error) {
@@ -159,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify({ email, password, username, phone, unit_name }),
                 });
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) { throw new Error(data.error); }
                 registerMessage.textContent = '注册成功！请检查邮箱确认或直接登录。';
                 setTimeout(() => { showLoginLink.click(); }, 3000);
             } catch (error) {
@@ -168,10 +140,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         authButton.addEventListener('click', async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession(); 
             if (session) {
                 await supabaseClient.auth.signOut();
-                window.location.reload();
+                window.location.reload(); 
             } else {
                 document.body.classList.add('show-login-section');
             }
@@ -192,6 +164,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 tabPanels.forEach(panel => {
                     const isActive = panel.id === `${tabName}-tab`;
                     panel.classList.toggle('active', isActive);
+                    if (isActive && !panel.dataset.initialized) {
+                        if (tabName === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
+                            window.initializeUniversitiesTab();
+                        } else if (tabName === 'majors' && typeof window.initializeMajorsTab === 'function') {
+                            window.initializeMajorsTab();
+                        } else if (tabName === 'plans' && typeof window.initializePlansTab === 'function') {
+                            window.initializePlansTab();
+                        } else if (tabName === 'admin' && typeof window.initializeAdminTab === 'function') {
+                            window.initializeAdminTab();
+                        }
+                    }
                 });
             });
         });
@@ -207,12 +190,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Failed to fetch visitor count:', error);
             }
         }
-
+        
         updateVisitorCount();
         console.log("DEBUG: 所有事件监听器已挂载，初始函数已调用。");
 
     } catch (error) {
+        const errorMessage = `发生了一个严重的JavaScript错误...\n\n错误信息:\n${error.name}: ${error.message}\n\n堆栈信息:\n${error.stack}`;
+        alert(errorMessage);
         console.error("捕获到致命错误:", error);
-        alert(`JS错误: ${error.message}`);
     }
 });
