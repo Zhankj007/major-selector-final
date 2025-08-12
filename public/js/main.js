@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 这个try...catch是为了捕获任何可能的初始化同步错误
     try {
         const SUPABASE_URL = '__SUPABASE_URL__';
         const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
         if (SUPABASE_URL.startsWith('__')) {
             throw new Error("Supabase URL 占位符未被替换。");
         }
+
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         window.supabaseClient = supabaseClient;
 
@@ -25,147 +25,153 @@ document.addEventListener('DOMContentLoaded', function () {
         // --- 核心认证状态管理 ---
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             document.body.classList.remove('show-login-section');
-            
+            console.log("DEBUG: Auth 状态监听器触发, event =", event);
+
             if (session && session.user) {
-                // --- 用户已登录 ---
                 authButton.textContent = '退出登录';
                 console.log("DEBUG: 用户已登录，准备获取数据...");
-
                 console.log("DEBUG: 当前 session 对象:", session);
-                    if (session) {
-                        console.log("DEBUG: access_token 是否存在?", !!session.access_token);
-                    }
-                
-console.log("DEBUG: 正在获取 'profiles' 数据...");
+                console.log("DEBUG: access_token 是否存在?", !!session.access_token);
+                console.log("DEBUG: supabaseClient exists?", !!supabaseClient);
+                console.log("DEBUG: SUPABASE_URL =", SUPABASE_URL);
 
-// 获取当前用户 ID（以防 session 里出错）
-const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-if (userError) {
-    console.error("获取当前用户信息失败:", userError);
-} else {
-    console.log("DEBUG: 当前用户 ID:", userData?.user?.id);
-}
+                // 获取当前用户 ID
+                const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+                if (userError) {
+                    console.error("获取当前用户信息失败:", userError);
+                } else {
+                    console.log("DEBUG: 当前用户 ID:", userData?.user?.id);
+                }
 
-// 调试：打印即将发出的请求 URL 和 Headers
-const testUrl = `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=id,username,role`;
-console.log("DEBUG: 即将请求 URL:", testUrl);
-console.log("DEBUG: Authorization header 预期值:", `Bearer ${session.access_token}`);
+                // ===== 1. 调试 profiles 查询 =====
+                const profilesUrl = `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=id,username,role`;
+                console.log("DEBUG: 即将请求 profiles URL:", profilesUrl);
+                console.log("DEBUG: Authorization header 预期值:", `Bearer ${session.access_token}`);
 
-// 发出 profiles 查询
-try {
-    const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
-        .from('profiles')
-        .select('id, username, role')
-        .eq('id', session.user.id);
-
-    console.log("DEBUG: profiles 查询返回状态码:", profilesStatus);
-    console.log("DEBUG: profiles 查询结果数据:", profilesData);
-    console.log("DEBUG: profiles 查询错误信息:", profilesError);
-
-    if (profilesError) {
-        if (profilesError.message && profilesError.message.includes("permission denied")) {
-            console.error("❌ RLS 拒绝访问：当前用户无权读取 profiles 这行记录，请检查 RLS 策略和 ID 匹配。");
-        }
-        throw profilesError;
-    }
-
-    if (!profilesData || profilesData.length === 0) {
-        console.warn("⚠️ 查询结果为空：profiles 表中可能没有该用户的记录。");
-        throw new Error("profiles 表中没有找到该用户记录，请检查触发器或手动添加。");
-    }
-
-    // 如果有记录，取第一条
-    const profile = profilesData[0];
-    console.log("✅ 成功获取 profiles 记录:", profile);
-
-} catch (err) {
-    console.error("🔥 profiles 查询发生异常:", err);
-}
-
-                
-                        /*
                 try {
-                    // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
-                    console.log("DEBUG: 正在获取 'profiles' 数据...");
-                    const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single();
-                    console.log("DEBUG: 'profiles' 数据获取完成。", { profile, profileError });
+                    const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
+                        .from('profiles')
+                        .select('id, username, role')
+                        .eq('id', session.user.id);
 
-                    if (profileError) throw profileError;
+                    console.log("DEBUG: profiles 查询返回状态码:", profilesStatus);
+                    console.log("DEBUG: profiles 查询结果数据:", profilesData);
+                    console.log("DEBUG: profiles 查询错误信息:", profilesError);
 
-                    console.log("DEBUG: 正在获取 'user_permissions' 数据...");
-                    const { data: permissions, error: permsError } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id);
-                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
+                    if (profilesError) {
+                        if (profilesError.message?.includes("permission denied")) {
+                            console.error("❌ RLS 拒绝访问 profiles，请检查策略和 ID 匹配。");
+                        }
+                        throw profilesError;
+                    }
+                    if (!profilesData || profilesData.length === 0) {
+                        console.warn("⚠️ profiles 结果为空，请确认数据库有该用户记录。");
+                        throw new Error("profiles 表中无该用户记录");
+                    }
+
+                    const profile = profilesData[0];
+                    console.log("✅ 成功获取 profiles:", profile);
+
+                    if (userNicknameElement) {
+                        userNicknameElement.textContent = profile.username
+                            ? `欢迎您, ${profile.username}，`
+                            : '欢迎您，';
+                    }
+
+                    // ===== 2. 调试 user_permissions 查询 =====
+                    const permsUrl = `${SUPABASE_URL}/rest/v1/user_permissions?user_id=eq.${session.user.id}`;
+                    console.log("DEBUG: 即将请求 user_permissions URL:", permsUrl);
+
+                    const { data: permissions, error: permsError, status: permsStatus } = await supabaseClient
+                        .from('user_permissions')
+                        .select('tab_name, expires_at')
+                        .eq('user_id', session.user.id);
+
+                    console.log("DEBUG: user_permissions 状态码:", permsStatus);
+                    console.log("DEBUG: user_permissions 数据:", permissions);
+                    console.log("DEBUG: user_permissions 错误:", permsError);
 
                     if (permsError) throw permsError;
-                    
-                    // --- 后续UI渲染逻辑 (与之前版本相同) ---
-                    if (userNicknameElement) {
-                       userNicknameElement.textContent = profile && profile.username ? `欢迎您, ${profile.username}，` : '欢迎您，';
-                    }
+
+                    // ===== 3. 渲染标签页 =====
                     const visibleTabs = new Set(['universities', 'majors']);
                     const now = new Date();
                     if (permissions) {
                         permissions.forEach(p => {
-                            if (!p.expires_at || new Date(p.expires_at) > now) { visibleTabs.add(p.tab_name); }
+                            if (!p.expires_at || new Date(p.expires_at) > now) {
+                                visibleTabs.add(p.tab_name);
+                            }
                         });
                     }
-                    if (profile && profile.role === 'admin') { visibleTabs.add('admin'); }
+                    if (profile.role === 'admin') {
+                        visibleTabs.add('admin');
+                    }
                     tabButtons.forEach(btn => btn.classList.toggle('hidden', !visibleTabs.has(btn.dataset.tab)));
-                    const currentlyActive = document.querySelector('.tab-button.active');
-                    if (!currentlyActive || currentlyActive.classList.contains('hidden')) {
+
+                    const activeTab = document.querySelector('.tab-button.active');
+                    if (!activeTab || activeTab.classList.contains('hidden')) {
                         document.querySelector('.tab-button:not(.hidden)')?.click();
                     }
 
-                } catch (error) {
-                    console.error("加载用户信息或权限时出错:", error);
+                } catch (err) {
+                    console.error("🔥 获取用户信息/权限时出错:", err);
                     authButton.textContent = '退出登录';
                     tabButtons.forEach(btn => btn.classList.add('hidden'));
-                } */
+                }
 
             } else {
-                // --- 用户未登录 (游客) ---
+                // 游客模式
                 authButton.textContent = '登录/注册';
                 if (userNicknameElement) userNicknameElement.textContent = '';
                 tabButtons.forEach(btn => {
                     const isPublic = btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors';
                     btn.classList.toggle('hidden', !isPublic);
-});
-                const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
-                const defaultTabPanel = document.getElementById('universities-tab');
-                if (defaultTabButton && defaultTabPanel) {
-                    if (!defaultTabButton.classList.contains('active')) { defaultTabButton.click(); }
-                    else if (typeof window.initializeUniversitiesTab === 'function' && !defaultTabPanel.dataset.initialized) { window.initializeUniversitiesTab(); }
-                }
+                });
+                document.querySelector('.tab-button[data-tab="universities"]')?.click();
             }
         });
         console.log("DEBUG: Auth 状态监听器已挂载。");
 
-        // --- 4. 其他所有事件监听器和辅助函数 ---
-        showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginError.textContent = ''; loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); });
-        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerError.textContent = ''; registerMessage.textContent = ''; registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
+        // --- 事件绑定 ---
+        showRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginError.textContent = '';
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerError.textContent = '';
+            registerMessage.textContent = '';
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
 
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             loginError.textContent = '';
-            const loginButton = loginForm.querySelector('button[type="submit"]');
+            const btn = loginForm.querySelector('button[type="submit"]');
             try {
-                loginButton.disabled = true;
-                loginButton.textContent = '登录中...';
+                btn.disabled = true;
+                btn.textContent = '登录中...';
                 const email = document.getElementById('login-email').value;
                 const password = document.getElementById('login-password').value;
                 const response = await fetch('/api/login', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
                 });
                 const data = await response.json();
-                if (!response.ok) { throw new Error(data.error); }
+                if (!response.ok) throw new Error(data.error);
                 const { error } = await supabaseClient.auth.setSession(data.session);
                 if (error) throw error;
-            } catch (error) {
-                loginError.textContent = error.message;
+                console.log("DEBUG: setSession 成功, session =", data.session);
+            } catch (err) {
+                loginError.textContent = err.message;
             } finally {
-                loginButton.disabled = false;
-                loginButton.textContent = '登 录';
+                btn.disabled = false;
+                btn.textContent = '登 录';
             }
         });
 
@@ -180,23 +186,24 @@ try {
             const unit_name = document.getElementById('register-unitname').value;
             try {
                 const response = await fetch('/api/register', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password, username, phone, unit_name }),
                 });
                 const data = await response.json();
-                if (!response.ok) { throw new Error(data.error); }
+                if (!response.ok) throw new Error(data.error);
                 registerMessage.textContent = '注册成功！请检查邮箱确认或直接登录。';
                 setTimeout(() => { showLoginLink.click(); }, 3000);
-            } catch (error) {
-                registerError.textContent = error.message;
+            } catch (err) {
+                registerError.textContent = err.message;
             }
         });
 
         authButton.addEventListener('click', async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession(); 
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 await supabaseClient.auth.signOut();
-                window.location.reload(); 
+                window.location.reload();
             } else {
                 document.body.classList.add('show-login-section');
             }
@@ -206,7 +213,7 @@ try {
             tab.addEventListener('click', async () => {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 const tabName = tab.dataset.tab;
-                const requiresAuth = tabName === 'plans' || tabName === 'admin';
+                const requiresAuth = ['plans', 'admin'].includes(tabName);
                 if (requiresAuth && !session) {
                     alert('此功能需要登录后才能使用。');
                     document.body.classList.add('show-login-section');
@@ -218,15 +225,8 @@ try {
                     const isActive = panel.id === `${tabName}-tab`;
                     panel.classList.toggle('active', isActive);
                     if (isActive && !panel.dataset.initialized) {
-                        if (tabName === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
-                            window.initializeUniversitiesTab();
-                        } else if (tabName === 'majors' && typeof window.initializeMajorsTab === 'function') {
-                            window.initializeMajorsTab();
-                        } else if (tabName === 'plans' && typeof window.initializePlansTab === 'function') {
-                            window.initializePlansTab();
-                        } else if (tabName === 'admin' && typeof window.initializeAdminTab === 'function') {
-                            window.initializeAdminTab();
-                        }
+                        const fn = window[`initialize${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`];
+                        if (typeof fn === 'function') fn();
                     }
                 });
             });
@@ -239,21 +239,16 @@ try {
                 if (!response.ok) return;
                 const data = await response.json();
                 visitorInfoElement.textContent = `您是第 ${data.count} 位访客！`;
-            } catch (error) {
-                console.error('Failed to fetch visitor count:', error);
+            } catch (err) {
+                console.error('Failed to fetch visitor count:', err);
             }
         }
-        
+
         updateVisitorCount();
         console.log("DEBUG: 所有事件监听器已挂载，初始函数已调用。");
 
     } catch (error) {
-        const errorMessage = `发生了一个严重的JavaScript错误...\n\n错误信息:\n${error.name}: ${error.message}\n\n堆栈信息:\n${error.stack}`;
-        alert(errorMessage);
+        alert(`发生了一个严重的JavaScript错误: ${error.message}`);
         console.error("捕获到致命错误:", error);
     }
 });
-
-
-
-
