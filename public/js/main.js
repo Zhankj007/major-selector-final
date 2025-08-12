@@ -36,93 +36,52 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.log("DEBUG: access_token 是否存在?", !!session.access_token);
                     }
                 
-                console.log("DEBUG: 正在获取 'profiles' 数据...");
-                
-                // 基本环境检查
-                console.log("DEBUG: supabaseClient exists?", !!supabaseClient);
-                try {
-                  // 注意不要把敏感 key 打印出来，这里只打印 URL（便于调试）
-                  console.log("DEBUG: SUPABASE_URL (用于网络测试) =", SUPABASE_URL);
-                } catch (e) {
-                  console.warn("DEBUG: 无法读取 SUPABASE_URL:", e);
-                }
-                
-                // 打印 session 简短信息（不打印敏感 token 全文）
-                console.log("DEBUG: session info (short):", {
-                  has_access_token: !!(session && session.access_token),
-                  user_id: session?.user?.id,
-                  expires_in: session?.expires_in
-                });
-                
-                try {
-                  // 再次确认 supabase-js 的 getUser 行为
-                  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-                  if (userError) {
-                    console.error("DEBUG: supabaseClient.auth.getUser() 失败:", userError);
-                  } else {
-                    console.log("DEBUG: supabaseClient.auth.getUser() 返回:", userData?.user?.id ? { userId: userData.user.id } : userData);
-                  }
-                
-                  // 调用 maybeSingle() 避免 .single() 在 0 行时直接抛异常
-                  console.log("DEBUG: 准备执行 supabase.from('profiles').select(...) 请求（高日志）");
-                  const t0 = Date.now();
-                  const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
-                    .from('profiles')
-                    .select('id, username, role')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-                  const elapsed = Date.now() - t0;
-                
-                  console.log(`DEBUG: profiles 请求完成（耗时 ${elapsed} ms），status = ${profilesStatus}`);
-                  console.log("DEBUG: profiles 返回 data:", profilesData);
-                  console.log("DEBUG: profiles 返回 error:", profilesError);
-                
-                  if (profilesError) {
-                    // 明确判断是否为 RLS/权限拒绝
-                    if (profilesError.message && profilesError.message.toLowerCase().includes("permission")) {
-                      console.error("❌ profiles 请求被权限（RLS）拒绝（permission denied）。请检查 RLS 策略和 profiles.id 是否与 auth.users.id 匹配。", profilesError);
-                    } else {
-                      console.error("❌ profiles 请求返回错误：", profilesError);
-                    }
-                    // 不立即 throw（为了调试，我们继续尝试后续权限请求与手工 fetch）
-                  }
-                
-                  // 如果没有记录，警告但继续（避免直接 hide 所有 tab，便于观察日志）
-                  if (!profilesData) {
-                    console.warn("⚠️ profiles 查询返回空（profiles 表中可能没有该用户记录）。user id:", session.user.id);
-                  } else {
-                    console.log("✅ 成功获取 profiles 记录:", profilesData);
-                  }
-                
-                  // —— 额外的低层次手工 fetch 检查（直接调用 PostgREST /rest/v1/ 接口）
-                  // 目的是判断网络/CORS/Token 是否能通过浏览器直接访问 REST endpoint
-                  try {
-                    const restBase = SUPABASE_URL.replace(/\/+$/, ''); // 去除末尾斜杠
-                    const manualUrl = `${restBase}/rest/v1/profiles?select=id,username,role&id=eq.${encodeURIComponent(session.user.id)}`;
-                    console.log("DEBUG: 发起手工 fetch 到 Rest API（用于确认请求能否发出）:", manualUrl);
-                
-                    const manualResp = await fetch(manualUrl, {
-                      method: 'GET',
-                      headers: {
-                        'Authorization': 'Bearer ' + (session.access_token || ''),
-                        // 如果你的项目需要 apikey header，这里可以传入 anon key（谨慎不要把其打印出来）
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Content-Type': 'application/json'
-                      }
-                    });
-                
-                    console.log("DEBUG: manual fetch status:", manualResp.status, "ok:", manualResp.ok);
-                    const manualText = await manualResp.text();
-                    // 可能是 JSON，也可能是空或 HTML 错误页，一律打印文本以便分析
-                    console.log("DEBUG: manual fetch body (原始文本):", manualText.slice(0, 2000)); // 截断到 2000 字，防止大量日志
-                  } catch (fetchErr) {
-                    console.error("DEBUG: manual fetch 到 Rest API 失败（可能是网络/CORS）：", fetchErr);
-                  }
-                
-                } catch (err) {
-                  console.error("加载 profiles 时发生不可预期的异常：", err);
-                  // 不向上抛出，以便继续做后续调试（否则 UI 可能马上 hide 掉所有 tab）
-                }
+console.log("DEBUG: 正在获取 'profiles' 数据...");
+
+// 获取当前用户 ID（以防 session 里出错）
+const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+if (userError) {
+    console.error("获取当前用户信息失败:", userError);
+} else {
+    console.log("DEBUG: 当前用户 ID:", userData?.user?.id);
+}
+
+// 调试：打印即将发出的请求 URL 和 Headers
+const testUrl = `${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=id,username,role`;
+console.log("DEBUG: 即将请求 URL:", testUrl);
+console.log("DEBUG: Authorization header 预期值:", `Bearer ${session.access_token}`);
+
+// 发出 profiles 查询
+try {
+    const { data: profilesData, error: profilesError, status: profilesStatus } = await supabaseClient
+        .from('profiles')
+        .select('id, username, role')
+        .eq('id', session.user.id);
+
+    console.log("DEBUG: profiles 查询返回状态码:", profilesStatus);
+    console.log("DEBUG: profiles 查询结果数据:", profilesData);
+    console.log("DEBUG: profiles 查询错误信息:", profilesError);
+
+    if (profilesError) {
+        if (profilesError.message && profilesError.message.includes("permission denied")) {
+            console.error("❌ RLS 拒绝访问：当前用户无权读取 profiles 这行记录，请检查 RLS 策略和 ID 匹配。");
+        }
+        throw profilesError;
+    }
+
+    if (!profilesData || profilesData.length === 0) {
+        console.warn("⚠️ 查询结果为空：profiles 表中可能没有该用户的记录。");
+        throw new Error("profiles 表中没有找到该用户记录，请检查触发器或手动添加。");
+    }
+
+    // 如果有记录，取第一条
+    const profile = profilesData[0];
+    console.log("✅ 成功获取 profiles 记录:", profile);
+
+} catch (err) {
+    console.error("🔥 profiles 查询发生异常:", err);
+}
+
                 
                         /*
                 try {
@@ -294,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("捕获到致命错误:", error);
     }
 });
+
 
 
 
