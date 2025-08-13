@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // --- 用户已登录 ---
                 authButton.textContent = '退出登录';
                 // 监听认证状态变化
-                supabase.auth.onAuthStateChange((event, session) => {
+                supabaseClient.auth.onAuthStateChange((event, session) => {
                     console.log("DEBUG: Auth 状态监听器已触发，事件:", event);
                     if (session) {
                         // 用户已登录
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
 async function fetchPermissions() {
     console.log("DEBUG: 正在获取 'user_permissions' 数据...");
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('user_permissions')
             .select('*')
             .single();
