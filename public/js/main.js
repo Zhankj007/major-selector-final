@@ -16,38 +16,67 @@ document.addEventListener('DOMContentLoaded', function () {
         async function testSupabaseConnection() {
             try {
                 console.log("DEBUG: 测试Supabase连接...");
-                // 1. 使用客户端库测试
-                const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
+                // 1. 网络诊断 - 测试DNS解析
+                console.log("DEBUG: 开始网络诊断 - DNS解析测试...");
+                const dnsStartTime = performance.now();
+                // 使用简单的图片请求来测试DNS解析
+                const img = new Image();
+                img.src = `https://${new URL(SUPABASE_URL).hostname}/favicon.ico?${Date.now()}`;
+                await new Promise((resolve) => {
+                    img.onload = img.onerror = () => resolve();
+                    setTimeout(resolve, 3000); // 3秒超时
+                });
+                const dnsEndTime = performance.now();
+                console.log(`DEBUG: DNS解析测试完成，耗时: ${(dnsEndTime - dnsStartTime).toFixed(2)}ms`);
+
+                // 2. 使用客户端库测试
+                console.log("DEBUG: 使用客户端库测试...");
+                const clientStart = performance.now();
+                const { data, error } = await supabaseClient.from('profiles').select('id').limit(1).abortSignal(AbortSignal.timeout(10000));
+                const clientEnd = performance.now();
+                console.log(`DEBUG: 客户端库测试完成，耗时: ${(clientEnd - clientStart).toFixed(2)}ms`);
                 console.log("DEBUG: Supabase客户端库测试结果:", { data, error });
-                
-                // 2. 直接调用REST API测试
+                if (error) {
+                    console.error("DEBUG: 客户端库测试错误名称:", error.name);
+                    console.error("DEBUG: 客户端库测试错误消息:", error.message);
+                }
+
+                // 3. 直接调用REST API测试
                 console.log("DEBUG: 开始直接调用Supabase REST API测试...");
                 const tableId = 'profiles';
                 const restUrl = `${SUPABASE_URL}/rest/v1/${tableId}?select=id&limit=1`;
                 console.log("DEBUG: REST API URL:", restUrl);
-                
-                const startTime = performance.now();
-                const response = await fetch(restUrl, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    signal: AbortSignal.timeout(10000) // 10秒超时
-                });
-                const endTime = performance.now();
-                console.log(`DEBUG: REST API请求完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP错误! 状态码: ${response.status}`);
+
+                const restStartTime = performance.now();
+                try {
+                    const response = await fetch(restUrl, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        signal: AbortSignal.timeout(10000) // 10秒超时
+                    });
+                    const restEndTime = performance.now();
+                    console.log(`DEBUG: REST API请求完成，耗时: ${(restEndTime - restStartTime).toFixed(2)}ms`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误! 状态码: ${response.status}`);
+                    }
+
+                    const restData = await response.json();
+                    console.log("DEBUG: Supabase REST API测试结果: 成功获取数据");
+                    console.log("DEBUG: REST API返回数据:", restData);
+                } catch (restError) {
+                    const restEndTime = performance.now();
+                    console.log(`DEBUG: REST API请求失败，耗时: ${(restEndTime - restStartTime).toFixed(2)}ms`);
+                    console.error("DEBUG: REST API测试错误:", restError);
+                    console.error("DEBUG: REST API测试错误名称:", restError.name);
+                    console.error("DEBUG: REST API测试错误消息:", restError.message);
                 }
-                
-                const restData = await response.json();
-                console.log("DEBUG: Supabase REST API测试结果: 成功获取数据");
-                console.log("DEBUG: REST API返回数据:", restData);
-                
+
             } catch (connError) {
                 console.error("DEBUG: Supabase连接测试失败:", connError);
                 console.error("错误名称:", connError.name);
@@ -55,7 +84,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error("错误堆栈:", connError.stack);
             }
         }
+        // 确保在应用启动时立即执行连接测试
+        console.log("DEBUG: 应用启动，准备执行Supabase连接测试...");
         testSupabaseConnection();
+
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const loginError = document.getElementById('login-error');
