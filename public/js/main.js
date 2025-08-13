@@ -34,7 +34,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
                     console.log("DEBUG: 正在获取 'profiles' 数据...");
-                    const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single();
+                    // 添加超时处理
+                    const fetchProfileWithTimeout = async () => {
+                      const controller = new AbortController();
+                      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+                       
+                      try {
+                        const { data: profile, error: profileError } = await supabaseClient
+                          .from('profiles')
+                          .select('username, role')
+                          .eq('id', session.user.id)
+                          .single()
+                          .abortSignal(controller.signal);
+                         
+                        clearTimeout(timeoutId);
+                        return { profile, profileError };
+                      } catch (error) {
+                        clearTimeout(timeoutId);
+                        if (error.name === 'AbortError') {
+                          return { profile: null, profileError: new Error('获取 profiles 数据超时') };
+                        }
+                        return { profile: null, profileError: error };
+                      }
+                    };
+                     
+                    const { profile, profileError } = await fetchProfileWithTimeout();
                     console.log("DEBUG: 'profiles' 数据获取完成。", { profile, profileError });
 
                     if (profileError) {
