@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.log("DEBUG: 开始执行 profiles 查询...");
                         // 简化查询以测试基本连接
                         console.log("DEBUG: 尝试简化查询: 只选择id字段...");
+                        console.log("DEBUG: 查询条件: id =", session.user.id);
                         const { data: profile, error: profileError } = await supabaseClient
                           .from('profiles')
                           .select('id') // 简化查询，只选择id字段
@@ -110,6 +111,9 @@ document.addEventListener('DOMContentLoaded', function () {
                       } catch (error) {
                         clearTimeout(timeoutId);
                         console.log("DEBUG: profiles 查询捕获到异常");
+                        console.error("异常名称:", error.name);
+                        console.error("异常消息:", error.message);
+                        console.error("异常堆栈:", error.stack);
                         if (error.name === 'AbortError') {
                           return { profile: null, profileError: new Error('获取 profiles 数据超时') };
                         }
