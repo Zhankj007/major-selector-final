@@ -142,7 +142,40 @@ document.addEventListener('DOMContentLoaded', function () {
                           .abortSignal(controller.signal);
                         const endTime = performance.now();
                         console.log(`DEBUG: 网络请求完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
-                        
+
+                        // --- 添加REST API直接查询 --- 
+                        if (profileError || !profile || profile.length === 0) {
+                          console.log("DEBUG: 客户端库查询失败或无数据，尝试直接调用REST API...");
+                          const restUrl = `${SUPABASE_URL}/rest/v1/profiles?select=id&id=eq.${session.user.id}&limit=1`;
+                          console.log("DEBUG: 直接REST API URL:", restUrl);
+                          const restStartTime = performance.now();
+                          const restResponse = await fetch(restUrl, {
+                            method: 'GET',
+                            headers: {
+                              'apikey': SUPABASE_ANON_KEY,
+                              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                              'Content-Type': 'application/json'
+                            },
+                            signal: AbortSignal.timeout(10000)
+                          });
+                          const restEndTime = performance.now();
+                          console.log(`DEBUG: REST API请求完成，耗时: ${(restEndTime - restStartTime).toFixed(2)}ms`);
+                          
+                          if (restResponse.ok) {
+                            const restData = await restResponse.json();
+                            console.log("DEBUG: REST API返回数据:", restData);
+                            if (restData && restData.length > 0) {
+                              console.log("DEBUG: REST API查询成功，客户端库可能存在问题");
+                              return { profile: restData[0], profileError: null };
+                            } else {
+                              console.log("DEBUG: REST API查询返回空数据，可能用户ID不存在");
+                            }
+                          } else {
+                            console.error(`DEBUG: REST API请求失败，状态码: ${restResponse.status}`);
+                          }
+                        }
+                        // --- REST API查询结束 --- 
+
                         clearTimeout(timeoutId);
                         console.log("DEBUG: profiles 查询执行完成");
                         // 检查返回的数据
