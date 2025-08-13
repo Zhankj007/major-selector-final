@@ -86,10 +86,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log("DEBUG: 正在获取 'profiles' 数据...");
                     // 添加超时处理
                     const fetchProfileWithTimeout = async () => {
+                      console.log("DEBUG: fetchProfileWithTimeout 函数已调用");
                       const controller = new AbortController();
-                      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
-                       
+                      const timeoutId = setTimeout(() => {
+                        console.log("DEBUG: 配置文件获取超时，正在中止请求...");
+                        controller.abort();
+                      }, 5000); // 5秒超时
+                      
                       try {
+                        console.log("DEBUG: 开始执行 profiles 查询...");
                         const { data: profile, error: profileError } = await supabaseClient
                           .from('profiles')
                           .select('username, role')
@@ -98,9 +103,11 @@ document.addEventListener('DOMContentLoaded', function () {
                           .abortSignal(controller.signal);
                          
                         clearTimeout(timeoutId);
+                        console.log("DEBUG: profiles 查询执行完成");
                         return { profile, profileError };
                       } catch (error) {
                         clearTimeout(timeoutId);
+                        console.log("DEBUG: profiles 查询捕获到异常");
                         if (error.name === 'AbortError') {
                           return { profile: null, profileError: new Error('获取 profiles 数据超时') };
                         }
