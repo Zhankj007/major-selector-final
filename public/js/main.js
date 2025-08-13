@@ -98,13 +98,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         // 简化查询以测试基本连接
                         console.log("DEBUG: 尝试简化查询: 只选择id字段...");
                         console.log("DEBUG: 查询条件: id =", session.user.id);
+                        console.log("DEBUG: 开始发送网络请求...");
+                        const startTime = performance.now();
                         const { data: profile, error: profileError } = await supabaseClient
                           .from('profiles')
                           .select('id') // 简化查询，只选择id字段
                           .eq('id', session.user.id)
                           .single()
                           .abortSignal(controller.signal);
-                         
+                        const endTime = performance.now();
+                        console.log(`DEBUG: 网络请求完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
+                        
                         clearTimeout(timeoutId);
                         console.log("DEBUG: profiles 查询执行完成");
                         return { profile, profileError };
@@ -115,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error("异常消息:", error.message);
                         console.error("异常堆栈:", error.stack);
                         if (error.name === 'AbortError') {
+                          console.log("DEBUG: 超时可能原因: 网络缓慢、数据库负载高、RLS策略配置问题或表中不存在该用户ID");
                           return { profile: null, profileError: new Error('获取 profiles 数据超时') };
                         }
                         return { profile: null, profileError: error };
