@@ -95,9 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
                       
                       try {
                         console.log("DEBUG: 开始执行 profiles 查询...");
+                        // 简化查询以测试基本连接
+                        console.log("DEBUG: 尝试简化查询: 只选择id字段...");
                         const { data: profile, error: profileError } = await supabaseClient
                           .from('profiles')
-                          .select('username, role')
+                          .select('id') // 简化查询，只选择id字段
                           .eq('id', session.user.id)
                           .single()
                           .abortSignal(controller.signal);
@@ -120,6 +122,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (profileError) {
                       console.error("获取 'profiles' 数据时出错:", profileError);
+                      // 输出详细错误信息
+                      console.error("错误名称:", profileError.name);
+                      console.error("错误消息:", profileError.message);
+                      console.error("错误堆栈:", profileError.stack);
                       throw profileError;
                     }
 
