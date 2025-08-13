@@ -16,10 +16,43 @@ document.addEventListener('DOMContentLoaded', function () {
         async function testSupabaseConnection() {
             try {
                 console.log("DEBUG: 测试Supabase连接...");
+                // 1. 使用客户端库测试
                 const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
-                console.log("DEBUG: Supabase连接测试结果:", { data, error });
+                console.log("DEBUG: Supabase客户端库测试结果:", { data, error });
+                
+                // 2. 直接调用REST API测试
+                console.log("DEBUG: 开始直接调用Supabase REST API测试...");
+                const tableId = 'profiles';
+                const restUrl = `${SUPABASE_URL}/rest/v1/${tableId}?select=id&limit=1`;
+                console.log("DEBUG: REST API URL:", restUrl);
+                
+                const startTime = performance.now();
+                const response = await fetch(restUrl, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    signal: AbortSignal.timeout(10000) // 10秒超时
+                });
+                const endTime = performance.now();
+                console.log(`DEBUG: REST API请求完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态码: ${response.status}`);
+                }
+                
+                const restData = await response.json();
+                console.log("DEBUG: Supabase REST API测试结果: 成功获取数据");
+                console.log("DEBUG: REST API返回数据:", restData);
+                
             } catch (connError) {
                 console.error("DEBUG: Supabase连接测试失败:", connError);
+                console.error("错误名称:", connError.name);
+                console.error("错误消息:", connError.message);
+                console.error("错误堆栈:", connError.stack);
             }
         }
         testSupabaseConnection();
