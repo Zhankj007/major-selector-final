@@ -3,12 +3,23 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         const SUPABASE_URL = '__SUPABASE_URL__';
         const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+        console.log("DEBUG: Supabase URL:", SUPABASE_URL);
+        console.log("DEBUG: Supabase Anon Key:", SUPABASE_ANON_KEY ? "已设置" : "未设置");
         if (SUPABASE_URL.startsWith('__')) {
             throw new Error("Supabase URL 占位符未被替换。");
         }
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("DEBUG: Supabase客户端已创建");
         window.supabaseClient = supabaseClient;
 
+        // 测试Supabase连接
+        try {
+            console.log("DEBUG: 测试Supabase连接...");
+            const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
+            console.log("DEBUG: Supabase连接测试结果:", { data, error });
+        } catch (connError) {
+            console.error("DEBUG: Supabase连接测试失败:", connError);
+        }
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const loginError = document.getElementById('login-error');
@@ -29,8 +40,44 @@ document.addEventListener('DOMContentLoaded', function () {
             if (session && session.user) {
                 // --- 用户已登录 ---
                 authButton.textContent = '退出登录';
-                console.log("DEBUG: 用户已登录，准备获取数据...");
-
+                // 监听认证状态变化
+                supabase.auth.onAuthStateChange((event, session) => {
+                    console.log("DEBUG: Auth 状态监听器已触发，事件:", event);
+                    if (session) {
+                        // 用户已登录
+                        console.log("DEBUG: 用户已登录，准备获取数据...");
+                        // 输出用户基本信息
+                        console.log("DEBUG: 用户ID:", session.user.id);
+                        console.log("DEBUG: 用户邮箱:", session.user.email);
+                        // 获取用户资料和权限
+                        fetchProfileWithTimeout()
+                            .then(profile => {
+                                if (profile) {
+                                    console.log("DEBUG: 获取到用户资料:", {
+                                        id: profile.id,
+                                        username: profile.username,
+                                        full_name: profile.full_name,
+                                        role: profile.role
+                                    });
+                                    return fetchPermissions();
+                                }
+                            })
+                            .then(permissions => {
+                                if (permissions) {
+                                    console.log("DEBUG: 获取到用户权限:", permissions);
+                                    updateUIForLoggedInUser();
+                                }
+                            })
+                            .catch(error => {
+                                console.error("DEBUG: 获取用户数据时发生错误:", error);
+                                showError("无法加载用户数据，请稍后再试。");
+                            });
+                    } else {
+                        // 用户已登出
+                        console.log("DEBUG: 用户已登出");
+                        updateUIForLoggedOutUser();
+                    }
+                });
                 try {
                     // 【诊断修改】我们将 Promise.all 拆分为两个独立的、带日志的请求
                     console.log("DEBUG: 正在获取 'profiles' 数据...");
@@ -230,3 +277,20 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("捕获到致命错误:", error);
     }
 });
+
+async function fetchPermissions() {
+    console.log("DEBUG: 正在获取 'user_permissions' 数据...");
+    try {
+        const { data, error } = await supabase
+            .from('user_permissions')
+            .select('*')
+            .single();
+
+        if (error) throw error;
+        console.log("DEBUG: 成功获取 'user_permissions' 数据");
+        return data;
+    } catch (permsError) {
+        console.error("DEBUG: 获取 'user_permissions' 数据失败:", permsError.message);
+        throw permsError;
+    }
+}
