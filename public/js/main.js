@@ -88,30 +88,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     const fetchProfileWithTimeout = async () => {
                       console.log("DEBUG: fetchProfileWithTimeout 函数已调用");
                       const controller = new AbortController();
+                      // 增加超时时间到10秒
                       const timeoutId = setTimeout(() => {
                         console.log("DEBUG: 配置文件获取超时，正在中止请求...");
                         controller.abort();
-                      }, 5000); // 5秒超时
+                      }, 10000); // 10秒超时
                       
                       try {
                         console.log("DEBUG: 开始执行 profiles 查询...");
-                        // 简化查询以测试基本连接
-                        console.log("DEBUG: 尝试简化查询: 只选择id字段...");
+                        // 尝试不使用single()，改用limit(1)，看看是否是single()导致的问题
+                        console.log("DEBUG: 尝试替代查询方式: 使用limit(1)而非single()...");
                         console.log("DEBUG: 查询条件: id =", session.user.id);
                         console.log("DEBUG: 开始发送网络请求...");
                         const startTime = performance.now();
                         const { data: profile, error: profileError } = await supabaseClient
                           .from('profiles')
-                          .select('id') // 简化查询，只选择id字段
+                          .select('id')
                           .eq('id', session.user.id)
-                          .single()
+                          .limit(1)
                           .abortSignal(controller.signal);
                         const endTime = performance.now();
                         console.log(`DEBUG: 网络请求完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
                         
                         clearTimeout(timeoutId);
                         console.log("DEBUG: profiles 查询执行完成");
-                        return { profile, profileError };
+                        // 检查返回的数据
+                        console.log("DEBUG: 查询返回数据长度:", profile ? profile.length : 0);
+                        return { profile: profile && profile.length > 0 ? profile[0] : null, profileError };
                       } catch (error) {
                         clearTimeout(timeoutId);
                         console.log("DEBUG: profiles 查询捕获到异常");
@@ -120,6 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error("异常堆栈:", error.stack);
                         if (error.name === 'AbortError') {
                           console.log("DEBUG: 超时可能原因: 网络缓慢、数据库负载高、RLS策略配置问题或表中不存在该用户ID");
+                          // 建议用户检查Supabase控制台中的表结构和RLS策略
+                          console.log("DEBUG: 建议: 检查Supabase控制台中profiles表是否存在该用户ID，以及RLS策略是否允许读取");
                           return { profile: null, profileError: new Error('获取 profiles 数据超时') };
                         }
                         return { profile: null, profileError: error };
