@@ -37,13 +37,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     const { data: profile, error: profileError } = await supabaseClient.from('profiles').select('username, role').eq('id', session.user.id).single();
                     console.log("DEBUG: 'profiles' 数据获取完成。", { profile, profileError });
 
-                    if (profileError) throw profileError;
+                    if (profileError) {
+                      console.error("获取 'profiles' 数据时出错:", profileError);
+                      throw profileError;
+                    }
 
                     console.log("DEBUG: 正在获取 'user_permissions' 数据...");
                     const { data: permissions, error: permsError } = await supabaseClient.from('user_permissions').select('tab_name, expires_at').eq('user_id', session.user.id);
                     console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
 
-                    if (permsError) throw permsError;
+                    if (permsError) {
+                      console.error("获取 'user_permissions' 数据时出错:", permsError);
+                      throw permsError;
+                    }
                     
                     // --- 后续UI渲染逻辑 (与之前版本相同) ---
                     if (userNicknameElement) {
