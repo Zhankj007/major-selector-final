@@ -13,13 +13,16 @@ document.addEventListener('DOMContentLoaded', function () {
         window.supabaseClient = supabaseClient;
 
         // 测试Supabase连接
-        try {
-            console.log("DEBUG: 测试Supabase连接...");
-            const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
-            console.log("DEBUG: Supabase连接测试结果:", { data, error });
-        } catch (connError) {
-            console.error("DEBUG: Supabase连接测试失败:", connError);
+        async function testSupabaseConnection() {
+            try {
+                console.log("DEBUG: 测试Supabase连接...");
+                const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
+                console.log("DEBUG: Supabase连接测试结果:", { data, error });
+            } catch (connError) {
+                console.error("DEBUG: Supabase连接测试失败:", connError);
+            }
         }
+        testSupabaseConnection();
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const loginError = document.getElementById('login-error');
