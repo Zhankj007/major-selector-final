@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 测试Supabase连接
         async function testSupabaseConnection() {
+            console.log("DEBUG: testSupabaseConnection函数开始执行");
             try {
                 console.log("DEBUG: 测试Supabase连接...");
                 // 1. 网络诊断 - 测试DNS解析
@@ -23,22 +24,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 const img = new Image();
                 img.src = `https://${new URL(SUPABASE_URL).hostname}/favicon.ico?${Date.now()}`;
                 await new Promise((resolve) => {
-                    img.onload = img.onerror = () => resolve();
-                    setTimeout(resolve, 3000); // 3秒超时
+                    img.onload = () => { console.log("DEBUG: 图片请求加载成功"); resolve(); };
+                    img.onerror = () => { console.log("DEBUG: 图片请求加载失败"); resolve(); };
+                    setTimeout(() => { console.log("DEBUG: 图片请求超时"); resolve(); }, 3000); // 3秒超时
                 });
                 const dnsEndTime = performance.now();
                 console.log(`DEBUG: DNS解析测试完成，耗时: ${(dnsEndTime - dnsStartTime).toFixed(2)}ms`);
 
                 // 2. 检查Supabase认证状态
-                console.log("DEBUG: 检查Supabase认证状态...");
+                console.log("DEBUG: 开始检查Supabase认证状态...");
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 console.log(`DEBUG: 认证状态: ${session ? '已登录' : '未登录'}`);
                 if (session) {
                     console.log(`DEBUG: 当前用户ID: ${session.user.id}`);
+                } else {
+                    console.log("DEBUG: 未登录，跳过用户特定查询测试");
                 }
 
                 // 3. 使用客户端库测试 - 先测试简单查询
-                console.log("DEBUG: 使用客户端库测试 - 先测试简单查询...");
+                console.log("DEBUG: 开始客户端库测试 - 简单查询...");
                 const simpleQueryStart = performance.now();
                 try {
                     // 查询一个可能存在的小表或系统表
@@ -59,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // 4. 使用客户端库测试 - 针对特定用户ID的查询
                     if (session) {
-                        console.log("DEBUG: 使用客户端库测试 - 针对特定用户ID的查询...");
+                        console.log("DEBUG: 开始客户端库测试 - 用户特定查询...");
                         const userQueryStart = performance.now();
                         try {
                             const { data: userData, error: userError } = await supabaseClient
@@ -138,7 +142,122 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error("错误消息:", connError.message);
                 console.error("错误堆栈:", connError.stack);
             }
+            console.log("DEBUG: testSupabaseConnection函数执行完毕");
         }
+            // 获取用户资料，带超时处理
+            async function fetchProfileWithTimeout() {
+                console.log("DEBUG: fetchProfileWithTimeout函数开始执行");
+                try {
+                    console.log("DEBUG: 正在获取 'profiles' 数据...");
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (!session) {
+                        console.log("DEBUG: 未登录，无法获取用户资料");
+                        return { profile: null, error: null };
+                    }
+
+                    console.log(`DEBUG: 当前用户ID: ${session.user.id}`);
+                    const startTime = performance.now();
+                    console.log("DEBUG: 开始执行 profiles 查询...");
+
+                    // 尝试使用客户端库查询
+                    try {
+                        console.log("DEBUG: 尝试替代查询方式: 使用limit(1)而非single()...");
+                        console.log(`DEBUG: 查询条件: id = ${session.user.id}`);
+                        console.log("DEBUG: 开始发送网络请求...");
+
+                        const { data: profile, error: profileError } = await supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', session.user.id)
+                            .limit(1)
+                            .abortSignal(AbortSignal.timeout(10000));
+
+                        const endTime = performance.now();
+                        console.log(`DEBUG: 客户端库查询完成，耗时: ${(endTime - startTime).toFixed(2)}ms`);
+                        console.log("DEBUG: 客户端库查询结果:", { profile, profileError });
+
+                        if (profileError) {
+                            console.error("DEBUG: 客户端库查询错误名称:", profileError.name);
+                            console.error("DEBUG: 客户端库查询错误消息:", profileError.message);
+
+                            // 客户端库查询失败，尝试使用REST API
+                            console.log("DEBUG: 客户端库查询失败，尝试使用REST API直接查询...");
+                            return await fetchProfileWithRestApi(session.user.id);
+                        } else if (profile && profile.length > 0) {
+                            console.log("DEBUG: 客户端库查询成功，找到用户资料");
+                            return { profile: profile[0], error: null };
+                        } else {
+                            console.log("DEBUG: 客户端库查询返回空数据");
+                            // 尝试使用REST API
+                            console.log("DEBUG: 尝试使用REST API直接查询...");
+                            return await fetchProfileWithRestApi(session.user.id);
+                        }
+                    } catch (queryError) {
+                        const endTime = performance.now();
+                        console.log(`DEBUG: 客户端库查询异常，耗时: ${(endTime - startTime).toFixed(2)}ms`);
+                        console.error("DEBUG: 客户端库查询捕获到异常:", queryError);
+                        console.error("DEBUG: 异常名称:", queryError.name);
+                        console.error("DEBUG: 异常消息:", queryError.message);
+
+                        // 查询异常，尝试使用REST API
+                        console.log("DEBUG: 尝试使用REST API直接查询...");
+                        return await fetchProfileWithRestApi(session.user.id);
+                    }
+                } catch (error) {
+                    console.error("DEBUG: fetchProfileWithTimeout函数执行异常:", error);
+                    return { profile: null, error };
+                } finally {
+                    console.log("DEBUG: fetchProfileWithTimeout函数执行完毕");
+                }
+            }
+
+            // 使用REST API直接获取用户资料
+            async function fetchProfileWithRestApi(userId) {
+                console.log("DEBUG: fetchProfileWithRestApi函数开始执行");
+                try {
+                    const restStartTime = performance.now();
+                    const restUrl = `${SUPABASE_URL}/rest/v1/profiles?select=*&id=eq.${userId}&limit=1`;
+                    console.log("DEBUG: REST API URL:", restUrl);
+                    console.log("DEBUG: 开始发送REST API请求...");
+
+                    const response = await fetch(restUrl, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        signal: AbortSignal.timeout(10000) // 10秒超时
+                    });
+
+                    const restEndTime = performance.now();
+                    console.log(`DEBUG: REST API请求完成，耗时: ${(restEndTime - restStartTime).toFixed(2)}ms`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误! 状态码: ${response.status}`);
+                    }
+
+                    const restData = await response.json();
+                    console.log("DEBUG: REST API返回数据:", restData);
+
+                    if (restData && restData.length > 0) {
+                        console.log("DEBUG: REST API查询成功，找到用户资料");
+                        return { profile: restData[0], error: null };
+                    } else {
+                        console.log("DEBUG: REST API查询返回空数据");
+                        return { profile: null, error: new Error("未找到用户资料") };
+                    }
+                } catch (restError) {
+                    console.error("DEBUG: REST API查询失败:", restError);
+                    console.error("DEBUG: 错误名称:", restError.name);
+                    console.error("DEBUG: 错误消息:", restError.message);
+                    return { profile: null, error: restError };
+                } finally {
+                    console.log("DEBUG: fetchProfileWithRestApi函数执行完毕");
+                }
+            }
+
             // 确保在应用启动时立即执行连接测试
             console.log("DEBUG: 应用启动，准备执行Supabase连接测试...");
             testSupabaseConnection();
