@@ -262,6 +262,21 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("DEBUG: 应用启动，准备执行Supabase连接测试...");
             testSupabaseConnection();
 
+            // 添加缺失的showError函数定义
+            function showError(message) {
+                console.error("ERROR:", message);
+                // 可以根据实际UI添加错误显示逻辑
+                const errorElement = document.getElementById('global-error');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                    // 3秒后隐藏错误
+                    setTimeout(() => {
+                        errorElement.style.display = 'none';
+                    }, 3000);
+                }
+            }
+
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             const loginError = document.getElementById('login-error');
@@ -274,50 +289,179 @@ document.addEventListener('DOMContentLoaded', function () {
             const visitorInfoElement = document.getElementById('visitor-info');
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabPanels = document.querySelectorAll('.tab-panel');
+            // 添加全局错误元素引用
+            const globalErrorElement = document.createElement('div');
+            globalErrorElement.id = 'global-error';
+            globalErrorElement.style.position = 'fixed';
+            globalErrorElement.style.top = '20px';
+            globalErrorElement.style.left = '50%';
+            globalErrorElement.style.transform = 'translateX(-50%)';
+            globalErrorElement.style.backgroundColor = '#ff4444';
+            globalErrorElement.style.color = 'white';
+            globalErrorElement.style.padding = '10px 20px';
+            globalErrorElement.style.borderRadius = '4px';
+            globalErrorElement.style.zIndex = '1000';
+            globalErrorElement.style.display = 'none';
+            document.body.appendChild(globalErrorElement);
 
-            // --- 核心认证状态管理 ---
+            // --- 核心认证状态管理 --- 
+            // 添加标志防止重复调用
+            let isProcessingAuthChange = false;
             supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 document.body.classList.remove('show-login-section');
                 
-                if (session && session.user) {
-                    // --- 用户已登录 ---
-                    authButton.textContent = '退出登录';
-                    console.log("DEBUG: 用户已登录，用户ID:", session.user.id);
-                    console.log("DEBUG: 用户邮箱:", session.user.email);
-                    
-                    // 使用我们定义的带REST API回退的fetchProfileWithTimeout函数
-                    fetchProfileWithTimeout()
-                        .then(({ profile, error }) => {
-                            if (error) {
-                                console.error("DEBUG: 获取用户资料失败:", error);
-                                showError("无法加载用户资料，请稍后再试。");
-                            } else if (profile) {
-                                console.log("DEBUG: 获取到用户资料:", {
-                                    id: profile.id,
-                                    username: profile.username,
-                                    full_name: profile.full_name,
-                                    role: profile.role
-                                });
-                                // 获取权限
-                                return fetchPermissions();
-                            }
-                        })
-                        .then(permissions => {
-                            if (permissions) {
-                                console.log("DEBUG: 获取到用户权限:", permissions);
-                                updateUIForLoggedInUser();
-                            }
-                        })
-                        .catch(error => {
-                            console.error("DEBUG: 获取用户数据时发生错误:", error);
-                            showError("无法加载用户数据，请稍后再试。");
-                        });
-                } else {
-                    // --- 用户已登出 ---
-                    console.log("DEBUG: 用户已登出");
-                    updateUIForLoggedOutUser();
+                // 防止重复处理
+                if (isProcessingAuthChange) {
+                    console.log("DEBUG: 跳过重复的auth状态变更处理");
+                    return;
+                }
+                
+                isProcessingAuthChange = true;
+                try {
+                    if (session && session.user) {
+                        // --- 用户已登录 ---
+                        authButton.textContent = '退出登录';
+                        console.log("DEBUG: 用户已登录，用户ID:", session.user.id);
+                        console.log("DEBUG: 用户邮箱:", session.user.email);
+                        
+                        // 使用我们定义的带REST API回退的fetchProfileWithTimeout函数
+                        fetchProfileWithTimeout()
+                            .then(({ profile, error }) => {
+                                if (error) {
+                                    console.error("DEBUG: 获取用户资料失败:", error);
+                                    showError("无法加载用户资料，请稍后再试。");
+                                } else if (profile) {
+                                    console.log("DEBUG: 获取到用户资料:", {
+                                        id: profile.id,
+                                        username: profile.username,
+                                        full_name: profile.full_name,
+                                        role: profile.role
+                                    });
+                                    // 获取权限 - 修改为接受多行结果
+                                    return fetchPermissions();
+                                }
+                            })
+                            .then(permissions => {
+                                if (permissions) {
+                                    console.log("DEBUG: 获取到用户权限:", permissions);
+                                    updateUIForLoggedInUser(permissions);
+                                }
+                            })
+                            .catch(error => {
+                                console.error("DEBUG: 获取用户数据时发生错误:", error);
+                                showError("无法加载用户数据，请稍后再试。");
+                            });
+                    } else {
+                        // --- 用户已登出 ---
+                        console.log("DEBUG: 用户已登出");
+                        updateUIForLoggedOutUser();
+                    }
+                } finally {
+                    // 确保无论如何都会重置标志
+                    setTimeout(() => {
+                        isProcessingAuthChange = false;
+                    }, 1000);
                 }
             });
+
+            // 修改fetchPermissions函数以处理多行结果
+            async function fetchPermissions() {
+                console.log("DEBUG: fetchPermissions函数开始执行");
+                try {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (!session) {
+                        console.log("DEBUG: 未登录，无法获取权限");
+                        return null;
+                    }
+
+                    console.log("DEBUG: 正在获取 'user_permissions' 数据...");
+                    // 修改查询，移除可能导致期望单个对象的设置
+                    const { data: permissions, error: permsError } = await supabaseClient
+                        .from('user_permissions')
+                        .select('tab_name, expires_at')
+                        .eq('user_id', session.user.id);
+
+                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
+
+                    if (permsError) {
+                        console.error("DEBUG: 获取 'user_permissions' 数据时出错:", permsError);
+                        return null;
+                    }
+
+                    return permissions;
+                } catch (error) {
+                    console.error("DEBUG: fetchPermissions函数执行异常:", error);
+                    return null;
+                } finally {
+                    console.log("DEBUG: fetchPermissions函数执行完毕");
+                }
+            }
+
+            // 修改updateUIForLoggedInUser函数接受权限参数
+            function updateUIForLoggedInUser(permissions) {
+                console.log("DEBUG: updateUIForLoggedInUser函数开始执行");
+                try {
+                    // 实现UI更新逻辑
+                    if (userNicknameElement) {
+                        // 从fetchProfileWithTimeout获取的profile已在之前的then链中处理
+                        // 这里可以根据需要更新UI
+                    }
+
+                    // 处理权限
+                    const visibleTabs = new Set(['universities', 'majors']);
+                    const now = new Date();
+                    if (permissions && Array.isArray(permissions)) {
+                        permissions.forEach(p => {
+                            if (!p.expires_at || new Date(p.expires_at) > now) {
+                                visibleTabs.add(p.tab_name);
+                            }
+                        });
+                    }
+
+                    // 显示/隐藏标签页
+                    tabButtons.forEach(btn => {
+                        const tabName = btn.dataset.tab;
+                        btn.classList.toggle('hidden', !visibleTabs.has(tabName));
+                    });
+
+                    // 激活第一个可见标签
+                    const visibleTab = document.querySelector('.tab-button:not(.hidden)');
+                    if (visibleTab) {
+                        visibleTab.click();
+                    }
+                } catch (error) {
+                    console.error("DEBUG: updateUIForLoggedInUser函数执行异常:", error);
+                } finally {
+                    console.log("DEBUG: updateUIForLoggedInUser函数执行完毕");
+                }
+            }
+
+            function updateUIForLoggedOutUser() {
+                console.log("DEBUG: updateUIForLoggedOutUser函数开始执行");
+                try {
+                    authButton.textContent = '登录/注册';
+                    if (userNicknameElement) {
+                        userNicknameElement.textContent = '';
+                    }
+
+                    // 游客只能看到universities和majors标签
+                    tabButtons.forEach(btn => {
+                        const tabName = btn.dataset.tab;
+                        const isPublic = tabName === 'universities' || tabName === 'majors';
+                        btn.classList.toggle('hidden', !isPublic);
+                    });
+
+                    // 激活universities标签
+                    const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
+                    if (defaultTabButton && !defaultTabButton.classList.contains('active')) {
+                        defaultTabButton.click();
+                    }
+                } catch (error) {
+                    console.error("DEBUG: updateUIForLoggedOutUser函数执行异常:", error);
+                } finally {
+                    console.log("DEBUG: updateUIForLoggedOutUser函数执行完毕");
+                }
+            }
 
             // 初始化函数
             async function initialize() {
@@ -333,7 +477,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.error("DEBUG: 获取用户资料失败:", error);
                         } else if (profile) {
                             console.log("DEBUG: 成功获取用户资料");
-                            // 更新UI等操作
+                            // 获取权限
+                            const permissions = await fetchPermissions();
+                            if (permissions) {
+                                updateUIForLoggedInUser(permissions);
+                            }
                         }
                     }
                 } catch (initError) {
