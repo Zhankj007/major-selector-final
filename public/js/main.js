@@ -396,38 +396,16 @@ document.addEventListener('DOMContentLoaded', function () {
             function updateUIForLoggedInUser(permissions) {
                 console.log("DEBUG: updateUIForLoggedInUser函数开始执行");
                 try {
-                    // 实现UI更新逻辑
+                    // 更新用户信息显示
                     if (userNicknameElement) {
-                        // 从fetchProfileWithTimeout获取的profile已在之前的then链中处理
-                        // 这里可以根据需要更新UI
+                        userNicknameElement.textContent = profile?.username || '未命名用户';
+                    }
+                    if (authButton) {
+                        authButton.textContent = '退出登录';
                     }
 
-                    // 处理权限
-                    const visibleTabs = new Set(['universities', 'majors']);
-                    const now = new Date();
-                    if (permissions && Array.isArray(permissions)) {
-                        permissions.forEach(p => {
-                            if (!p.expires_at || new Date(p.expires_at) > now) {
-                                visibleTabs.add(p.tab_name);
-                            }
-                        });
-                    }
-
-                    // 显示/隐藏标签页
-                    if (tabButtons && tabButtons.length > 0) {
-                        tabButtons.forEach(btn => {
-                            if (btn) {
-                                const tabName = btn.dataset.tab;
-                                btn.classList.toggle('hidden', !visibleTabs.has(tabName));
-                            }
-                        });
-
-                        // 激活第一个可见标签
-                        const visibleTab = document.querySelector('.tab-button:not(.hidden)');
-                        if (visibleTab) {
-                            visibleTab.click();
-                        }
-                    }
+                    // 从fetchProfileWithTimeout获取的profile已在之前的then链中处理
+                    // 这里可以根据需要更新UI
                 } catch (error) {
                     console.error("DEBUG: updateUIForLoggedInUser函数执行异常:", error);
                 } finally {
@@ -438,22 +416,28 @@ document.addEventListener('DOMContentLoaded', function () {
             function updateUIForLoggedOutUser() {
                 console.log("DEBUG: updateUIForLoggedOutUser函数开始执行");
                 try {
-                    authButton.textContent = '登录/注册';
+                    if (authButton) {
+                        authButton.textContent = '登录/注册';
+                    }
                     if (userNicknameElement) {
                         userNicknameElement.textContent = '';
                     }
 
                     // 游客只能看到universities和majors标签
-                    tabButtons.forEach(btn => {
-                        const tabName = btn.dataset.tab;
-                        const isPublic = tabName === 'universities' || tabName === 'majors';
-                        btn.classList.toggle('hidden', !isPublic);
-                    });
+                    if (tabButtons && tabButtons.length > 0) {
+                        tabButtons.forEach(btn => {
+                            if (btn) {
+                                const tabName = btn.dataset.tab;
+                                const isPublic = tabName === 'universities' || tabName === 'majors';
+                                btn.classList.toggle('hidden', !isPublic);
+                            }
+                        });
 
-                    // 激活universities标签
-                    const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
-                    if (defaultTabButton && !defaultTabButton.classList.contains('active')) {
-                        defaultTabButton.click();
+                        // 激活universities标签
+                        const defaultTabButton = document.querySelector('.tab-button[data-tab="universities"]');
+                        if (defaultTabButton && !defaultTabButton.classList.contains('active')) {
+                            defaultTabButton.click();
+                        }
                     }
                 } catch (error) {
                     console.error("DEBUG: updateUIForLoggedOutUser函数执行异常:", error);
@@ -594,28 +578,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 // 标签页切换
-                tabButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const tabId = button.getAttribute('data-tab');
-                        
-                        // 移除所有活跃状态
-                        tabButtons.forEach(btn => btn.classList.remove('active'));
-                        tabPanels.forEach(panel => panel.classList.remove('active'));
-                        
-                        // 添加当前活跃状态
-                        button.classList.add('active');
-                        document.getElementById(tabId).classList.add('active');
-                        
-                        // 如果切换到专业查询标签，可能需要加载数据
-                        if (tabId === 'major-panel') {
-                            loadMajorData();
-                        } else if (tabId === 'plan-panel') {
-                            loadPlanData();
-                        } else if (tabId === 'university-panel') {
-                            loadUniversityData();
+                if (tabButtons && tabButtons.length > 0) {
+                    tabButtons.forEach(button => {
+                        if (button) {
+                            button.addEventListener('click', () => {
+                                const tabId = button.getAttribute('data-tab');
+                                
+                                // 移除所有活跃状态
+                                tabButtons.forEach(btn => {
+                                    if (btn) btn.classList.remove('active');
+                                });
+                                tabPanels.forEach(panel => {
+                                    if (panel) panel.classList.remove('active');
+                                });
+                                
+                                // 添加当前活跃状态
+                                button.classList.add('active');
+                                const activePanel = document.getElementById(tabId);
+                                if (activePanel) {
+                                    activePanel.classList.add('active');
+                                }
+                                
+                                // 如果切换到专业查询标签，可能需要加载数据
+                                if (tabId === 'major-panel') {
+                                    loadMajorData();
+                                } else if (tabId === 'plan-panel') {
+                                    loadPlanData();
+                                } else if (tabId === 'university-panel') {
+                                    loadUniversityData();
+                                }
+                            });
                         }
                     });
-                });
+                }
 
                 console.log("DEBUG: 所有事件监听器已挂载");
             }
