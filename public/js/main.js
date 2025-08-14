@@ -410,12 +410,121 @@ document.addEventListener('DOMContentLoaded', function () {
                         authButton.textContent = '退出登录';
                     }
 
-                    // 从fetchProfileWithTimeout获取的profile已在之前的then链中处理
-                    // 这里可以根据需要更新UI
+                    // 根据权限显示/隐藏标签页
+                    if (tabButtons && tabButtons.length > 0) {
+                        // 默认可见标签集合
+                        let visibleTabs = ['universities', 'majors', 'plans'];
+
+                        // 检查用户角色和权限
+                        console.log("DEBUG: 用户角色:", profile?.role);
+                        console.log("DEBUG: 用户权限:", permissions);
+
+                        // 如果是admin角色，添加admin标签
+                        if (profile?.role === 'admin') {
+                            visibleTabs.push('admin');
+                            console.log("DEBUG: 管理员用户，添加admin标签");
+                        } 
+                        // 对于普通用户，确保不显示admin标签
+                        else {
+                            visibleTabs = visibleTabs.filter(tab => tab !== 'admin');
+                            console.log("DEBUG: 普通用户，移除admin标签");
+                        }
+
+                        // 基于权限进一步过滤标签
+                        if (permissions && permissions.length > 0) {
+                            const permissionNames = permissions.map(perm => perm.permission_name);
+                            console.log("DEBUG: 权限名称列表:", permissionNames);
+
+                            // 这里可以根据具体权限进一步过滤标签
+                            // 例如，如果用户没有plan管理权限，可以移除plans标签
+                            // if (!permissionNames.includes('manage_plans')) {
+                            //     visibleTabs = visibleTabs.filter(tab => tab !== 'plans');
+                            // }
+                        }
+
+                        // 应用标签可见性
+                        tabButtons.forEach(btn => {
+                            if (btn) {
+                                const tabName = btn.dataset.tab;
+                                const isVisible = visibleTabs.includes(tabName);
+                                btn.classList.toggle('hidden', !isVisible);
+                                console.log(`DEBUG: 标签${tabName}可见性: ${isVisible}`);
+                            }
+                        });
+
+                        // 激活第一个可见标签
+                        const firstVisibleTab = tabButtons.find(btn => 
+                            btn && !btn.classList.contains('hidden')
+                        );
+                        if (firstVisibleTab) {
+                            // 先移除所有活跃状态
+                            tabButtons.forEach(btn => {
+                                if (btn) btn.classList.remove('active');
+                            });
+                            tabPanels.forEach(panel => {
+                                if (panel) panel.classList.remove('active');
+                            });
+                            // 激活第一个可见标签
+                            firstVisibleTab.classList.add('active');
+                            const tabId = firstVisibleTab.getAttribute('data-tab');
+                            const activePanel = document.getElementById(`${tabId}-panel`);
+                            if (activePanel) {
+                                activePanel.classList.add('active');
+                                // 加载标签页内容
+                                loadTabContent(tabId);
+                            }
+                        }
+                    }
                 } catch (error) {
                     console.error("DEBUG: updateUIForLoggedInUser函数执行异常:", error);
                 } finally {
                     console.log("DEBUG: updateUIForLoggedInUser函数执行完毕");
+                }
+            }
+
+            // 添加标签页内容加载函数
+            function loadTabContent(tabId) {
+                console.log(`DEBUG: 加载${tabId}标签页内容`);
+                try {
+                    // 根据标签ID加载不同内容
+                    switch (tabId) {
+                        case 'universities':
+                            // 加载大学数据
+                            if (window.loadUniversitiesData) {
+                                window.loadUniversitiesData();
+                            } else {
+                                console.warn("DEBUG: loadUniversitiesData函数未定义");
+                            }
+                            break;
+                        case 'majors':
+                            // 加载专业数据
+                            if (window.loadMajorsData) {
+                                window.loadMajorsData();
+                            } else {
+                                console.warn("DEBUG: loadMajorsData函数未定义");
+                            }
+                            break;
+                        case 'plans':
+                            // 加载计划数据
+                            if (window.loadPlansData) {
+                                window.loadPlansData();
+                            } else {
+                                console.warn("DEBUG: loadPlansData函数未定义");
+                            }
+                            break;
+                        case 'admin':
+                            // 加载管理数据
+                            if (window.loadAdminData) {
+                                window.loadAdminData();
+                            } else {
+                                console.warn("DEBUG: loadAdminData函数未定义");
+                            }
+                            break;
+                        default:
+                            console.warn(`DEBUG: 未知标签页: ${tabId}`);
+                    }
+                } catch (error) {
+                    console.error(`DEBUG: 加载${tabId}标签页内容时发生错误:`, error);
                 }
             }
 
