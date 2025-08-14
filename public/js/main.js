@@ -330,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (error) {
                                     console.error("DEBUG: 获取用户资料失败:", error);
                                     showError("无法加载用户资料，请稍后再试。");
+                                    return Promise.reject(error);
                                 } else if (profile) {
                                     console.log("DEBUG: 获取到用户资料:", {
                                         id: profile.id,
@@ -338,33 +339,38 @@ document.addEventListener('DOMContentLoaded', function () {
                                         role: profile.role
                                     });
                                     // 获取权限
-                                    return fetchPermissions();
+                                    return fetchPermissions()
+                                        .then(permissions => ({ profile, permissions }));
                                 }
-                                return null;
+                                return Promise.reject(new Error("未获取到用户资料"));
                             })
-                            .then(permissions => {
+                            .then(({ profile, permissions }) => {
                                 if (permissions) {
                                     console.log("DEBUG: 获取到用户权限:", permissions);
-                                    updateUIForLoggedInUser(permissions);
+                                    updateUIForLoggedInUser(profile, permissions);
                                 } else {
                                     console.log("DEBUG: 未获取到权限数据，使用默认权限");
-                                    updateUIForLoggedInUser([]);
+                                    updateUIForLoggedInUser(profile, []);
                                 }
                             })
                             .catch(error => {
-                                console.error("DEBUG: 获取用户数据时发生错误:", error);
-                                showError("无法加载用户数据，请稍后再试。");
+                                console.error("DEBUG: 处理登录状态变更失败:", error);
+                            })
+                            .finally(() => {
+                                isProcessingAuthChange = false;
                             });
                     } else {
-                        // --- 用户已登出 ---
-                        console.log("DEBUG: 用户已登出");
+                        // --- 用户未登录 ---
+                        authButton.textContent = '登录/注册';
                         updateUIForLoggedOutUser();
                     }
+                } catch (authError) {
+                    console.error("DEBUG: 认证状态变更处理异常:", authError);
                 } finally {
-                    // 确保无论如何都会重置标志
-                    setTimeout(() => {
+                    // 确保标志被重置
+                    if (!isProcessingAuthChange) {
                         isProcessingAuthChange = false;
-                    }, 1000);
+                    }
                 }
             });
 
@@ -393,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // 修改updateUIForLoggedInUser函数接受权限参数
-            function updateUIForLoggedInUser(permissions) {
+            function updateUIForLoggedInUser(profile, permissions) {
                 console.log("DEBUG: updateUIForLoggedInUser函数开始执行");
                 try {
                     // 更新用户信息显示
@@ -463,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // 获取权限
                             const permissions = await fetchPermissions();
                             if (permissions) {
-                                updateUIForLoggedInUser(permissions);
+                                updateUIForLoggedInUser(profile, permissions);
                             }
                         }
                     }
