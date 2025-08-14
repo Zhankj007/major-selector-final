@@ -337,14 +337,18 @@ document.addEventListener('DOMContentLoaded', function () {
                                         full_name: profile.full_name,
                                         role: profile.role
                                     });
-                                    // 获取权限 - 修改为接受多行结果
+                                    // 获取权限
                                     return fetchPermissions();
                                 }
+                                return null;
                             })
                             .then(permissions => {
                                 if (permissions) {
                                     console.log("DEBUG: 获取到用户权限:", permissions);
                                     updateUIForLoggedInUser(permissions);
+                                } else {
+                                    console.log("DEBUG: 未获取到权限数据，使用默认权限");
+                                    updateUIForLoggedInUser([]);
                                 }
                             })
                             .catch(error => {
@@ -368,29 +372,20 @@ document.addEventListener('DOMContentLoaded', function () {
             async function fetchPermissions() {
                 console.log("DEBUG: fetchPermissions函数开始执行");
                 try {
-                    const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (!session) {
-                        console.log("DEBUG: 未登录，无法获取权限");
-                        return null;
-                    }
-
                     console.log("DEBUG: 正在获取 'user_permissions' 数据...");
-                    // 修改查询，移除可能导致期望单个对象的设置
-                    const { data: permissions, error: permsError } = await supabaseClient
+                    const { data, error } = await supabaseClient
                         .from('user_permissions')
-                        .select('tab_name, expires_at')
-                        .eq('user_id', session.user.id);
+                        .select('*');
 
-                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions, permsError });
-
-                    if (permsError) {
-                        console.error("DEBUG: 获取 'user_permissions' 数据时出错:", permsError);
+                    if (error) {
+                        console.error("DEBUG: 获取 'user_permissions' 数据失败:", error);
                         return null;
                     }
 
-                    return permissions;
-                } catch (error) {
-                    console.error("DEBUG: fetchPermissions函数执行异常:", error);
+                    console.log("DEBUG: 'user_permissions' 数据获取完成。", { permissions: data, permsError: null });
+                    return data;
+                } catch (permsError) {
+                    console.error("DEBUG: 获取 'user_permissions' 数据时捕获到异常:", permsError);
                     return null;
                 } finally {
                     console.log("DEBUG: fetchPermissions函数执行完毕");
@@ -419,15 +414,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // 显示/隐藏标签页
-                    tabButtons.forEach(btn => {
-                        const tabName = btn.dataset.tab;
-                        btn.classList.toggle('hidden', !visibleTabs.has(tabName));
-                    });
+                    if (tabButtons && tabButtons.length > 0) {
+                        tabButtons.forEach(btn => {
+                            if (btn) {
+                                const tabName = btn.dataset.tab;
+                                btn.classList.toggle('hidden', !visibleTabs.has(tabName));
+                            }
+                        });
 
-                    // 激活第一个可见标签
-                    const visibleTab = document.querySelector('.tab-button:not(.hidden)');
-                    if (visibleTab) {
-                        visibleTab.click();
+                        // 激活第一个可见标签
+                        const visibleTab = document.querySelector('.tab-button:not(.hidden)');
+                        if (visibleTab) {
+                            visibleTab.click();
+                        }
                     }
                 } catch (error) {
                     console.error("DEBUG: updateUIForLoggedInUser函数执行异常:", error);
@@ -632,20 +631,3 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("捕获到致命错误:", error);
         }
     });
-
-    async function fetchPermissions() {
-        console.log("DEBUG: 正在获取 'user_permissions' 数据...");
-        try {
-            const { data, error } = await supabaseClient
-                .from('user_permissions')
-                .select('*')
-                .single();
-
-            if (error) throw error;
-            console.log("DEBUG: 成功获取 'user_permissions' 数据");
-            return data;
-        } catch (permsError) {
-            console.error("DEBUG: 获取 'user_permissions' 数据失败:", permsError.message);
-            throw permsError;
-        }
-    }
