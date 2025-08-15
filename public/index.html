@@ -18,9 +18,18 @@
     }
 
     /* 当用户未登录时，仍然显示前两个标签页 */
-    body.logged-out .tab-navigation,
     body.logged-out main.tab-content {
         display: block;
+    }
+    /* 确保标签导航保持水平排列 */
+    body.logged-out .tab-navigation {
+        display: flex;
+        gap: 5px;
+        margin-bottom: -1px;
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
     }
     
     /* 当用户未登录时，隐藏招生计划和后台管理标签页 */

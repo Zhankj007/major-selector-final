@@ -4,7 +4,7 @@
     --button-disabled-bg: #adb5bd; --button-disabled-color: #f8f9fa;
 }
 html, body { height: 100%; margin: 0; overflow: hidden; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 15px; background-color: #f0f2f5; color: var(--text-color); font-size: 14px; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 5px; background-color: #f0f2f5; color: var(--text-color); font-size: 14px; box-sizing: border-box; }
 .toolbox-container { display: flex; flex-direction: column; height: 100%; max-width: none; }
 .toolbox-header { padding: 0 0 15px 0; }
 .toolbox-header .title-version { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
@@ -12,16 +12,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 #version-info { font-size: 12px; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 5px; }
 .toolbox-header .description { font-size: 14px; color: #555; margin: 0; margin-left: 5px; align-self: flex-end; padding-bottom: 2px; }
 .title-version > .description { margin-left: 20px; }
-.tab-navigation { display: flex; gap: 5px; margin-bottom: -1px; flex-shrink: 0; }
-.tab-button { padding: 10px 20px; font-size: 16px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; }
+.tab-navigation { display: flex; gap: 5px; margin-bottom: -1px; flex-shrink: 0; flex-wrap: nowrap; }
+.tab-button { padding: 8px 16px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; white-space: nowrap; }
 .tab-button.active { background-color: white; color: var(--primary-color); border-top: 3px solid var(--primary-color); padding-top: 8px;}
-.tab-content { background-color: white; padding: 20px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; }
+.tab-content { background-color: white; padding: 5px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; }
 .tab-panel { display: none; width: 100%; }
 .tab-panel.active { display: flex; }
-.app-container { display: flex; flex-direction: row; gap: 20px; height: 100%; width: 100%; }
-.left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; }
-.right-panel { width: 60%; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; box-sizing: border-box; gap: 15px; }
-.details-content { flex-grow: 1; }
+.app-container { display: flex; flex-direction: row; gap: 10px; height: 100%; width: 100%; }
+.left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; max-height: 100%; box-sizing: border-box; }
+.right-panel { width: 60%; flex-shrink: 0; display: flex; flex-direction: column; box-sizing: border-box; gap: 10px; max-height: 100%; overflow: hidden; }
+.details-content { flex-grow: 1; overflow-y: auto; max-height: 100%; }
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; background-color: #fff; }
@@ -33,7 +33,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .filter-group[open] summary::after { content: ' ▲'; }
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
-.major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow: auto; flex-grow: 1; min-height: 200px; position: relative; }
+.major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow: auto; flex-grow: 1; min-height: 200px; position: relative; max-height: 100%; }
 .header-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls .search-container { display: flex; gap: 8px; flex-grow: 0.8; min-width: 150px; }
 .header-controls .search-container input { flex-grow: 1; }
@@ -53,7 +53,7 @@ li { padding: 4px 0; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
-.output-container { border-top: 1px solid var(--border-color); padding-top: 15px; flex-shrink: 0; }
+.output-container { border-top: 1px solid var(--border-color); padding-top: 10px; flex-shrink: 0; max-height: 30%; overflow-y: auto; box-sizing: border-box; }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 .output-button { padding: 8px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
@@ -63,7 +63,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .details-content p { margin: 0 0 4px 0; line-height: 1.5; }
 .details-content .compact-row-container { margin-bottom: 4px; line-height: 1.6; }
 .details-content h3 { margin-top: 0; font-size: 18px; color: var(--primary-color);}
-@media (max-width: 1024px) { body { overflow-y: auto; padding: 10px; } .toolbox-container { height: auto; } .app-container { flex-direction: column; } .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } .right-panel { position: static; margin-top: 20px; } .header-controls { flex-direction: column; align-items: stretch; } }
+@media (max-width: 1024px) { body { overflow-y: auto; padding: 10px; } .toolbox-container { height: auto; } .app-container { flex-direction: column; } .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } .right-panel { position: static; margin-top: 10px; } .header-controls { flex-direction: column; align-items: stretch; } .tab-navigation { overflow-x: auto; padding-bottom: 5px; } }
 .plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
 .plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; }
 .input-column { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
