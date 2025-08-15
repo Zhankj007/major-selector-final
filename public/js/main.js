@@ -10,11 +10,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const registerError = document.getElementById('register-error');
     const registerMessage = document.getElementById('register-message');
     const logoutButton = document.getElementById('logout-button');
+    const loginRegisterButton = document.getElementById('login-register-button');
     const showRegisterLink = document.getElementById('show-register-link');
     const showLoginLink = document.getElementById('show-login-link');
     const userNicknameElement = document.getElementById('user-nickname');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('.tab-panel');
+    const loginModal = document.getElementById('login-modal');
+    const closeModal = document.querySelector('.close-modal');
+
+    // --- 模态框控制逻辑 ---
+    // 显示模态框
+    function showModal() {
+        loginModal.classList.add('active');
+    }
+
+    // 隐藏模态框
+    function hideModal() {
+        loginModal.classList.remove('active');
+        // 重置表单状态
+        loginError.textContent = '';
+        registerError.textContent = '';
+        registerMessage.textContent = '';
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+    }
+
+    // 点击登录/注册按钮显示模态框
+    if (loginRegisterButton) {
+        loginRegisterButton.addEventListener('click', showModal);
+    }
+
+    // 点击关闭按钮隐藏模态框
+    if (closeModal) {
+        closeModal.addEventListener('click', hideModal);
+    }
+
+    // 点击模态框外部隐藏模态框
+    if (loginModal) {
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                hideModal();
+            }
+        });
+    }
 
     // --- 核心认证状态管理 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -22,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.remove('logged-out');
             loadUserPermissions(session.user.id);
             displayUserProfile(session.user.id);
+            hideModal(); // 登录成功后隐藏模态框
         } else {
             document.body.classList.add('logged-out');
             if (userNicknameElement) userNicknameElement.textContent = '';
@@ -33,6 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.style.display = 'none';
                 }
             });
+            // 确保未登录状态下第一个标签页被激活并初始化
+            const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
+            if (firstVisibleTab) {
+                firstVisibleTab.click();
+            }
         }
     });
     
@@ -257,11 +302,25 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // 【修改点】生成完整的句子
             visitorElement.textContent = `您是第 ${data.count} 位访客！`;
-    
+
         } catch (error) {
             console.error('Failed to fetch visitor count:', error);
         }
     }
     
-    updateVisitorCount();
+    // 页面加载完成后初始化第一个标签页
+    document.addEventListener('DOMContentLoaded', () => {
+        // 检查是否已登录
+        const isLoggedIn = !document.body.classList.contains('logged-out');
+        if (isLoggedIn) {
+            // 登录状态下，等待权限加载完成后自动选择第一个可见标签页
+            setTimeout(() => {
+                const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
+                if (firstVisibleTab && !firstVisibleTab.classList.contains('active')) {
+                    firstVisibleTab.click();
+                }
+            }, 500);
+        }
+        updateVisitorCount();
+    });
 });

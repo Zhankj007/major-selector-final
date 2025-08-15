@@ -9,16 +9,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="style.css">
 <style>
+    /* 登录/注册按钮默认显示规则 */
+    #login-register-button { display: none; }
+    body.logged-out #login-register-button { display: inline-block; }
+
     .hidden {
         display: none !important;
-    }
-
-    /* 当用户未登录时 (body有logged-out类)，显示登录框并居中 */
-    body.logged-out #login-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5vh 0;
     }
 
     /* 当用户未登录时，仍然显示前两个标签页 */
@@ -42,11 +38,34 @@
     
     /* 当用户登录后，显示退出按钮 */
     #logout-button {
+        display: none;
+    }
+    body:not(.logged-out) #logout-button {
         display: inline-block;
     }
 
+    /* 模态框背景 */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        display: none;
+    }
+
+    /* 显示模态框 */
+    .modal-overlay.active {
+        display: flex;
+    }
+
     /* 登录表单的白色卡片容器样式 */
-    #login-section > div {
+    .modal-content {
       max-width: 400px;
       width: 100%;
       margin: 0 15px;
@@ -56,9 +75,21 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       background-color: white;
       box-sizing: border-box;
+      position: relative;
     }
-    /* 这条规则明确指定：在登录状态下（即body没有.logged-out类时），强制隐藏登录区域 */
-    body:not(.logged-out) #login-section {
+
+    /* 关闭按钮 */
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 20px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    /* 这条规则明确指定：登录区域默认隐藏 */
+    #login-section {
         display: none;
     }
     /* 为所有按钮添加过渡效果，让变化更平滑 */
@@ -95,14 +126,16 @@
             <div class="header-controls" style="font-size: 14px; margin-top: 5px; color: #666;">
                 <span id="user-nickname"></span>
                 <span id="visitor-info" style="margin-right: 15px;"></span>
+                <button id="login-register-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">登录/注册</button>
                 <button id="logout-button" style="margin-left: 20px; padding: 5px 10px; cursor: pointer;">退出登录</button>
             </div>
             <p class="description">詹老师的工具箱目前包括高校库、专业目录筛选等实用功能，后续视需求逐步添加。</p>
         </div>
     </header>
 
-    <div id="login-section">
-        <div style="max-width: 400px; margin: 40px auto; padding: 20px 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
             
             <form id="login-form">
                 <h2 style="text-align: center; margin-top: 0;">请登录</h2>
