@@ -140,8 +140,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     border: 1px solid var(--border-color);
     display: flex;
     box-sizing: border-box;
-    /* 假设 tab 按钮区域高度为 40px，可根据实际调整 */
-    height: calc(100% - 40px - 5px);
+    flex: 1; /* 占满剩余高度 */
     margin-bottom: 5px; /* 距页面底部 5px */
 }
 
