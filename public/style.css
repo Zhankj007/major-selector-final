@@ -192,3 +192,60 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     overflow-y: auto;
     box-sizing: border-box;
 }
+/* === 高度继承链修复，确保按剩余空间布局生效 === */
+html, body {
+    height: 100%;
+}
+.toolbox-container {
+    height: calc(100% - 10px);
+}
+.tab-panel.active {
+    height: 100%;
+}
+.app-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+.left-panel {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin-right: 5px;
+    box-sizing: border-box;
+}
+.major-tree-container {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+.right-panel {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 5px;
+    box-sizing: border-box;
+}
+.details-content {
+    flex: 0 0 75%;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.output-container {
+    flex: 0 0 25%;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
