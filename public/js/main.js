@@ -25,7 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             document.body.classList.add('logged-out');
             if (userNicknameElement) userNicknameElement.textContent = '';
-            tabButtons.forEach(btn => btn.style.display = 'none');
+            // 默认显示前两个标签页（高校库和专业目录）
+            tabButtons.forEach(btn => {
+                if (btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors') {
+                    btn.style.display = '';
+                } else {
+                    btn.style.display = 'none';
+                }
+            });
         }
     });
     
@@ -148,7 +155,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadUserPermissions(userId) {
-        tabButtons.forEach(btn => btn.style.display = 'none'); // 先隐藏所有
+        // 默认显示前两个标签页（高校库和专业目录）
+        tabButtons.forEach(btn => {
+            if (btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors') {
+                btn.style.display = '';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
         const { data: permissions, error } = await supabaseClient
             .from('user_permissions')
             .select('tab_name, expires_at')
@@ -170,6 +184,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    
+        // 显示管理员标签页（如果用户是管理员）
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+    
+        if (profileError) {
+            console.error('获取用户角色失败:', profileError);
+        } else if (profile && profile.role === 'admin') {
+            const adminTabButton = document.getElementById('admin-tab-button');
+            if (adminTabButton) {
+                adminTabButton.style.display = '';
+                visibleTabs.push(adminTabButton);
+            }
+        }
     
         // --- 【关键修正点】 ---
         // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页

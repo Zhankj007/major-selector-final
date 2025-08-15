@@ -3,7 +3,7 @@
 ### 项目概况
 本工具网站，系詹老师业余时间打理，边学边做，仅供练手。<br><br>
 网站是标准三层架构的 Web 应用，页面采取标签页模式，一个标签页代表一种功能查询，目前已搭建高校库、专业目录、2025浙江高考招生计划、后台管理等4个标签页，每个标签页一个前端文件，互相之间不干扰。<br><br>
-网站提供用户管理系统，并集成权限管理，权限以标签页为单位，新注册用户默认提供高校库、专业目录两项功能。系统管理员额外多一个后台管理功能，可查阅每个用户的注册信息及登录情况，同时也提供权限及使用日期管理。<br><br>
+网站提供用户管理系统，并集成权限管理，权限以标签页为单位，游客默认提供高校库、专业目录两项功能，用户注册后，可由系统管理员在后台管理中添加权限。系统管理员额外多一个后台管理功能，可查阅每个用户的注册信息及登录情况，同时也提供权限及使用日期管理。<br><br>
 
 ### 模块功能
 :blue_heart:**高校库** <br>直接在前端服务器上 _data 目录下建立数据源 universities.csv 文件，将全国截止2025年7月的高校名单信息纳入。页面左侧，按省份、主管部门等两种架构进行树状结构查询，同时建立了院校水平、院校类型、城市评级、办学性质、办学层次等五个维度的筛选器，并提供院校名称的关键字查询。页面右侧，上方提供院校详情的查看，只要在左侧院校名上悬停或点击，右侧自动出现该院校的详情信息；下方提供意向院校的收藏，只要将左侧院校名前面的方框勾选，自动将该院校纳入意向院校清单，并提供复制和清空按钮。<br>
@@ -30,7 +30,6 @@ major-selector-final/<br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       getUniversities.js<br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       login.js<br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       register.js<br>
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;       test.js<br>
 |<br>
 +---public<br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |&nbsp;&nbsp;&nbsp;   favicon.ico<br>

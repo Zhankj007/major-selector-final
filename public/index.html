@@ -21,10 +21,18 @@
       padding: 5vh 0;
     }
 
-    /* 当用户未登录时，隐藏真正的工具箱内容 */
+    /* 当用户未登录时，仍然显示前两个标签页 */
     body.logged-out .tab-navigation,
     body.logged-out main.tab-content {
-        display: none;
+        display: block;
+    }
+    
+    /* 当用户未登录时，隐藏招生计划和后台管理标签页 */
+    body.logged-out .tab-button[data-tab="plans"],
+    body.logged-out .tab-button[data-tab="admin"],
+    body.logged-out #plans-tab,
+    body.logged-out #admin-tab {
+        display: none !important;
     }
     
     /* 当用户未登录时，隐藏退出按钮 */
