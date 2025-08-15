@@ -16,6 +16,14 @@ window.initializeUniversitiesTab = function() {
                         <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
                         <button id="uni-query-button" class="query-button">查询</button>
                     </div>
+                    <div class="switcher-group">
+                         <div class="switcher">
+                            <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
+                            <label for="collapse-all">折叠</label>
+                            <input type="radio" name="expand-collapse" value="expand" id="expand-all">
+                            <label for="expand-all">展开</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="controls-toolbar">
                     <div class="filter-controls">
@@ -24,14 +32,6 @@ window.initializeUniversitiesTab = function() {
                         <details class="filter-group"><summary>城市评级</summary><div id="uni-city-tier-filter" class="filter-options"><p>加载中...</p></div></details>
                         <details class="filter-group"><summary>办学性质</summary><div id="uni-ownership-filter" class="filter-options"><p>加载中...</p></div></details>
                         <details class="filter-group"><summary>办学层次</summary><div id="uni-edu-level-filter" class="filter-options"><p>加载中...</p></div></details>
-                    </div>
-                    <div class="switcher-group">
-                         <div class="switcher">
-                            <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
-                            <label for="collapse-all">折叠</label>
-                            <input type="radio" name="expand-collapse" value="expand" id="expand-all">
-                            <label for="expand-all">展开</label>
-                        </div>
                     </div>
                 </div>
                 <div id="uni-tree-container" class="major-tree-container"><p>请点击“查询”按钮开始。</p></div>
