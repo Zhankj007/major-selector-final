@@ -1,28 +1,195 @@
 :root {
-    --primary-color: #007bff; --border-color: #dee2e6;
-    --background-light: #f8f9fa; --text-color: #212529;
-    --button-disabled-bg: #adb5bd; --button-disabled-color: #f8f9fa;
+    --primary-color: #007bff;
+    --border-color: #dee2e6;
+    --background-light: #f8f9fa;
+    --text-color: #212529;
+    --button-disabled-bg: #adb5bd;
+    --button-disabled-color: #f8f9fa;
+    --page-gutter: 5px; /* 定义全局边距 */
 }
-html, body { height: 100%; margin: 0; overflow: hidden; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 5px; background-color: #f0f2f5; color: var(--text-color); font-size: 14px; box-sizing: border-box; }
-.toolbox-container { display: flex; flex-direction: column; height: calc(100% - 10px); max-width: none; }
-.toolbox-header { padding: 0 0 15px 0; }
-.toolbox-header .title-version { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-.toolbox-header h1 { font-size: 22px; margin: 0; color: #333; }
-#version-info { font-size: 12px; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 5px; }
-.toolbox-header .description { font-size: 14px; color: #555; margin: 0; margin-left: 5px; align-self: flex-end; padding-bottom: 2px; }
-.title-version > .description { margin-left: 20px; }
-.tab-navigation { display: flex; gap: 5px; margin-bottom: -1px; flex-shrink: 0; flex-wrap: nowrap; }
-.tab-button { padding: 8px 16px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-color); border-bottom: none; background-color: #f8f9fa; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s ease-in-out; white-space: nowrap; }
-.tab-button.active { background-color: white; color: var(--primary-color); border-top: 3px solid var(--primary-color); padding-top: 8px;}
-.tab-content { background-color: white; padding: 5px; border-radius: 0 8px 8px 8px; border: 1px solid var(--border-color); flex-grow: 1; overflow: hidden; display: flex; margin-bottom: 5px !important; }
-.tab-panel { display: none; width: 100%; }
-.tab-panel.active { display: flex; }
-.app-container { display: flex; flex-direction: row; gap: 10px; height: 100%; width: 100%; }
-.left-panel { width: 40%; flex-shrink: 0; display: flex; flex-direction: column; max-height: 100%; box-sizing: border-box; }
-.right-panel { width: 60%; flex-shrink: 0; display: flex; flex-direction: column; box-sizing: border-box; gap: 5px; max-height: 100%; flex: 0 0 60%; }
-.details-content { flex: 0 0 75%; overflow-y: auto; min-height: 150px; margin: 5px; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; box-sizing: border-box; }
-.controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; flex-shrink: 0; }
+
+/* --- 1. 基础页面和字体布局 --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* 保持页面主体不滚动 */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: var(--page-gutter);
+    background-color: #f0f2f5;
+    color: var(--text-color);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+li {
+    padding: 4px 0;
+}
+
+/* --- 2. 主容器和头部 --- */
+.toolbox-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: none;
+}
+
+.toolbox-header {
+    padding: 0 0 15px 0;
+    flex-shrink: 0;
+}
+
+.toolbox-header .title-version {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.toolbox-header h1 {
+    font-size: 22px;
+    margin: 0;
+    color: #333;
+}
+
+#version-info {
+    font-size: 12px;
+    color: #6c757d;
+    background-color: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 5px;
+}
+
+.toolbox-header .description {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+    margin-left: 20px;
+}
+
+/* --- 3. 标签页导航与内容区 --- */
+.tab-navigation {
+    display: flex;
+    gap: 5px;
+    margin-bottom: -1px;
+    flex-shrink: 0;
+}
+
+.tab-button {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    background-color: white;
+    color: var(--primary-color);
+    border-top: 3px solid var(--primary-color);
+    padding-top: 6px; /* 微调以匹配边框高度 */
+}
+
+.tab-content {
+    background-color: white;
+    padding: var(--page-gutter);
+    border-radius: 0 8px 8px 8px;
+    border: 1px solid var(--border-color);
+    flex-grow: 1; /* 关键：填满剩余垂直空间 */
+    overflow: hidden; /* 隐藏内部超出的部分，让子元素自己处理滚动 */
+    display: flex;
+    margin-bottom: var(--page-gutter); /* 确保下方有5px边距 */
+}
+
+.tab-panel {
+    display: none;
+    width: 100%;
+}
+
+.tab-panel.active {
+    display: flex;
+}
+
+/* --- 4. 高校库/专业目录/招生计划页 内部布局 --- */
+.app-container {
+    display: flex;
+    flex-direction: row;
+    gap: var(--page-gutter);
+    height: 100%;
+    width: 100%;
+}
+
+.left-panel, .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gutter);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.left-panel {
+    width: 40%;
+    flex-shrink: 0;
+}
+
+.right-panel {
+    width: 60%;
+    flex-shrink: 0;
+}
+
+/* 左侧筛选结果滚动框 */
+.major-tree-container {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    overflow-y: auto;
+    flex-grow: 1; /* 关键：让它填满 .left-panel 的所有剩余空间 */
+    min-height: 0; /* 关键：确保滚动条能出现 */
+}
+
+/* 右侧详情框 */
+.details-content, #plan-details-content {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    height: 75%; /* 高度占父容器(.right-panel)的75% */
+    box-sizing: border-box;
+}
+
+/* 右侧输出框 */
+.output-container, #plan-output-container {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    height: 25%; /* 高度占父容器(.right-panel)的25% */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 5. 招生计划页 专属布局 --- */
+#app-container-plans .left-panel { width: 50%; }
+#app-container-plans .right-panel { width: 50%; }
+#plan-details-content { height: auto; flex: 40; }
+#plan-chart-area { height: auto; flex: 35; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
+#plan-output-container { height: auto; flex: 25; padding: 0; border: none; }
+#plan-output-container > div { height: 100%; }
+
+/* --- 6. 通用组件样式 --- */
+.controls-toolbar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; background-color: #fff; }
 .filter-group summary { font-weight: 500; cursor: pointer; padding: 3px 20px 3px 5px; list-style: none; transition: all 0.2s; border-radius: 4px; }
@@ -33,17 +200,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .filter-group[open] summary::after { content: ' ▲'; }
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
-.major-tree-container { border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; overflow-y: auto; flex-grow: 1; min-height: 200px; position: relative; max-height: calc(100% - 10px); margin: 0 5px 5px 5px; scrollbar-width: auto; overflow-x: hidden; }
-
-/* WebKit滚动条样式 */
-.major-tree-container::-webkit-scrollbar { width: 8px; }
-.major-tree-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-.major-tree-container::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-.major-tree-container::-webkit-scrollbar-thumb:hover { background: #555; }
-.header-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; justify-content: space-between; }
-.header-controls .search-container { display: flex; gap: 8px; flex-grow: 0.5; min-width: 150px; }
-.header-controls .search-container input { flex-grow: 1; }
-.header-controls > .switcher, .header-controls > .switcher-group { flex-shrink: 0; }
+.header-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
+.header-controls .search-container { display: flex; gap: 8px; flex-grow: 1; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
 .switcher label { padding: 8px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
@@ -51,202 +209,38 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 .query-button { padding: 8px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .query-button:hover { background-color: #0056b3; }
-ul { list-style-type: none; padding-left: 20px; }
-li { padding: 4px 0; }
 .tree-label, .major-label, .uni-label { cursor: pointer; user-select: none; transition: background-color 0.2s; padding: 2px 4px; border-radius: 3px; }
 .tree-label:hover, .major-label:hover, .uni-label:hover { color: var(--primary-color); background-color: #e9f5ff; }
 .caret::before { content: "+"; color: black; display: inline-block; margin-right: 8px; font-weight: bold; width: 14px; transition: transform 0.2s; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
-.output-container { border: 1px solid var(--border-color); padding: 10px; flex: 0 0 25%; overflow-y: auto; box-sizing: border-box; display: flex; flex-direction: column; min-height: 100px; margin: 0 5px 5px 5px; border-radius: 8px; }
-.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0;}
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 .output-button { padding: 8px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .output-button:hover { background-color: #0056b3; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
-textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); resize: none; min-height: 100px; }
+textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); resize: none; }
 .details-content p { margin: 0 0 4px 0; line-height: 1.5; }
-.details-content .compact-row-container { margin-bottom: 4px; line-height: 1.6; }
 .details-content h3 { margin-top: 0; font-size: 18px; color: var(--primary-color);}
-@media (max-width: 1024px) { body { overflow-y: auto; padding: 10px; } .toolbox-container { height: auto; } .app-container { flex-direction: column; } .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } .right-panel { position: static; margin-top: 10px; } .header-controls { flex-direction: column; align-items: stretch; } .tab-navigation { overflow-x: auto; padding-bottom: 5px; } }
-.plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-.plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; }
+.plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
+.plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; flex-shrink: 0; }
 .input-column { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
 .input-column input, .input-column textarea { padding: 8px 12px; font-size: 14px; font-family: inherit; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; width: 100%; }
 .input-column textarea { resize: vertical; }
 .button-column { display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; gap: 5px; }
 .button-column .query-button, .button-column .switcher, .button-column .output-button { width: 100%; box-sizing: border-box; display: flex; justify-content: center; }
-.plan-details-section, .plan-chart-section { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; background-color: var(--background-light); flex-shrink: 1; min-height: 0; display: flex; flex-direction: column; }
-#plan-details-content { flex: 40; overflow-y: auto; }
-#plan-chart-area { flex: 35; }
-#plan-output-container { flex: 25; }
-.plan-details-section h3, .plan-chart-section h3 { margin: 0 0 10px 0; flex-shrink: 0; }
-.content-placeholder { display: flex; align-items: center; justify-content: center; min-height: 80px; color: #6c757d; }
-#plan-output-container.output-container { border-top: none; }
-#plan-output-container .output-header { padding: 0; }
+.content-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #6c757d; }
 #query-results-message { color: var(--primary-color); margin-bottom: 10px; font-weight: 500; }
-
-/* --- 基础表格布局 --- */
-.plan-list-view { display: table; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
-.plan-list-view .list-header { display: table-header-group; font-weight: 600; }
-.plan-list-view .list-header .list-cell { background-color: #f8f9fa; position: sticky; top: -1px; z-index: 2; }
-.plan-list-view .list-body { display: table-row-group; }
-.plan-list-view .list-row { display: table-row; }
-.plan-list-view .list-cell { display: table-cell; padding: 8px 10px; border-bottom: 1px solid #dee2e6; vertical-align: middle; font-size: 13px; }
-.plan-list-view .list-row:hover .list-cell:not(.sticky-col) { background-color: #f1f3f5; }
-.plan-list-view .list-cell input[type="checkbox"] { vertical-align: middle; }
-
-/* --- 固定定位核心代码 --- */
-.plan-list-view .list-cell:first-child, .plan-list-view .list-cell:nth-child(2) { position: sticky; left: 0; background-color: white; border-right: 1px solid #dee2e6; z-index: 1; }
-.plan-list-view .list-row:hover .list-cell:first-child, .plan-list-view .list-row:hover .list-cell:nth-child(2) { background-color: #f1f3f5; }
-.plan-list-view .list-header .list-cell:first-child, .plan-list-view .list-header .list-cell:nth-child(2) { z-index: 3; }
-.plan-list-view .list-header .list-cell:first-child { z-index: 4; }
-.plan-list-view .list-cell:nth-child(2) { left: 8px; }
-
-/* --- 自定义列宽 (最关键的部分) --- */
-.plan-list-view .list-cell.col-select { width: 8px; } /* 选择 */
-.plan-list-view .list-cell.col-uni-major { width: 280px; white-space: normal; word-break: break-all; } /* 院校专业 */
-.plan-list-view .list-cell:nth-child(3) { width: 20px; } /* 省份 */
-.plan-list-view .list-cell:nth-child(4) { width: 20px; } /* 城市 */
-.plan-list-view .list-cell:nth-child(5) { width: 50px; white-space: normal; word-break: break-all; } /* 学费 */
-.plan-list-view .list-cell:nth-child(6) { width: 55px; white-space: normal; word-break: break-all; } /* 选科要求 */
-.plan-list-view .list-cell:nth-child(7) { width: 30px; } /* 分数线 */
-.plan-list-view .list-cell:nth-child(8) { width: 45px; } /* 位次号 */
-.plan-list-view .list-cell.col-notes { width: 350px; white-space: normal; word-break: break-all; } /* 专业简注 */
-
-#plan-details-content .detail-group { margin-bottom: 8px; }
-#plan-details-content .detail-group h4 { margin: 0 0 6px 0; font-size: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
-#plan-details-content .detail-row, #plan-details-content .detail-item { display: flex; margin-bottom: 1px; line-height: 1.4; font-size: 13px; }
-#plan-details-content .detail-multi-row { display: flex; flex-wrap: wrap; }
-#plan-details-content .detail-item { margin-right: 20px; }
-#plan-details-content .detail-label { flex-shrink: 0; width: 95px; font-weight: 600; color: #333; }
-#plan-details-content .detail-value { word-break: break-all; }
-#plan-details-content a { color: var(--primary-color); text-decoration: none; }
-#plan-details-content a:hover { text-decoration: underline; }
+.plan-list-view { /* 您原有的列表视图样式 */ }
+#plan-details-content .detail-label { width: 95px; }
 #filter-range .filter-options { width: auto; align-items: center; }
-/* 只修改“招生计划”标签页内、位于“输入区域”(.input-column)的 textarea 高度。
-  这可以精确地指向“院校名称关键字”和“专业名称关键字”下方的输入框，
-  而不会影响到右侧的“意向计划”输出框。*/
-#app-container-plans .input-column textarea { min-height: 80px; /* 设置一个较小的最小高度 */ flex-grow: 0; /* 取消其在垂直方向上的弹性增长 */ }
 
-/* === 自定义标签页布局（按剩余高度计算） === */
-
-/* 标签页内容占满除 header 外的空间，并且底部保留 5px */
-.tab-content {
-    background-color: white;
-    padding: 5px;
-    border-radius: 0 8px 8px 8px;
-    border: 1px solid var(--border-color);
-    display: flex;
-    box-sizing: border-box;
-    /* 假设 tab 按钮区域高度为 40px，可根据实际调整 */
-    height: calc(100% - 32px - 5px);
-    margin-bottom: 5px; /* 距页面底部 5px */
+@media (max-width: 1024px) { 
+    body { overflow-y: auto; padding: 10px; } 
+    .toolbox-container { height: auto; } 
+    .app-container { flex-direction: column; } 
+    .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } 
+    .right-panel { margin-top: 10px; } 
+    .tab-navigation { overflow-x: auto; padding-bottom: 5px; } 
 }
-
-/* 左右布局 */
-.left-panel {
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    margin-right: 5px;
-    box-sizing: border-box;
-}
-
-/* 左侧滚动框：占满左列，内部滚动 */
-.major-tree-container {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    flex: 1;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-
-/* 右侧整体布局，垂直分为 75% / 25% */
-.right-panel {
-    width: 60%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    gap: 5px;
-}
-
-/* 右侧上方院校详情（75% 高度） */
-.details-content {
-    flex: 0 0 75%;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-
-/* 右侧下方意向院校（25% 高度） */
-.output-container {
-    flex: 0 0 25%;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-/* === 高度继承链修复，确保按剩余空间布局生效 === */
-html, body {
-    height: 100%;
-}
-.toolbox-container {
-    height: calc(100% - 10px);
-}
-.tab-panel.active {
-    height: 100%;
-}
-.app-container {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-}
-.left-panel {
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    margin-right: 5px;
-    box-sizing: border-box;
-}
-.major-tree-container {
-    flex: 1;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-.right-panel {
-    width: 60%;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 5px;
-    box-sizing: border-box;
-}
-.details-content {
-    flex: 0 0 75%;
-    overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    box-sizing: border-box;
-}
-.output-container {
-    flex: 0 0 25%;
-    overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
