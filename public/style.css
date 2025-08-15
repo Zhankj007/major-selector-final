@@ -130,42 +130,41 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
   而不会影响到右侧的“意向计划”输出框。*/
 #app-container-plans .input-column textarea { min-height: 80px; /* 设置一个较小的最小高度 */ flex-grow: 0; /* 取消其在垂直方向上的弹性增长 */ }
 
-/* === 自定义布局修改 === */
-/* 确保 tab 内容区域整体有 5px 内边距 */
+/* === 自定义标签页布局（按剩余高度计算） === */
+
+/* 标签页内容占满除 header 外的空间，并且底部保留 5px */
 .tab-content {
     background-color: white;
     padding: 5px;
     border-radius: 0 8px 8px 8px;
     border: 1px solid var(--border-color);
-    flex-grow: 1;
-    overflow: hidden;
     display: flex;
-    margin: 0;
     box-sizing: border-box;
+    /* 假设 tab 按钮区域高度为 40px，可根据实际调整 */
+    height: calc(100% - 40px - 5px);
+    margin-bottom: 5px; /* 距页面底部 5px */
 }
 
-/* 左侧整体布局 */
+/* 左右布局 */
 .left-panel {
     width: 40%;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
     margin-right: 5px;
+    box-sizing: border-box;
 }
 
-/* 左侧的筛选结果滚动框 */
+/* 左侧滚动框：占满左列，内部滚动 */
 .major-tree-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
-    flex-grow: 1;
+    flex: 1;
     overflow-y: auto;
-    min-height: 0;
     box-sizing: border-box;
-    margin: 0 0 5px 0;
 }
 
-/* 右侧整体布局 */
+/* 右侧整体布局，垂直分为 75% / 25% */
 .right-panel {
     width: 60%;
     display: flex;
@@ -174,7 +173,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     gap: 5px;
 }
 
-/* 右侧上方院校详情，高度 75% */
+/* 右侧上方院校详情（75% 高度） */
 .details-content {
     flex: 0 0 75%;
     border: 1px solid var(--border-color);
@@ -182,10 +181,9 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     padding: 10px;
     overflow-y: auto;
     box-sizing: border-box;
-    margin: 0;
 }
 
-/* 右侧下方意向院校输出框，高度 25% */
+/* 右侧下方意向院校（25% 高度） */
 .output-container {
     flex: 0 0 25%;
     border: 1px solid var(--border-color);
@@ -193,5 +191,4 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     padding: 10px;
     overflow-y: auto;
     box-sizing: border-box;
-    margin: 0;
 }
