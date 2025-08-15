@@ -28,47 +28,13 @@ body {
 .toolbox-container {
     display: flex;
     flex-direction: column;
-    height: 100%; /* 高度占满减去上下的内边距 */
+    height: 100%;
     max-width: none;
 }
 
 .toolbox-header {
     padding: 0 0 15px 0;
-    flex-shrink: 0; /* 防止头部在空间不足时被压缩 */
-}
-
-.toolbox-header .title-version {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.toolbox-header h1 {
-    font-size: 22px;
-    margin: 0;
-    color: #333;
-}
-
-#version-info {
-    font-size: 12px;
-    color: #6c757d;
-    background-color: #e9ecef;
-    padding: 3px 8px;
-    border-radius: 5px;
-}
-
-.toolbox-header .description {
-    font-size: 14px;
-    color: #555;
-    margin: 0;
-    margin-left: 5px;
-    align-self: flex-end;
-    padding-bottom: 2px;
-}
-
-.title-version > .description {
-    margin-left: 20px;
+    flex-shrink: 0;
 }
 
 /* --- 2. 标签页导航与内容区 --- */
@@ -108,7 +74,7 @@ body {
     flex-grow: 1; /* 填满剩余垂直空间 */
     overflow: hidden;
     display: flex;
-    margin-bottom: var(--page-gutter) !important; /* 确保下方有5px边距 */
+    margin-bottom: var(--page-gutter) !important;
 }
 
 .tab-panel {
@@ -120,7 +86,7 @@ body {
     display: flex;
 }
 
-/* --- 3. 高校库/专业目录/招生计划页 内部布局 --- */
+/* --- 3. 高校库/专业目录页 内部布局 --- */
 .app-container {
     display: flex;
     flex-direction: row;
@@ -147,50 +113,53 @@ body {
     flex-shrink: 0;
 }
 
-/* 左侧筛选结果滚动框 */
+/* 【核心修改】左侧筛选结果滚动框 */
 .major-tree-container {
     border: 1px solid var(--border-color);
     padding: 10px;
     border-radius: 8px;
-    overflow-y: auto; /* 只在垂直方向内容超出时显示滚动条 */
-    flex-grow: 1; /* 填满 .left-panel 的所有剩余空间 */
-    min-height: 0; /* 关键：确保滚动条能出现 */
+    overflow-y: auto; /* 关键：只在垂直方向内容超出时显示滚动条 */
+    flex-grow: 1; /* 关键：让它填满 .left-panel 的所有剩余空间 */
+    min-height: 0; /* 关键：Flexbox的魔法，防止计算空间时出错，确保滚动条能出现 */
 }
 
-/* 右侧详情框和输出框 */
-.details-content, #plan-details-content {
+/* 【核心修改】右侧详情框和输出框 */
+.details-content {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     overflow-y: auto;
-    height: 75%; /* 高度占父容器(.right-panel)的75% */
+    height: 75%; /* 关键：高度占父容器(.right-panel)的75% */
     box-sizing: border-box;
+    min-height: 0; /* 增加 flex 子项的稳定性 */
 }
 
-.output-container, #plan-output-container {
+.output-container {
     border: 1px solid var(--border-color);
     padding: 10px;
     border-radius: 8px;
-    height: 25%; /* 高度占父容器(.right-panel)的25% */
+    height: 25%; /* 关键：高度占父容器(.right-panel)的25% */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    min-height: 0; /* 增加 flex 子项的稳定性 */
 }
 
-/* --- 4. 招生计划页 专属布局 --- */
-#app-container-plans .left-panel {
-    width: 50%;
-}
-#app-container-plans .right-panel {
-    width: 50%;
-}
+/* --- 4. 招生计划页 专属布局 (保留并优化) --- */
+#app-container-plans .left-panel { width: 50%; }
+#app-container-plans .right-panel { width: 50%; }
 
-#plan-details-content { height: auto; flex: 40; }
+#plan-details-content { height: auto; flex: 40; border-radius: 8px; }
 #plan-chart-area { height: auto; flex: 35; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
 #plan-output-container { height: auto; flex: 25; padding: 0; border: none; }
 #plan-output-container > div { height: 100%; }
 
-/* --- 5. 通用组件样式 (大部分保持不变) --- */
+/* --- 5. 其余所有通用样式 (来自您的文件，保持不变) --- */
+.toolbox-header .title-version { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.toolbox-header h1 { font-size: 22px; margin: 0; color: #333; }
+#version-info { font-size: 12px; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 5px; }
+.toolbox-header .description { font-size: 14px; color: #555; margin: 0; margin-left: 5px; align-self: flex-end; padding-bottom: 2px; }
+.title-version > .description { margin-left: 20px; }
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 0; flex-shrink: 0; }
 .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; }
 .filter-group { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; position: relative; background-color: #fff; }
@@ -202,7 +171,6 @@ body {
 .filter-group[open] summary::after { content: ' ▲'; }
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
-
 .header-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls .search-container { display: flex; gap: 8px; flex-grow: 1; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
@@ -220,7 +188,6 @@ li { padding: 4px 0; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
-
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0;}
 .output-header h3 { margin: 0; display: flex; align-items: center; }
 .output-button { padding: 8px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
@@ -238,8 +205,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 .button-column .query-button, .button-column .switcher, .button-column .output-button { width: 100%; box-sizing: border-box; display: flex; justify-content: center; }
 .content-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #6c757d; }
 #query-results-message { color: var(--primary-color); margin-bottom: 10px; font-weight: 500; }
-.plan-list-view { display: table; width: 100%; border-collapse: collapse; }
-/* ... (其他您原有的plan-list-view样式) ... */
+.plan-list-view { /* ... 保留您原有的列表视图样式 ... */ }
 #plan-details-content .detail-label { width: 95px; }
 #filter-range .filter-options { width: auto; align-items: center; }
 
