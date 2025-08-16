@@ -159,6 +159,13 @@ li {
 }
 
 /* 确保未登录状态下也使用相同的布局 */
+/* 覆盖index.html中的内联样式，确保未登录状态下也使用flex布局 */
+body.logged-out .tab-content {
+    display: flex !important;
+    flex-grow: 1 !important;
+    overflow: hidden !important;
+}
+
 body.logged-out .left-panel {
     width: 40% !important;
     height: 100% !important;
@@ -233,43 +240,29 @@ body.logged-out .output-container {
 }
 
 /* --- 5. 招生计划页 专属独立布局 --- */
+/* 恢复原始布局 */
 #app-container-plans {
     display: flex;
-    flex-direction: column;
-    height: 100%;
+    flex-direction: row;
     gap: var(--page-gutter);
-}
-
-#app-container-plans .left-panel {
-    width: 40% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    flex-shrink: 0 !important;
-    height: 100% !important;
+    height: 100%;
+    width: 100%;
 }
 
 #app-container-plans .right-panel {
-    width: 60% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    flex-shrink: 0 !important;
-    height: 100% !important;
-}
-
-/* 招生计划页面右侧区域特殊布局 */
-#app-container-plans .right-panel > div:first-child {
     display: flex;
     flex-direction: column;
-    height: 100%;
     gap: var(--page-gutter);
+    height: 100%;
 }
 
+/* 右侧上中下三部分按40%:35%:25%高度比例 */
 #plan-details-content {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     overflow-y: auto;
-    flex: 40 0 0; /* 占比40% */
+    height: 40%;
     min-height: 0;
     box-sizing: border-box;
 }
@@ -278,7 +271,7 @@ body.logged-out .output-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
-    flex: 35 0 0; /* 占比35% */
+    height: 35%;
     min-height: 0;
     box-sizing: border-box;
     display: flex;
@@ -289,11 +282,18 @@ body.logged-out .output-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
-    flex: 25 0 0; /* 占比25% */
+    height: 25%;
     min-height: 0;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+}
+
+/* 确保图表自适应显示比例，不越界 */
+#plan-chart-area canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
 }
 
 /* --- 6. 通用组件样式 --- */
