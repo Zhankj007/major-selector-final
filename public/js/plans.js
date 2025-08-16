@@ -329,6 +329,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
         <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
+        ${renderSmartField('专业简注', plan.专业简注)}
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -399,14 +400,37 @@ function showPlanDetails(plan) {
 
         const fullMajorName = `${plan.院校 || ''} # ${plan.专业 || ''}`;
         
+        // 计算图表容器的高度，基于父容器的高度
+        const calculateChartHeight = () => {
+            const containerHeight = chartArea.parentElement.offsetHeight;
+            const headerHeight = chartArea.querySelector('h3')?.offsetHeight || 40;
+            // 减去标题高度和一些边距，确保图表不会溢出
+            return Math.max(200, containerHeight - headerHeight - 40);
+        };
+
+        // 设置图表容器样式
         chartArea.innerHTML = `
             <h3 style="color: #28a745; margin-bottom: 12px;">${fullMajorName} 历年投档情况</h3>
-            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch;">
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="scoreAvgChart"></canvas></div>
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="rankChart"></canvas></div>
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative; height: 280px;"><canvas id="countChart"></canvas></div>
+            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch; min-height: 0;">
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="scoreAvgChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="rankChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="countChart"></canvas></div>
             </div>
         `;
+
+        // 设置容器高度
+        const chartContainers = chartArea.querySelectorAll('.chart-container');
+        const containerHeight = calculateChartHeight() + 'px';
+        chartContainers.forEach(container => {
+            container.style.height = containerHeight;
+        });
+
+        // 根据容器宽度动态调整字体大小
+        const getAdaptiveFontSize = (canvasWidth) => {
+            if (canvasWidth < 300) return 9;
+            if (canvasWidth < 400) return 10;
+            return 11;
+        };
 
         const dataLabelsPlugin = {
             id: 'custom_data_labels',
@@ -466,7 +490,10 @@ function showPlanDetails(plan) {
                         grace: '5%' 
                     }
                 },
-                plugins: { title: { display: true, text: '投档线/平均分' }, legend: { display: true, position: 'top' } }
+                plugins: { 
+                    title: { display: true, text: '投档线/平均分', font: { size: getAdaptiveFontSize(document.getElementById('scoreAvgChart').width) } }, 
+                    legend: { display: true, position: 'top' }
+                }
             },
             plugins: [dataLabelsPlugin]
         }));
@@ -491,7 +518,10 @@ function showPlanDetails(plan) {
                         reverse: true 
                     } 
                 },
-                plugins: { title: { display: true, text: '位次号' }, legend: { display: false } }
+                plugins: { 
+                    title: { display: true, text: '位次号', font: { size: getAdaptiveFontSize(document.getElementById('rankChart').width) } }, 
+                    legend: { display: false }
+                }
             },
             plugins: [dataLabelsPlugin]
         }));
@@ -513,7 +543,10 @@ function showPlanDetails(plan) {
                         grace: 1 
                     }
                 },
-                plugins: { title: { display: true, text: '计划数' }, legend: { display: false } }
+                plugins: { 
+                    title: { display: true, text: '计划数', font: { size: getAdaptiveFontSize(document.getElementById('countChart').width) } }, 
+                    legend: { display: false }
+                }
             },
             plugins: [dataLabelsPlugin]
         }));
@@ -545,7 +578,15 @@ function showPlanDetails(plan) {
         const labels = sortedPlans.map(p => p.专业);
         const scores = sortedPlans.map(p => p['25年分数线']);
 
-        const chartHeight = 450;
+        // 动态计算图表高度
+        const calculateChartHeight = () => {
+            const containerHeight = chartArea.parentElement.offsetHeight;
+            const headerHeight = chartArea.querySelector('h3')?.offsetHeight || 40;
+            const statsHeight = chartArea.querySelector('div[style*="display: flex; justify-content: space-around"]')?.offsetHeight || 30;
+            return Math.max(300, containerHeight - headerHeight - statsHeight - 30);
+        };
+
+        const chartHeight = calculateChartHeight();
         chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px;">${uniName} 2025年各专业投档线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
 
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
@@ -595,7 +636,9 @@ function showPlanDetails(plan) {
                             autoSkip: false,
                             maxRotation: 45,
                             minRotation: 45,
-                            font: { size: 11, },
+                            font: { 
+                                size: document.getElementById('uniChart').width < 500 ? 10 : 11 
+                            },
                             align: 'end',
                         }
                     }
