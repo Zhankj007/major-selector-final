@@ -415,7 +415,7 @@ function showPlanDetails(plan) {
         // 设置图表容器样式
         chartArea.innerHTML = `
             <h3 style="color: #28a745; margin-bottom: 12px;">${fullMajorName} 历年投档情况</h3>
-            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: stretch; min-height: 0;">
+            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: flex-end; min-height: 0; position: relative;">
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="scoreAvgChart"></canvas></div>
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="rankChart"></canvas></div>
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="countChart"></canvas></div>
@@ -643,12 +643,12 @@ function showPlanDetails(plan) {
                     x: {
                         ticks: {
                             autoSkip: false,
-                            maxRotation: 45,
-                            minRotation: 45,
+                            maxRotation: -45,
+                            minRotation: -45,
                             font: { 
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
-                            align: 'end',
+                            align: 'start',
                         }
                     }
                 },
