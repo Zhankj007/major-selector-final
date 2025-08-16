@@ -338,7 +338,11 @@ body.logged-out .output-container {
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); resize: none; }
 .details-content p { margin: 0 0 4px 0; line-height: 1.5; }
-.details-content h3 { margin-top: 0; font-size: 18px; color: var(--primary-color);}
+.details-content h3 { margin-top: 5px; margin-bottom: 5px; font-size: 18px; color: var(--primary-color);}
+/* 确保容器内第一行文本与容器边距保持5px */
+.details-content > :first-child, .output-header > :first-child, #plan-details-content > :first-child, #plan-chart-area > :first-child, #plan-output-container > :first-child {
+    margin-top: 5px !important;
+}
 .plan-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
 .plan-interactive-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; flex-shrink: 0; }
 .input-column { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
