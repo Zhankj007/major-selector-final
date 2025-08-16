@@ -329,7 +329,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
         <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
-        ${renderSmartField('专业简注', plan.专业简注)}
+        ${renderRow(renderItem('专业简注', plan.专业简注))}
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -400,12 +400,16 @@ function showPlanDetails(plan) {
 
         const fullMajorName = `${plan.院校 || ''} # ${plan.专业 || ''}`;
         
-        // 计算图表容器的高度，基于父容器的高度
+        // 计算图表容器的高度，基于图表展示区自身的可用空间
         const calculateChartHeight = () => {
-            const containerHeight = chartArea.parentElement.offsetHeight;
+            // 获取图表展示区的可用高度
+            const chartAreaHeight = chartArea.clientHeight;
             const headerHeight = chartArea.querySelector('h3')?.offsetHeight || 40;
-            // 减去标题高度和一些边距，确保图表不会溢出
-            return Math.max(200, containerHeight - headerHeight - 40);
+            const wrapperMargin = 20; // 预留一些边距
+            // 减去标题高度和边距，确保图表不会溢出
+            const availableHeight = chartAreaHeight - headerHeight - wrapperMargin;
+            // 设置一个合理的最大高度和最小高度
+            return Math.max(200, Math.min(availableHeight, 300));
         };
 
         // 设置图表容器样式
@@ -580,10 +584,15 @@ function showPlanDetails(plan) {
 
         // 动态计算图表高度
         const calculateChartHeight = () => {
-            const containerHeight = chartArea.parentElement.offsetHeight;
+            // 获取图表展示区的可用高度
+            const chartAreaHeight = chartArea.clientHeight;
             const headerHeight = chartArea.querySelector('h3')?.offsetHeight || 40;
             const statsHeight = chartArea.querySelector('div[style*="display: flex; justify-content: space-around"]')?.offsetHeight || 30;
-            return Math.max(300, containerHeight - headerHeight - statsHeight - 30);
+            const wrapperMargin = 15; // 预留一些边距
+            // 减去标题高度、统计信息高度和边距
+            const availableHeight = chartAreaHeight - headerHeight - statsHeight - wrapperMargin;
+            // 设置一个合理的最大高度和最小高度
+            return Math.max(300, Math.min(availableHeight, 450));
         };
 
         const chartHeight = calculateChartHeight();
