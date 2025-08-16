@@ -160,12 +160,21 @@ li {
 }
 
 /* 右侧详情框 */
-.details-content, #plan-details-content {
+.details-content {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     overflow-y: auto;
     height: 75%; /* 高度占父容器(.right-panel)的75% */
+    box-sizing: border-box;
+}
+
+#plan-details-content {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    height: auto; /* 由flex属性控制 */
     box-sizing: border-box;
 }
 
@@ -181,12 +190,12 @@ li {
 }
 
 /* --- 5. 招生计划页 专属布局 --- */
-#app-container-plans .left-panel { width: 50%; }
-#app-container-plans .right-panel { width: 50%; }
-#plan-details-content { height: auto; flex: 40; }
+#app-container-plans .left-panel { width: 40%; }
+#app-container-plans .right-panel { width: 60%; }
+#plan-details-content { height: auto; flex: 40; overflow-y: auto; }
 #plan-chart-area { height: auto; flex: 35; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
 #plan-output-container { height: auto; flex: 25; padding: 0; border: none; }
-#plan-output-container > div { height: 100%; }
+#plan-output-container > div { height: 100%; overflow-y: auto; }
 
 /* --- 6. 通用组件样式 --- */
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
