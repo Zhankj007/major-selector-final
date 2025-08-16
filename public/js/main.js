@@ -1,8 +1,12 @@
+// 合并两个DOMContentLoaded事件监听器
+// 全局变量定义
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
+
+// 页面加载完成后执行初始化
 document.addEventListener('DOMContentLoaded', function () {
-    const SUPABASE_URL = '__SUPABASE_URL__';
-    const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
     // --- 获取所有UI元素 ---
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
@@ -308,25 +312,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // 页面加载完成后初始化第一个标签页
-    document.addEventListener('DOMContentLoaded', () => {
-        // 立即初始化第一个可见且激活的标签页（高校库）
-        const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
-        if (firstVisibleTab && firstVisibleTab.dataset.tab === 'universities') {
-            // 如果是高校库标签页，立即初始化它
-            if (typeof window.initializeUniversitiesTab === 'function') {
-                window.initializeUniversitiesTab();
-            }
+    // 立即初始化第一个可见且激活的标签页（高校库）
+    const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
+    if (firstVisibleTab && firstVisibleTab.dataset.tab === 'universities') {
+        // 如果是高校库标签页，立即初始化它
+        if (typeof window.initializeUniversitiesTab === 'function') {
+            window.initializeUniversitiesTab();
         }
-        
-        // 无论登录状态如何，都尝试确保标签页内容正确加载
-        setTimeout(() => {
-            const activeTab = document.querySelector('.tab-button.active:not([style*="display: none"])');
-            if (activeTab && !document.getElementById(`${activeTab.dataset.tab}-tab`).dataset.initialized) {
-                activeTab.click(); // 触发点击事件，初始化内容
-            }
-        }, 100);
-        
-        updateVisitorCount();
-    });
+    }
+    
+    // 无论登录状态如何，都尝试确保标签页内容正确加载
+    setTimeout(() => {
+        const activeTab = document.querySelector('.tab-button.active:not([style*="display: none"])');
+        if (activeTab && !document.getElementById(`${activeTab.dataset.tab}-tab`).dataset.initialized) {
+            activeTab.click(); // 触发点击事件，初始化内容
+        }
+    }, 100);
+    
+    // 立即更新访客统计
+    updateVisitorCount();
 });

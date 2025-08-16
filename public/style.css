@@ -227,6 +227,14 @@ body.logged-out .major-tree-container {
     flex-shrink: 0;
 }
 
+/* 统一调整所有容器标题的边距为5px */
+.details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+    font-size: 18px;
+    color: var(--primary-color);
+}
+
 /* 确保未登录状态下右侧面板也使用固定高度比例 */
 body.logged-out .details-content {
     height: 75% !important;
@@ -315,7 +323,7 @@ body.logged-out .output-container {
 .switcher label { padding: 8px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
-.query-button { padding: 8px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.query-button { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .query-button:hover { background-color: #0056b3; }
 .tree-label, .major-label, .uni-label { cursor: pointer; user-select: none; transition: background-color 0.2s; padding: 2px 4px; border-radius: 3px; }
 .tree-label:hover, .major-label:hover, .uni-label:hover { color: var(--primary-color); background-color: #e9f5ff; }
@@ -325,7 +333,7 @@ body.logged-out .output-container {
 .active { display: block; }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0;}
 .output-header h3 { margin: 0; display: flex; align-items: center; }
-.output-button { padding: 8px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.output-button { padding: 6px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .output-button:hover { background-color: #0056b3; }
 .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); resize: none; }
