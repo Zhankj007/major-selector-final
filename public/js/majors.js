@@ -24,7 +24,7 @@ window.initializeMajorsTab = function() {
                 <div id="major-details-content" class="details-content"><p>请选择目录后进行操作。</p></div>
                 <div class="output-container">
                     <div class="output-header">
-                        <h3>所选专业<span id="major-selection-counter"></span></h3>
+                        <h3>意向专业<span id="major-selection-counter"></span></h3>
                         <div class="button-group">
                             <button id="major-copy-button" class="output-button">复制</button>
                             <button id="major-clear-button" class="output-button">清空</button>
