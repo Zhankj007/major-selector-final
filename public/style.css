@@ -268,7 +268,10 @@ body.logged-out .output-container {
 #plan-details-content {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 10px;
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
     overflow-y: auto;
     height: 40%;
     min-height: 0;
@@ -278,7 +281,10 @@ body.logged-out .output-container {
 #plan-chart-area {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 15px;
+    padding-top: 5px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+    padding-left: 15px;
     height: 35%;
     min-height: 0;
     box-sizing: border-box;
@@ -289,7 +295,10 @@ body.logged-out .output-container {
 #plan-output-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 10px;
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
     height: 25%;
     min-height: 0;
     box-sizing: border-box;
