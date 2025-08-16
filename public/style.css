@@ -137,16 +137,44 @@ li {
     gap: var(--page-gutter);
     height: 100%;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .left-panel {
     width: 40%;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gutter);
+    height: 100%;
 }
 
 .right-panel {
     width: 60%;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gutter);
+    height: 100%;
+}
+
+/* 确保未登录状态下也使用相同的布局 */
+body.logged-out .left-panel {
+    width: 40% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+body.logged-out .right-panel {
+    width: 60% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
 }
 
 /* 左侧筛选结果滚动框 */
@@ -157,9 +185,19 @@ li {
     overflow-y: auto;
     flex-grow: 1; /* 关键：让它填满 .left-panel 的所有剩余空间 */
     min-height: 0; /* 关键：确保滚动条能出现 */
+    height: 100%;
+    box-sizing: border-box;
 }
 
-/* 右侧详情框 */
+/* 确保未登录状态下左侧面板也有滚动条 */
+body.logged-out .major-tree-container {
+    overflow-y: auto !important;
+    height: 100% !important;
+    flex-grow: 1 !important;
+    min-height: 0 !important;
+}
+
+/* 右侧详情框 - 高校库和专业目录标签页共用 */
 .details-content {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -167,19 +205,11 @@ li {
     overflow-y: auto;
     height: 75%; /* 高度占父容器(.right-panel)的75% */
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
-#plan-details-content {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    overflow-y: auto;
-    height: auto; /* 由flex属性控制 */
-    box-sizing: border-box;
-}
-
-/* 右侧输出框 */
-.output-container, #plan-output-container {
+/* 右侧输出框 - 高校库和专业目录标签页共用 */
+.output-container {
     border: 1px solid var(--border-color);
     padding: 10px;
     border-radius: 8px;
@@ -187,15 +217,84 @@ li {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
-/* --- 5. 招生计划页 专属布局 --- */
-#app-container-plans .left-panel { width: 40%; }
-#app-container-plans .right-panel { width: 60%; }
-#plan-details-content { height: auto; flex: 40; overflow-y: auto; }
-#plan-chart-area { height: auto; flex: 35; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
-#plan-output-container { height: auto; flex: 25; padding: 0; border: none; }
-#plan-output-container > div { height: 100%; overflow-y: auto; }
+/* 确保未登录状态下右侧面板也使用固定高度比例 */
+body.logged-out .details-content {
+    height: 75% !important;
+    flex-shrink: 0 !important;
+    overflow-y: auto !important;
+}
+
+body.logged-out .output-container {
+    height: 25% !important;
+    flex-shrink: 0 !important;
+}
+
+/* --- 5. 招生计划页 专属独立布局 --- */
+#app-container-plans {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: var(--page-gutter);
+}
+
+#app-container-plans .left-panel {
+    width: 40% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    height: 100% !important;
+}
+
+#app-container-plans .right-panel {
+    width: 60% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    height: 100% !important;
+}
+
+/* 招生计划页面右侧区域特殊布局 */
+#app-container-plans .right-panel > div:first-child {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: var(--page-gutter);
+}
+
+#plan-details-content {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    flex: 40 0 0; /* 占比40% */
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+#plan-chart-area {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    flex: 35 0 0; /* 占比35% */
+    min-height: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+#plan-output-container {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    flex: 25 0 0; /* 占比25% */
+    min-height: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
 
 /* --- 6. 通用组件样式 --- */
 .controls-toolbar { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
