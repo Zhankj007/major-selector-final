@@ -642,12 +642,12 @@ function showPlanDetails(plan) {
                     x: {
                         ticks: {
                             autoSkip: false,
-                            maxRotation: -30,
-                            minRotation: -30,
+                            maxRotation: 30,
+                            minRotation: 30,
                             font: { 
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
-                            align: 'start',
+                            align: 'center',
                             padding: 0,
                             fontStyle: 'normal'
                         },
