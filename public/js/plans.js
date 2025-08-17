@@ -642,8 +642,8 @@ function showPlanDetails(plan) {
                     x: {
                         ticks: {
                             autoSkip: false,
-                            maxRotation: -45,
-                            minRotation: -45,
+                            maxRotation: 315,
+                            minRotation: 315,
                             font: { 
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
