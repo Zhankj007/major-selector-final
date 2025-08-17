@@ -647,7 +647,7 @@ function showPlanDetails(plan) {
                             font: { 
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
-                            align: 'center',
+                            align: 'end',
                             padding: 0,
                             fontStyle: 'normal'
                         },
