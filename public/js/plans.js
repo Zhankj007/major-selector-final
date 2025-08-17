@@ -329,7 +329,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
         <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
-        ${renderRow(renderItem('专业简注', plan.专业简注))}
+        ${renderRow(renderItem('<span style="color: #007bff; font-weight: 600;">专业简注</span>', plan.专业简注))}
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -405,7 +405,7 @@ function showPlanDetails(plan) {
             // 获取图表展示区的可用高度
             const chartAreaHeight = chartArea.clientHeight;
             const headerHeight = chartArea.querySelector('h3')?.offsetHeight || 40;
-            const wrapperMargin = 20; // 预留一些边距
+            const wrapperMargin = 0; // 设置为0px，直接从容器底部开始
             // 减去标题高度和边距，确保图表不会溢出
             const availableHeight = chartAreaHeight - headerHeight - wrapperMargin;
             // 设置一个合理的最大高度和最小高度
@@ -649,6 +649,12 @@ function showPlanDetails(plan) {
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
                             align: 'start',
+                            padding: 10,
+                            fontStyle: 'normal'
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: true
                         }
                     }
                 },
