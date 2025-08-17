@@ -329,7 +329,7 @@ function showPlanDetails(plan) {
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
         </style>
         <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
-        ${renderRow(renderItem('<span style="color: #007bff; font-weight: 600;">专业简注</span>', plan.专业简注))}
+        ${renderRow(renderItem('专业简注', `<span style="color: #ff4d4f; font-weight: 500;">${plan.专业简注}</span>`))}
         ${renderRow(
             renderItem('科类/批次', categoryBatch),
             renderItem('省份/城市', location)
@@ -415,19 +415,12 @@ function showPlanDetails(plan) {
         // 设置图表容器样式
         chartArea.innerHTML = `
             <h3 style="color: #28a745; margin-bottom: 12px;">${fullMajorName} 历年投档情况</h3>
-            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; align-items: flex-end; min-height: 0; position: relative;">
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="scoreAvgChart"></canvas></div>
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="rankChart"></canvas></div>
-                <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="countChart"></canvas></div>
+            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; height: 100%; min-height: 0;">
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; height: 280px;"><canvas id="scoreAvgChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; height: 280px;"><canvas id="rankChart"></canvas></div>
+                <div class="chart-container" style="flex: 1 1 0; min-width: 0; height: 280px;"><canvas id="countChart"></canvas></div>
             </div>
         `;
-
-        // 设置容器高度
-        const chartContainers = chartArea.querySelectorAll('.chart-container');
-        const containerHeight = calculateChartHeight() + 'px';
-        chartContainers.forEach(container => {
-            container.style.height = containerHeight;
-        });
 
         // 根据容器宽度动态调整字体大小
         const getAdaptiveFontSize = (canvasWidth) => {
@@ -643,13 +636,13 @@ function showPlanDetails(plan) {
                     x: {
                         ticks: {
                             autoSkip: false,
-                            maxRotation: -45,
-                            minRotation: -45,
+                            maxRotation: 45,
+                            minRotation: 45,
                             font: { 
                                 size: document.getElementById('uniChart').width < 500 ? 10 : 11 
                             },
-                            align: 'start',
-                            padding: 10,
+                            align: 'end',
+                            padding: 0,
                             fontStyle: 'normal'
                         },
                         grid: {
