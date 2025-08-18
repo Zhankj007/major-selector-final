@@ -90,7 +90,7 @@ function initializeAdminTab() {
                     <td style="padding: 12px; border: 1px solid #ddd;">${lastLogin}</td>
                     <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${user.login_count || 0}</td>
                     <td style="padding: 12px; border: 1px solid #ddd;">
-                        <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">编辑</button>
+                        <button class="edit-btn" data-user-id="${user.id}" style="padding: 5px 10px; cursor: pointer;">权限</button>
                         <button class="delete-btn" data-user-id="${user.id}" data-username="${user.username || user.email}" style="padding: 5px 10px; cursor: pointer; background-color: #dc3545; color: white; border: none; margin-left: 5px;">删除</button>
                     </td>
                 </tr>
@@ -136,7 +136,7 @@ function initializeAdminTab() {
             return;
         }
         
-        const availableTabs = { universities: '高校库', majors: '专业目录', plans: '2025浙江高考招生计划' };
+        const availableTabs = { plans: '2025浙江高考招生计划' };
         let permissionsHTML = '';
 
         for (const tabKey in availableTabs) {

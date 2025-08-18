@@ -145,9 +145,16 @@ document.addEventListener('DOMContentLoaded', function () {
         
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm-password').value;
         const username = document.getElementById('register-username').value;
         const phone = document.getElementById('register-phone').value;
         const unit_name = document.getElementById('register-unitname').value;
+        
+        // 验证密码是否匹配
+        if (password !== confirmPassword) {
+            registerError.textContent = '两次输入的密码不一致，请重新输入。';
+            return;
+        }
         try {
             const response = await fetch('/api/register', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
