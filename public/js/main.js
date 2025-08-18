@@ -212,9 +212,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadUserPermissions(userId) {
         // 默认显示前两个标签页（高校库和专业目录）
+        let visibleTabs = [];
         tabButtons.forEach(btn => {
             if (btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors') {
                 btn.style.display = '';
+                visibleTabs.push(btn); // 将默认显示的标签页添加到visibleTabs数组
             } else {
                 btn.style.display = 'none';
             }
@@ -229,14 +231,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         const now = new Date();
-        let visibleTabs = [];
         permissions.forEach(perm => {
             const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
             if (!isExpired) {
                 const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
                 if (tabButton) {
                     tabButton.style.display = ''; // 恢复显示
-                    visibleTabs.push(tabButton);
+                    // 确保不重复添加到visibleTabs
+                    if (!visibleTabs.includes(tabButton)) {
+                        visibleTabs.push(tabButton);
+                    }
                 }
             }
         });
@@ -268,13 +272,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
             // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
             visibleTabs[0].click();
-        } else if (visibleTabs.length === 0) {
-            // 如果没有任何可见标签页，则清空内容区
-             tabPanels.forEach(panel => {
-                panel.classList.remove('active');
-                panel.innerHTML = '<p style="padding: 20px; text-align: center;">您暂无任何模块的访问权限。请联系管理员。</p>';
-             });
         }
+        // 移除了visibleTabs.length === 0的检查，因为高校库和专业目录始终可见
+        // 确保visibleTabs数组中至少包含默认的两个标签页
     }
 
     tabButtons.forEach(tab => {
