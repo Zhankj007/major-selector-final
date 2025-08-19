@@ -4,12 +4,12 @@ const getArray = (param) => param ? param.split(',') : null;
 
 export default async function handler(request, response) {
     try {
-        // 设置CORS和请求来源限制
+        // 设置CORS，简化开发环境的处理
         const allowedOrigin = 'www.igaokao.top';
         const origin = request.headers.origin;
         
-        // 开发环境允许本地请求
-        if (process.env.NODE_ENV === 'development') {
+        // 开发环境或本地主机请求，允许所有来源
+        if (process.env.NODE_ENV === 'development' || (origin && (origin.includes('localhost') || origin.includes('127.0.0.1')))) {
             response.setHeader('Access-Control-Allow-Origin', '*');
         } else if (origin && origin.includes(allowedOrigin)) {
             response.setHeader('Access-Control-Allow-Origin', origin);
