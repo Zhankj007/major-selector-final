@@ -12,15 +12,17 @@ window.initializeUniversitiesTab = function() {
                         <input type="radio" name="uni-group-by" value="department" id="group-by-department">
                         <label for="group-by-department">按主管部门</label>
                     </div>
-                    <div class="switcher">
-                        <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
-                        <label for="collapse-all">折叠</label>
-                        <input type="radio" name="expand-collapse" value="expand" id="expand-all">
-                        <label for="expand-all">展开</label>
-                    </div>
                     <div class="search-container">
                         <input type="search" id="uni-search-input" placeholder="输入院校名关键字...">
                         <button id="uni-query-button" class="query-button">查询</button>
+                    </div>
+                    <div class="switcher-group">
+                         <div class="switcher">
+                            <input type="radio" name="expand-collapse" value="collapse" id="collapse-all" checked>
+                            <label for="collapse-all">折叠</label>
+                            <input type="radio" name="expand-collapse" value="expand" id="expand-all">
+                            <label for="expand-all">展开</label>
+                        </div>
                     </div>
                 </div>
                 <div class="controls-toolbar">

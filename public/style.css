@@ -418,7 +418,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 @media (max-width: 768px) {
     body { padding: 5px; font-size: 13px; }
     .description { display: none; } /* 在手机端隐藏描述文本 */
-    .toolbox-header h1 { font-size: 18px; }    
+    .toolbox-header h1 { font-size: 18px; }
     .tab-button { padding: 6px 12px; font-size: 13px; }
     .filter-controls { flex-wrap: wrap; gap: 8px; } /* 允许筛选控件自动换行 */
     .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; } /* 允许工具栏内容自动换行并保持对齐 */
@@ -429,55 +429,13 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     .button-column .query-button, .button-column .switcher, .button-column .output-button { width: auto; flex-shrink: 0; } /* 让按钮宽度自适应内容 */
     .switcher { margin: 0 5px; } /* 调整switcher间距 */
     .switcher label { padding: 6px 12px; font-size: 13px; } /* 确保在小屏幕上与查询按钮高度一致 */
-    .input-column input, .input-column textarea { padding: 6px 10px; font-size: 13px; }    
+    .input-column input, .input-column textarea { padding: 6px 10px; font-size: 13px; }
     .query-button, .output-button { padding: 6px 14px; font-size: 13px; }
-    .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 16px; }    
+    .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 16px; }
     /* 确保所有内容在小屏幕上正确显示 */
      body.logged-out .left-panel, body.logged-out .right-panel,
      body:not(.logged-out) .left-panel, body:not(.logged-out) .right-panel {
          width: 100% !important; /* 覆盖之前的固定百分比 */
      }
-    
-    /* 特别针对招生计划功能在手机端的显示优化 */
-    #app-container-plans .left-panel, #app-container-plans .right-panel {
-        width: 100% !important;
-        height: auto !important;
-        max-height: none !important;
-    }
-    
-    #plan-details-content, #plan-chart-area, #plan-output-container {
-        display: block !important;
-        width: 100% !important;
-        margin-bottom: 15px !important;
-        overflow: visible !important;
-    }
-    
-    #plan-chart-area .charts-wrapper {
-        flex-direction: column !important;
-        gap: 15px !important;
-    }
-    
-    #plan-chart-area .chart-container {
-        min-width: 100% !important;
-        min-height: 250px !important;
-    }
-    
-    #plan-output-container > div {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-    
-    #plan-output-container > div > div {
-        flex: 1 1 auto !important;
-    }
-    
-    #intended-cities-list {
-        min-height: 60px !important;
-        max-height: 100px !important;
-    }
-    
-    #plan-output-textarea {
-        min-height: 120px !important;
-    }
 }
 

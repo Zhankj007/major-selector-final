@@ -38,7 +38,7 @@ window.initializePlansTab = function() {
                     </div>
                     <div class="button-column">
                         <button id="plan-query-button" class="query-button">查 询</button>
-                        <button id="plan-copy-selected-button" class="output-button">导入意向专业</button>
+                        <button id="plan-copy-selected-button" class="output-button">复制意向专业</button>
                         <div class="switcher">
                              <input type="radio" name="view-mode" value="tree" id="view-tree" checked><label for="view-tree">树状</label>
                              <input type="radio" name="view-mode" value="list" id="view-list"><label for="view-list">列表</label>

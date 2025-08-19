@@ -150,29 +150,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const phone = document.getElementById('register-phone').value;
         const unit_name = document.getElementById('register-unitname').value;
         
-        // 验证邮箱格式
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-            registerError.textContent = '请输入有效的邮箱地址。';
-            return;
-        }
-        
-        // 验证手机号格式（限国内用户手机号）
-        const phoneRegex = /^1[3-9]\d{9}$/;
-        if (!phoneRegex.test(phone)) {
-            registerError.textContent = '请输入有效的手机号码。';
-            return;
-        }
-        
         // 验证密码是否匹配
         if (password !== confirmPassword) {
             registerError.textContent = '两次输入的密码不一致，请重新输入。';
-            return;
-        }
-        
-        // 验证密码长度
-        if (password.length < 6) {
-            registerError.textContent = '密码长度至少需要6位。';
             return;
         }
         try {
