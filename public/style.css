@@ -404,6 +404,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
   而不会影响到右侧的“意向计划”输出框。*/
 #app-container-plans .input-column textarea { min-height: 80px; /* 设置一个较小的最小高度 */ flex-grow: 0; /* 取消其在垂直方向上的弹性增长 */ }
 
+/* 平板设备优化 */
 @media (max-width: 1024px) { 
     body { overflow-y: auto; padding: 10px; } 
     .toolbox-container { height: auto; } 
@@ -411,5 +412,24 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     .left-panel, .right-panel { width: 100%; height: auto; max-height: 80vh; } 
     .right-panel { margin-top: 10px; } 
     .tab-navigation { overflow-x: auto; padding-bottom: 5px; } 
+}
+
+/* 手机设备优化 */
+@media (max-width: 768px) {
+    body { padding: 5px; font-size: 13px; }
+    .toolbox-header h1 { font-size: 18px; }
+    .tab-button { padding: 6px 12px; font-size: 13px; }
+    .filter-controls { flex-direction: column; gap: 8px; }
+    .controls-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .header-controls { flex-direction: column; align-items: stretch; gap: 8px; }
+    .header-controls .search-container { flex-direction: column; gap: 8px; }
+    .input-column input, .input-column textarea { padding: 6px 10px; font-size: 13px; }
+    .query-button, .output-button { padding: 6px 14px; font-size: 13px; }
+    .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 16px; }
+    /* 确保所有内容在小屏幕上正确显示 */
+     body.logged-out .left-panel, body.logged-out .right-panel,
+     body:not(.logged-out) .left-panel, body:not(.logged-out) .right-panel {
+         width: 100% !important; /* 覆盖之前的固定百分比 */
+     }
 }
 

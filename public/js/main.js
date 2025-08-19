@@ -319,22 +319,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // 立即初始化第一个可见且激活的标签页（高校库）
-    const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
-    if (firstVisibleTab && firstVisibleTab.dataset.tab === 'universities') {
-        // 如果是高校库标签页，立即初始化它
-        if (typeof window.initializeUniversitiesTab === 'function') {
-            window.initializeUniversitiesTab();
+    // 增强标签页初始化逻辑，确保在所有浏览器中都能正确加载内容
+    function ensureTabContentLoaded() {
+        const activeTab = document.querySelector('.tab-button.active:not([style*="display: none"])') || document.querySelector('.tab-button:not([style*="display: none"])');
+        if (activeTab) {
+            const targetId = activeTab.dataset.tab;
+            const tabPanel = document.getElementById(`${targetId}-tab`);
+            
+            // 直接调用初始化函数，不依赖点击事件
+            if (!tabPanel.dataset.initialized) {
+                if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
+                    window.initializeUniversitiesTab();
+                } else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
+                    window.initializeMajorsTab();
+                } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
+                    window.initializePlansTab();
+                } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
+                    window.initializeAdminTab();
+                }
+                
+                // 标记为已初始化
+                tabPanel.dataset.initialized = 'true';
+            }
         }
     }
     
-    // 无论登录状态如何，都尝试确保标签页内容正确加载
-    setTimeout(() => {
-        const activeTab = document.querySelector('.tab-button.active:not([style*="display: none"])');
-        if (activeTab && !document.getElementById(`${activeTab.dataset.tab}-tab`).dataset.initialized) {
-            activeTab.click(); // 触发点击事件，初始化内容
-        }
-    }, 100);
+    // 立即初始化
+    ensureTabContentLoaded();
+    
+    // 添加多重保险机制，确保在各种情况下都能加载内容
+    setTimeout(() => ensureTabContentLoaded(), 100);
+    setTimeout(() => ensureTabContentLoaded(), 500);
+    setTimeout(() => ensureTabContentLoaded(), 1000);
     
     // 立即更新访客统计
     updateVisitorCount();
