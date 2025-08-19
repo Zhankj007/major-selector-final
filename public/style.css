@@ -329,7 +329,7 @@ body.logged-out .output-container {
 .header-controls .search-container { display: flex; gap: 8px; flex-grow: 1; }
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
-.switcher label { padding: 8px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
+.switcher label { padding: 6px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
 .query-button { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
@@ -419,10 +419,15 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     body { padding: 5px; font-size: 13px; }
     .toolbox-header h1 { font-size: 18px; }
     .tab-button { padding: 6px 12px; font-size: 13px; }
-    .filter-controls { flex-direction: column; gap: 8px; }
-    .controls-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
-    .header-controls { flex-direction: column; align-items: stretch; gap: 8px; }
-    .header-controls .search-container { flex-direction: column; gap: 8px; }
+    .filter-controls { flex-wrap: wrap; gap: 8px; } /* 允许筛选控件自动换行 */
+    .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; } /* 允许工具栏内容自动换行并保持对齐 */
+    .header-controls { flex-wrap: wrap; align-items: center; gap: 10px; } /* 允许头部控件自动换行 */
+    .header-controls .search-container { flex-wrap: wrap; gap: 8px; } /* 允许搜索容器内的元素自动换行 */
+    .plan-interactive-controls { flex-wrap: wrap; gap: 8px; align-items: center; } /* 允许交互式控件自动换行 */
+    .button-column { flex-direction: row; flex-wrap: wrap; justify-content: center; } /* 改变按钮列布局为水平并允许换行 */
+    .button-column .query-button, .button-column .switcher, .button-column .output-button { width: auto; flex-shrink: 0; } /* 让按钮宽度自适应内容 */
+    .switcher { margin: 0 5px; } /* 调整switcher间距 */
+    .switcher label { padding: 6px 12px; font-size: 13px; } /* 确保在小屏幕上与查询按钮高度一致 */
     .input-column input, .input-column textarea { padding: 6px 10px; font-size: 13px; }
     .query-button, .output-button { padding: 6px 14px; font-size: 13px; }
     .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 16px; }
