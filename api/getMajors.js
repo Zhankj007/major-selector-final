@@ -69,8 +69,33 @@ function buildHierarchy(data, type) {
 
 // The main handler function remains the same.
 export default async function handler(request, response) {
-    const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
-    const type = searchParams.get('type') || 'bachelor';
+    try {
+        // 设置CORS和请求来源限制
+        const allowedOrigin = 'www.igaokao.top';
+        const origin = request.headers.origin;
+        
+        // 开发环境允许本地请求
+        if (process.env.NODE_ENV === 'development') {
+            response.setHeader('Access-Control-Allow-Origin', '*');
+        } else if (origin && origin.includes(allowedOrigin)) {
+            response.setHeader('Access-Control-Allow-Origin', origin);
+        } else {
+            return response.status(403).json({ error: '禁止访问：只允许来自www.igaokao.top的请求' });
+        }
+        
+        response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        if (request.method === 'OPTIONS') {
+            return response.status(200).end();
+        }
+        
+        if (request.method !== 'GET') {
+            return response.status(405).json({ error: 'Method Not Allowed' });
+        }
+        
+        const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
+        const type = searchParams.get('type') || 'bachelor';
 
     const urlBachelor = process.env.SHEET_URL_BACHELOR;
     const urlAssociate = process.env.SHEET_URL_ASSOCIATE;
