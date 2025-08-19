@@ -417,6 +417,7 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 /* 手机设备优化 */
 @media (max-width: 768px) {
     body { padding: 5px; font-size: 13px; }
+    .description { display: none; } /* 在手机端隐藏描述文本 */
     .toolbox-header h1 { font-size: 18px; }
     .tab-button { padding: 6px 12px; font-size: 13px; }
     .filter-controls { flex-wrap: wrap; gap: 8px; } /* 允许筛选控件自动换行 */
