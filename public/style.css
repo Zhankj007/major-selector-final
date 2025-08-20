@@ -420,6 +420,32 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     .description { display: none; } /* 在手机端隐藏描述文本 */
     .toolbox-header h1 { font-size: 18px; }
     .tab-button { padding: 6px 12px; font-size: 13px; }
+    
+    /* 确保招生计划标签页的所有容器在手机端都能正确显示 */
+    #app-container-plans { flex-direction: column; }
+    #app-container-plans .right-panel {
+        display: flex !important;
+        flex-direction: column;
+        width: 100% !important;
+        margin-top: 10px;
+        flex-grow: 1;
+    }
+    
+    /* 为右侧面板的三个主要容器设置明确的显示属性和高度 */
+    #plan-details-content,
+    #plan-chart-area,
+    #plan-output-container {
+        display: flex !important;
+        flex-direction: column;
+        height: auto !important;
+        min-height: 150px !important;
+        max-height: 300px;
+    }
+    
+    /* 为图表区域设置合适的最小高度 */
+    #plan-chart-area {
+        min-height: 200px !important;
+    }
     .filter-controls { flex-wrap: wrap; gap: 8px; } /* 允许筛选控件自动换行 */
     .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; } /* 允许工具栏内容自动换行并保持对齐 */
     .header-controls { flex-wrap: wrap; align-items: center; gap: 10px; } /* 允许头部控件自动换行 */
@@ -435,7 +461,10 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
     /* 确保所有内容在小屏幕上正确显示 */
      body.logged-out .left-panel, body.logged-out .right-panel,
      body:not(.logged-out) .left-panel, body:not(.logged-out) .right-panel {
+         display: flex !important;
+         flex-direction: column;
          width: 100% !important; /* 覆盖之前的固定百分比 */
+         height: auto !important;
      }
 }
 

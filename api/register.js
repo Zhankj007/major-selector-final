@@ -24,6 +24,18 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: '所有字段均为必填项。' });
   }
 
+  // Email format validation
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  if (!emailRegex.test(email)) {
+    return response.status(400).json({ error: '请输入有效的邮箱地址。' });
+  }
+
+  // Phone format validation (China mainland)
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  if (!phoneRegex.test(phone)) {
+    return response.status(400).json({ error: '请输入有效的中国大陆手机号码（11位数字，以1开头）。' });
+  }
+
   try {
     // --- Step 1: Create the user in Supabase Auth ---
     // 这会触发我们在第一阶段设置的第一个触发器，自动在 profiles 表中创建一条空记录
