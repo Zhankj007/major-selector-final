@@ -102,29 +102,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- 表单提交逻辑 ---
-    // 添加登录状态提示元素
-    const loginStatus = document.createElement('div');
-    loginStatus.id = 'login-status';
-    loginStatus.style.color = 'red';
-    loginStatus.style.marginTop = '5px';
-    loginStatus.style.display = 'none';
-    loginForm.appendChild(loginStatus);
-    
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault(); // 阻止表单默认的刷新页面行为
         loginError.textContent = ''; // 清空之前的错误信息
-        loginStatus.textContent = '';
-        loginStatus.style.display = 'none';
     
-        // 【新增】获取登录按钮元素
+        // 获取登录按钮元素
         const loginButton = loginForm.querySelector('button[type="submit"]');
     
         try {
-            // 【新增】在请求开始前，禁用按钮并显示“登录中...”
+            // 在请求开始前，禁用按钮并显示“登录中...”
             loginButton.disabled = true;
             loginButton.textContent = '登录中...';
-            loginStatus.textContent = '正在登录中，请稍候……';
-            loginStatus.style.display = 'block';
+            loginButton.style.backgroundColor = '#ccc'; // 设置为灰色
+            
+            // 显示登录状态提示
+            loginError.textContent = '正在登录中，请稍候……';
     
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -144,10 +136,10 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             loginError.textContent = error.message;
         } finally {
-            // 【新增】无论成功还是失败，最终都恢复按钮的原始状态
+            // 无论成功还是失败，最终都恢复按钮的原始状态
             loginButton.disabled = false;
             loginButton.textContent = '登 录';
-            loginStatus.style.display = 'none';
+            loginButton.style.backgroundColor = '#007bff'; // 恢复原始蓝色
         }
     });
 
