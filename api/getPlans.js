@@ -86,7 +86,7 @@ export default async function handler(request, response) {
             }
         }
         
-        const { data, error, count } = await query.limit(1000);
+        const { data, error, count } = await query.limit(500);
 
         if (error) throw new Error(`数据库查询错误: ${error.message}`);
         
