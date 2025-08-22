@@ -140,7 +140,8 @@ li {
     overflow: hidden;
 }
 
-.left-panel {
+/* 招生计划页面 - 保持原有40%:60%比例 */
+#app-container-plans .left-panel {
     width: 40%;
     flex-shrink: 0;
     display: flex;
@@ -149,8 +150,29 @@ li {
     height: 100%;
 }
 
-.right-panel {
+#app-container-plans .right-panel {
     width: 60%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gutter);
+    height: 100%;
+}
+
+/* 高校库和专业目录页面 - 使用新的35%:65%比例 */
+#app-container-universities .left-panel,
+#app-container-majors .left-panel {
+    width: 35%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gutter);
+    height: 100%;
+}
+
+#app-container-universities .right-panel,
+#app-container-majors .right-panel {
+    width: 65%;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;

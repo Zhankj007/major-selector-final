@@ -3,7 +3,7 @@ window.initializeUniversitiesTab = function() {
     if (!container || container.dataset.initialized) return;
     container.dataset.initialized = 'true';
     container.innerHTML = `
-        <div class="app-container">
+        <div class="app-container" id="app-container-universities">
             <div class="left-panel">
                 <div class="header-controls">
                     <div class="switcher">
