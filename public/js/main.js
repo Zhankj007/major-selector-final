@@ -50,14 +50,9 @@ document.addEventListener('DOMContentLoaded', function () {
         closeModal.addEventListener('click', hideModal);
     }
 
-    // 点击模态框外部隐藏模态框
-    if (loginModal) {
-        loginModal.addEventListener('click', (e) => {
-            if (e.target === loginModal) {
-                hideModal();
-            }
-        });
-    }
+    // 移除点击模态框外部隐藏模态框的功能
+    // 用户只能通过点击右上角关闭按钮关闭模态框
+    // 防止用户意外点击模态框外部导致登录/注册窗口关闭
 
     // --- 核心认证状态管理 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
