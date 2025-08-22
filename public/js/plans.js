@@ -187,7 +187,7 @@ window.initializePlansTab = function() {
             const response = await fetch(`/api/getPlans?${params.toString()}`);
             if (!response.ok) throw new Error(`查询失败: ${response.statusText}`);
             const { data, count } = await response.json();
-            if (count > 1000) { resultsMessage.textContent = `符合检索条件记录${count}条，系统只展示前1000条，请适当增加条件或缩小范围。`; }
+            if (count > 500) { resultsMessage.textContent = `符合检索条件记录${count}条，系统只展示前500条，请适当增加条件或缩小范围。`; }
             else { resultsMessage.textContent = `符合检索条件记录${count}条`; }
             lastQueryData = data || [];
             renderResults();

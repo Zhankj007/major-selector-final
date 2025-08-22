@@ -5,8 +5,8 @@ window.initializeMajorsTab = function() {
     majorsTab.innerHTML = `
         <div class="app-container" id="app-container-majors">
             <div class="left-panel">
-                <div class="header-controls">
-                     <h2>专业目录</h2>
+                <div class="header-controls" style="padding-top: 5px;">
+                     <h2 style="margin-top: 0; margin-bottom: 5px;">专业目录</h2>
                     <div class="switcher">
                         <input type="radio" name="major-catalog-type" value="bachelor" id="bachelor-major" checked>
                         <label for="bachelor-major">本科</label>
@@ -21,8 +21,8 @@ window.initializeMajorsTab = function() {
                 <div id="major-tree-container" class="major-tree-container"><p>正在加载...</p></div>
             </div>
             <div class="right-panel">
-                <div id="major-details-content" class="details-content"><p>请选择目录后进行操作。</p></div>
-                <div class="output-container">
+                <div id="major-details-content" class="details-content" style="padding-top: 5px;"><p>请选择目录后进行操作。</p></div>
+                <div class="output-container" style="padding-top: 5px;">
                     <div class="output-header">
                         <h3>意向专业<span id="major-selection-counter"></span></h3>
                         <div class="button-group">
