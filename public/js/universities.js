@@ -338,7 +338,7 @@ window.initializeUniversitiesTab = function() {
                             html += `<p style="color:red;">查询数据失败: ${error.message}</p>`;
                         } else if (!data || data.length === 0) {
                             html += '<p>该校2027年在浙江没有拟招生专业。</p>';
-                        } else {","},{
+                        } else {
                             
                             // 构建表格
                             html += `
