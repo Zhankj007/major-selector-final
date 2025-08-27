@@ -326,8 +326,6 @@ window.initializeUniversitiesTab = function() {
 
             // 使用全局的supabaseClient实例直接查询数据库
             if (window.supabaseClient) {
-                console.log(`查询院校编码: ${universityCode} 的2027年选考科目要求`);
-                
                 // 暂时不使用字段别名，直接查询原始带引号的字段名
                 window.supabaseClient
                     .from('2027xkkmyq')
@@ -336,19 +334,11 @@ window.initializeUniversitiesTab = function() {
                     .then(({ data, error }) => {
                         let html = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3>`;
                         
-                        console.log('查询结果数据:', data);
-                        console.log('查询错误:', error);
-                        
                         if (error) {
-                            console.error("查询2027年选考科目要求数据失败:", error);
                             html += `<p style="color:red;">查询数据失败: ${error.message}</p>`;
                         } else if (!data || data.length === 0) {
                             html += '<p>该校2027年在浙江没有拟招生专业。</p>';
-                        } else {
-                            // 记录返回数据的结构
-                            if (data.length > 0) {
-                                console.log('数据字段结构:', Object.keys(data[0]));
-                            }
+                        } else {","},{
                             
                             // 构建表格
                             html += `
@@ -356,6 +346,7 @@ window.initializeUniversitiesTab = function() {
                                     <table class="subject-requirements-table">
                                         <thead>
                                             <tr>
+                                                <th>序号</th>
                                                 <th>层次</th>
                                                 <th>专业(类)名称</th>
                                                 <th>选考科目要求</th>
@@ -366,8 +357,6 @@ window.initializeUniversitiesTab = function() {
                             
                             // 添加表格数据行
                             data.forEach((row, index) => {
-                                console.log(`第${index+1}行数据:`, row);
-                                
                                 // 优先使用带双引号的字段名访问数据
                                 const level = row['"层次"'] || row['层次'] || row.level || '';
                                 const majorName = row['"专业(类)名称"'] || row['专业(类)名称'] || row.major_name || '';
@@ -375,6 +364,7 @@ window.initializeUniversitiesTab = function() {
                                 
                                 html += `
                                     <tr>
+                                        <td>${index+1}</td>
                                         <td>${level}</td>
                                         <td>${majorName}</td>
                                         <td>${subjectRequirement}</td>
@@ -389,18 +379,15 @@ window.initializeUniversitiesTab = function() {
                             `;
                         }
                         
-                        console.log('生成的HTML内容:', html);
                         detailsContent.innerHTML = html;
                     })
                     .catch(error => {
-                        console.error("加载2027年选考科目要求数据失败:", error);
                         detailsContent.innerHTML = `
                             <h3>${universityName || '---'} - ${universityCode || '---'}</h3>
                             <p style="color:red;">加载2027年选考科目要求数据失败: ${error.message}</p>
                         `;
                     });
             } else {
-                console.error("未找到supabaseClient实例");
                 detailsContent.innerHTML = `
                     <h3>${universityName || '---'} - ${universityCode || '---'}</h3>
                     <p style="color:red;">系统错误：未找到数据库连接实例</p>
@@ -408,7 +395,6 @@ window.initializeUniversitiesTab = function() {
             }
 
         } catch(error) {
-            console.error("显示2027年选考科目要求时出错:", error);
             detailsContent.innerHTML = `<p style="color:red;">加载数据失败: ${error.message}</p>`;
         }
     }
