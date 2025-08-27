@@ -328,8 +328,8 @@ window.initializeUniversitiesTab = function() {
             if (window.supabaseClient) {
                 window.supabaseClient
                     .from('2027xkkmyq')
-                    .select('层次, 专业(类)名称, 选考科目要求')
-                    .eq('院校编码', universityCode)
+                    .select('"层次", "专业(类)名称", "选考科目要求"')
+                    .eq('"院校编码"', universityCode)
                     .then(({ data, error }) => {
                         let html = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3>`;
                         
@@ -355,11 +355,16 @@ window.initializeUniversitiesTab = function() {
                             
                             // 添加表格数据行
                             data.forEach(row => {
+                                // 正确引用带引号的字段名
+                                const level = row['"层次"'] || '';
+                                const majorName = row['"专业(类)名称"'] || '';
+                                const subjectRequirement = row['"选考科目要求"'] || '';
+                                
                                 html += `
                                     <tr>
-                                        <td>${row['层次'] || ''}</td>
-                                        <td>${row['专业(类)名称'] || ''}</td>
-                                        <td>${row['选考科目要求'] || ''}</td>
+                                        <td>${level}</td>
+                                        <td>${majorName}</td>
+                                        <td>${subjectRequirement}</td>
                                     </tr>
                                 `;
                             });
