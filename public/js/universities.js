@@ -166,7 +166,7 @@ window.initializeUniversitiesTab = function() {
         let hierarchy;
         if (groupBy === 'region') hierarchy = buildHierarchy(list, '省份', '城市');
         else hierarchy = buildHierarchy(list, '主管部门');
-        let html = '<div style="color: blue; margin-bottom: 10px; font-size: 14px;">鼠标在院校名称上悬停显示院校详情，点击显示2027年选考科目要求</div><ul id="uni-tree">';
+        let html = '<div style="color: blue; margin-bottom: 10px; font-size: 14px;">鼠标在院校名称上悬停或单击显示院校详情，双击显示2027年选考科目要求</div><ul id="uni-tree">';
         if (!list.length) html += '<li>没有找到匹配的院校。</li>';
         else {
             for(const l1Key in hierarchy) {
@@ -196,10 +196,8 @@ window.initializeUniversitiesTab = function() {
     function attachUniEventListeners() {
         const tree = treeContainer.querySelector("#uni-tree");
         if (!tree) return;
-        tree.addEventListener("click", e => {
-            if (e.target.classList.contains("tree-label")) { e.target.closest("li").querySelector(".nested")?.classList.toggle("active"); e.target.classList.toggle("caret-down"); }
-            if (e.target.classList.contains("uni-label")) show2027SubjectRequirements(e.target.closest("li"));
-        });
+        tree.addEventListener("click", e => { if (e.target.classList.contains("tree-label")) { e.target.closest("li").querySelector(".nested")?.classList.toggle("active"); e.target.classList.toggle("caret-down"); } if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
+        tree.addEventListener("dblclick", e => { if (e.target.classList.contains("uni-label")) show2027SubjectRequirements(e.target.closest("li")); });
         tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
         tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
     }
