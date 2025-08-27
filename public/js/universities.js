@@ -326,12 +326,17 @@ window.initializeUniversitiesTab = function() {
 
             // 使用全局的supabaseClient实例直接查询数据库
             if (window.supabaseClient) {
+                console.log(`查询院校编码: ${universityCode} 的2027年选考科目要求`);
+                
                 window.supabaseClient
                     .from('2027xkkmyq')
-                    .select('"层次", "专业(类)名称", "选考科目要求"')
-                    .eq('"院校编码"', universityCode)
+                    .select('层次, 专业(类)名称, 选考科目要求')
+                    .eq('院校编码', universityCode)
                     .then(({ data, error }) => {
                         let html = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3>`;
+                        
+                        console.log('查询结果数据:', data);
+                        console.log('查询错误:', error);
                         
                         if (error) {
                             console.error("查询2027年选考科目要求数据失败:", error);
@@ -339,6 +344,11 @@ window.initializeUniversitiesTab = function() {
                         } else if (!data || data.length === 0) {
                             html += '<p>该校2027年在浙江没有拟招生专业。</p>';
                         } else {
+                            // 记录返回数据的结构
+                            if (data.length > 0) {
+                                console.log('数据字段结构:', Object.keys(data[0]));
+                            }
+                            
                             // 构建表格
                             html += `
                                 <div class="table-container">
@@ -354,11 +364,13 @@ window.initializeUniversitiesTab = function() {
                             `;
                             
                             // 添加表格数据行
-                            data.forEach(row => {
-                                // 正确引用带引号的字段名
-                                const level = row['"层次"'] || '';
-                                const majorName = row['"专业(类)名称"'] || '';
-                                const subjectRequirement = row['"选考科目要求"'] || '';
+                            data.forEach((row, index) => {
+                                console.log(`第${index+1}行数据:`, row);
+                                
+                                // 尝试不同的字段访问方式
+                                const level = row['层次'] || row.level || row['"层次"'] || '';
+                                const majorName = row['专业(类)名称'] || row['专业类名称'] || row['"专业(类)名称"'] || '';
+                                const subjectRequirement = row['选考科目要求'] || row['"选考科目要求"'] || '';
                                 
                                 html += `
                                     <tr>
