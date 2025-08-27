@@ -328,10 +328,11 @@ window.initializeUniversitiesTab = function() {
             if (window.supabaseClient) {
                 console.log(`查询院校编码: ${universityCode} 的2027年选考科目要求`);
                 
+                // 使用字段别名来避免特殊字符问题
                 window.supabaseClient
                     .from('2027xkkmyq')
-                    .select('层次, 专业(类)名称, 选考科目要求')
-                    .eq('院校编码', universityCode)
+                    .select('"层次" as level, "专业(类)名称" as major_name, "选考科目要求" as subject_req')
+                    .eq('"院校编码"', universityCode)
                     .then(({ data, error }) => {
                         let html = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3>`;
                         
@@ -367,10 +368,10 @@ window.initializeUniversitiesTab = function() {
                             data.forEach((row, index) => {
                                 console.log(`第${index+1}行数据:`, row);
                                 
-                                // 尝试不同的字段访问方式
-                                const level = row['层次'] || row.level || row['"层次"'] || '';
-                                const majorName = row['专业(类)名称'] || row['专业类名称'] || row['"专业(类)名称"'] || '';
-                                const subjectRequirement = row['选考科目要求'] || row['"选考科目要求"'] || '';
+                                // 使用别名访问数据
+                                const level = row.level || row['"层次"'] || row['层次'] || '';
+                                const majorName = row.major_name || row['"专业(类)名称"'] || row['专业(类)名称'] || '';
+                                const subjectRequirement = row.subject_req || row['"选考科目要求"'] || row['选考科目要求'] || '';
                                 
                                 html += `
                                     <tr>
@@ -388,6 +389,7 @@ window.initializeUniversitiesTab = function() {
                             `;
                         }
                         
+                        console.log('生成的HTML内容:', html);
                         detailsContent.innerHTML = html;
                     })
                     .catch(error => {
