@@ -166,7 +166,7 @@ window.initializeUniversitiesTab = function() {
         let hierarchy;
         if (groupBy === 'region') hierarchy = buildHierarchy(list, '省份', '城市');
         else hierarchy = buildHierarchy(list, '主管部门');
-        let html = '<ul id="uni-tree">';
+        let html = '<div style="color: blue; margin-bottom: 10px; font-size: 14px;">鼠标在院校名称上悬停或单击显示院校详情，双击显示2027年选考科目要求</div><ul id="uni-tree">';
         if (!list.length) html += '<li>没有找到匹配的院校。</li>';
         else {
             for(const l1Key in hierarchy) {
@@ -196,10 +196,8 @@ window.initializeUniversitiesTab = function() {
     function attachUniEventListeners() {
         const tree = treeContainer.querySelector("#uni-tree");
         if (!tree) return;
-        tree.addEventListener("click", e => {
-            if (e.target.classList.contains("tree-label")) { e.target.closest("li").querySelector(".nested")?.classList.toggle("active"); e.target.classList.toggle("caret-down"); }
-            if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li"));
-        });
+        tree.addEventListener("click", e => { if (e.target.classList.contains("tree-label")) { e.target.closest("li").querySelector(".nested")?.classList.toggle("active"); e.target.classList.toggle("caret-down"); } if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
+        tree.addEventListener("dblclick", e => { if (e.target.classList.contains("uni-label")) show2027SubjectRequirements(e.target.closest("li")); });
         tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
         tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
     }
@@ -307,6 +305,95 @@ window.initializeUniversitiesTab = function() {
         } catch(error) {
             console.error("显示院校详情时出错:", error);
             detailsContent.innerHTML = `<p style="color:red;">加载详情失败: ${error.message}。请检查浏览器控制台获取详细信息。</p>`;
+        }
+    }
+
+    function show2027SubjectRequirements(li) {
+        try {
+            if (!li || !li.dataset.details) {
+                detailsContent.innerHTML = '<h3>院校详情</h3><p>请在左侧选择或查询院校...</p>';
+                return;
+            }
+
+            const d = JSON.parse(decodeURIComponent(atob(li.dataset.details)));
+            const universityCode = d[UNI_CODE_KEY];
+            const universityName = d[UNI_NAME_KEY];
+
+            // 显示加载状态
+            detailsContent.innerHTML = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3><p>正在加载2027年选考科目要求数据...</p>`;
+
+            // 使用全局的supabaseClient实例直接查询数据库
+            if (window.supabaseClient) {
+                // 暂时不使用字段别名，直接查询原始带引号的字段名
+                window.supabaseClient
+                    .from('2027xkkmyq')
+                    .select('"层次", "专业(类)名称", "选考科目要求"')
+                    .eq('"院校编码"', universityCode)
+                    .then(({ data, error }) => {
+                        let html = `<h3>${universityName || '---'} - ${universityCode || '---'}</h3>`;
+                        
+                        if (error) {
+                            html += `<p style="color:red;">查询数据失败: ${error.message}</p>`;
+                        } else if (!data || data.length === 0) {
+                            html += '<p>该校2027年在浙江没有拟招生专业。</p>';
+                        } else {
+                            
+                            // 构建表格
+                            html += `
+                                <div class="table-container">
+                                    <table class="subject-requirements-table">
+                                        <thead>
+                                            <tr>
+                                                <th>序号</th>
+                                                <th>层次</th>
+                                                <th>专业(类)名称</th>
+                                                <th>选考科目要求</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                            `;
+                            
+                            // 添加表格数据行
+                            data.forEach((row, index) => {
+                                // 优先使用带双引号的字段名访问数据
+                                const level = row['"层次"'] || row['层次'] || row.level || '';
+                                const majorName = row['"专业(类)名称"'] || row['专业(类)名称'] || row.major_name || '';
+                                const subjectRequirement = row['"选考科目要求"'] || row['选考科目要求'] || row.subject_req || '';
+                                
+                                html += `
+                                    <tr>
+                                        <td>${index+1}</td>
+                                        <td>${level}</td>
+                                        <td>${majorName}</td>
+                                        <td>${subjectRequirement}</td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+                        
+                        detailsContent.innerHTML = html;
+                    })
+                    .catch(error => {
+                        detailsContent.innerHTML = `
+                            <h3>${universityName || '---'} - ${universityCode || '---'}</h3>
+                            <p style="color:red;">加载2027年选考科目要求数据失败: ${error.message}</p>
+                        `;
+                    });
+            } else {
+                detailsContent.innerHTML = `
+                    <h3>${universityName || '---'} - ${universityCode || '---'}</h3>
+                    <p style="color:red;">系统错误：未找到数据库连接实例</p>
+                `;
+            }
+
+        } catch(error) {
+            detailsContent.innerHTML = `<p style="color:red;">加载数据失败: ${error.message}</p>`;
         }
     }
 

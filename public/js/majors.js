@@ -216,8 +216,8 @@ window.initializeMajorsTab = function() {
             }
         };
 
-        const bachelorFieldsOrder = ['门类', '专业类', '学位', '学制', '设立年份', '指引必选科目', '体检限制', '培养目标', '主要课程', '就业方向或职业面向', '专业知识库链接', '开设院校链接'];
-        const associateFieldsOrder = ['专业大类', '专业类', '接续高职本科', '接续普通本科', '职业证书', '职业面向', '培养目标', '专业能力', '基础课程', '核心课程', '实习实训'];
+        const bachelorFieldsOrder = ['门类', '专业类', '学位', '学制', '2025年浙江计划数与录取情况', '设立年份', '指引必选科目', '体检限制', '培养目标', '主要课程', '就业方向或职业面向', '专业知识库链接', '开设院校链接'];
+        const associateFieldsOrder = ['专业大类', '专业类', '2025年浙江计划数与录取情况', '接续高职本科', '接续普通本科', '职业证书', '职业面向', '培养目标', '专业能力', '基础课程', '核心课程', '实习实训'];
         
         const displayOrder = (currentCatalogType === 'bachelor') ? bachelorFieldsOrder : associateFieldsOrder;
         

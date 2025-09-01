@@ -490,3 +490,39 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
      }
 }
 
+/* 选考科目要求表格样式 */
+.table-container {
+    overflow-x: auto;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.subject-requirements-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.subject-requirements-table th {
+    background-color: #f2f2f2;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    font-weight: bold;
+}
+
+.subject-requirements-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.subject-requirements-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.subject-requirements-table tr:hover {
+    background-color: #f5f5f5;
+}
+
