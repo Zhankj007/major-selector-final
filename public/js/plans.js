@@ -769,9 +769,23 @@ function showPlanDetails(plan) {
     viewModeSwitcher.addEventListener('change', renderResults);
 
     resultsContainer.addEventListener('change', e => {
-        // 【已修正】检查复选框是否存在于任何带有 [data-plan] 属性的父元素中
-        if (e.target.type === 'checkbox' && e.target.closest('[data-plan]')) {
-            handlePlanSelectionChange(e.target);
+        if (e.target.type === 'checkbox') {
+            const listItem = e.target.closest('li');
+            // 处理根节点复选框（省份或院校）的联动勾选
+            if (listItem && listItem.querySelector('ul.nested')) {
+                const isChecked = e.target.checked;
+                // 找到所有子复选框并设置相同的选中状态
+                listItem.querySelectorAll('ul input[type="checkbox"]').forEach(child => {
+                    child.checked = isChecked;
+                    if (child.closest('[data-plan]')) {
+                        handlePlanSelectionChange(child);
+                    }
+                });
+            }
+            // 处理单个专业复选框
+            else if (e.target.closest('[data-plan]')) {
+                handlePlanSelectionChange(e.target);
+            }
         }
     });
 
