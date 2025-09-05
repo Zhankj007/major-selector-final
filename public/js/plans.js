@@ -20,14 +20,14 @@ window.initializePlansTab = function() {
                     <details class="filter-group" id="filter-uni-level"><summary>水平</summary><div class="filter-options"><p>...</p></div></details>
                     <details class="filter-group" id="filter-ownership"><summary>性质</summary><div class="filter-options"><p>加载中...</p></div></details>
                     <details class="filter-group" id="filter-edu-level"><summary>层次</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-range"><summary>范围</summary><div class="filter-options">
+                    <details class="filter-group" id="filter-range" style="position: relative; z-index: 1000;"><summary>范围</summary><div class="filter-options">
                         <div class="switcher">
                             <input type="radio" name="range-type" value="score" id="range-score" checked><label for="range-score">成绩</label>
                             <input type="radio" name="range-type" value="rank" id="range-rank"><label for="range-rank">位次</label>
                         </div>
                         <div style="display: flex; gap: 5px; margin-top: 8px;">
-                            <input type="number" id="range-low" placeholder="低分" style="width: 100px;">
-                            <input type="number" id="range-high" placeholder="高分" style="width: 100px;">
+                            <input type="number" id="range-low" placeholder="低分" style="width: 80px;" maxlength="6">
+                            <input type="number" id="range-high" placeholder="高分" style="width: 80px;" maxlength="6">
                         </div>
                     </div></details>
                 </div>
@@ -180,8 +180,9 @@ window.initializePlansTab = function() {
             if (lowVal) params.append('scoreLow', lowVal);
             if (highVal) params.append('scoreHigh', highVal);
         } else {
-            if (lowVal) params.append('rankLow', lowVal);
-            if (highVal) params.append('rankHigh', highVal);
+            // 修正位次逻辑关系：低位（排名靠后，数值大）对应rankHigh，高位（排名靠前，数值小）对应rankLow
+            if (lowVal) params.append('rankHigh', lowVal);  // 低位（数值大）作为上限
+            if (highVal) params.append('rankLow', highVal); // 高位（数值小）作为下限
         }
         try {
             const response = await fetch(`/api/getPlans?${params.toString()}`);
