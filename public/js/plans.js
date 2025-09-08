@@ -20,7 +20,7 @@ window.initializePlansTab = function() {
                     <details class="filter-group" id="filter-uni-level"><summary>水平</summary><div class="filter-options"><p>...</p></div></details>
                     <details class="filter-group" id="filter-ownership"><summary>性质</summary><div class="filter-options"><p>加载中...</p></div></details>
                     <details class="filter-group" id="filter-edu-level"><summary>层次</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-range" style="position: relative; z-index: 9999;"><summary>范围</summary><div class="filter-options">
+                    <details class="filter-group" id="filter-range" style="position: relative; z-index: 9999; direction: rtl;"><summary>范围</summary><div class="filter-options" style="direction: ltr; left: auto; right: 0;">
                         <div class="switcher">
                             <input type="radio" name="range-type" value="score" id="range-score" checked><label for="range-score">成绩</label>
                             <input type="radio" name="range-type" value="rank" id="range-rank"><label for="range-rank">位次</label>
