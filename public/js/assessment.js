@@ -704,6 +704,11 @@ function init() {
     renderPage();
 }
 
+// 全局初始化函数，供main.js调用
+window.initializeAssessmentTab = function() {
+    init();
+};
+
 // 添加测评功能的CSS样式
 function addAssessmentStyles() {
     const style = document.createElement('style');

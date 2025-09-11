@@ -296,6 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
                         // 【新增】当点击后台管理时，调用初始化函数
                         window.initializeAdminTab();
+                    } else if (targetId === 'assessment' && typeof window.initializeAssessmentTab === 'function') {
+                        // 当点击个人测评时，调用初始化函数
+                        window.initializeAssessmentTab();
                     }
                 }
             });
@@ -336,6 +339,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.initializePlansTab();
                 } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
                     window.initializeAdminTab();
+                } else if (targetId === 'assessment' && typeof window.initializeAssessmentTab === 'function') {
+                    window.initializeAssessmentTab();
                 }
                 
                 // 标记为已初始化
