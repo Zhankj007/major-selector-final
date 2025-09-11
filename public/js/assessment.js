@@ -90,7 +90,7 @@ window.initializeAssessmentTab = function() {
     }
 
     // 开始测评
-    function startAssessment() {
+    async function startAssessment() {
         currentStep = 'assessment';
         currentQuestionIndex = 0;
         userAnswers = [];
@@ -103,9 +103,31 @@ window.initializeAssessmentTab = function() {
         };
         abilityScores = {};
         
-        loadQuestions().then(async () => {
-            await renderPage();
-        });
+        // 显示加载状态
+        assessmentTab.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>正在加载测评题目，请稍候...</p>
+            </div>
+        `;
+        
+        try {
+            // 确保题目加载完成后再渲染页面
+            await loadQuestions();
+            renderPage();
+        } catch (error) {
+            console.error('开始测评失败:', error);
+            // 显示错误信息
+            assessmentTab.innerHTML = `
+                <div class="error-container">
+                    <h2>加载测评题目失败</h2>
+                    <p>抱歉，加载测评题目时遇到了问题。请点击刷新按钮重试。</p>
+                    <button id="retry-assessment-btn" class="primary-button">刷新</button>
+                </div>
+            `;
+            
+            document.getElementById('retry-assessment-btn').addEventListener('click', startAssessment);
+        }
     }
     
     // 检查霍兰德测评是否激活（当前正在作答）
