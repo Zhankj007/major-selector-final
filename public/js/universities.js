@@ -202,7 +202,6 @@ window.initializeUniversitiesTab = function() {
     
     // 初始化数据加载
     fetchData();
-}
         tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
         tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
     }
