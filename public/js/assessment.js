@@ -508,20 +508,15 @@ window.initializeAssessmentTab = function() {
                             </div>
                         </div>
                         
-                        <!-- 测评类型文本框 -->
-                        <div class="assessment-types">
-                            <div class="assessment-type-box ${isHollandActive() ? 'active' : ''}">
-                                <div class="type-name">霍兰德职业兴趣</div>
-                                <div class="type-status">${getHollandStatus()}</div>
-                            </div>
-                            <div class="assessment-type-box ${isMbtiActive() ? 'active' : ''}">
-                                <div class="type-name">性格倾向测评</div>
-                                <div class="type-status">${getMbtiStatus()}</div>
-                            </div>
-                            <div class="assessment-type-box ${isAbilityActive() ? 'active' : ''}">
-                                <div class="type-name">能力自评</div>
-                                <div class="type-status">${getAbilityStatus()}</div>
-                            </div>
+                        <!-- 当前测评项目指示器 -->
+                        <div class="current-assessment-indicator">
+                            <div class="assessment-type-indicator ${isHollandActive() ? 'active' : ''}"></div>
+                        </div>
+                        
+                        <!-- 隐藏其他测评项目指示器 -->
+                        <div class="hidden-assessment-indicators">
+                            <div class="assessment-type-indicator ${isMbtiActive() ? 'active' : ''}" style="opacity: 0"></div>
+                            <div class="assessment-type-indicator ${isAbilityActive() ? 'active' : ''}" style="opacity: 0"></div>
                         </div>
                         
                         <div class="question-container">
@@ -533,20 +528,23 @@ window.initializeAssessmentTab = function() {
                         <div class="question-options">
                             ${question.choices.map((choice, index) => `
                                 <label class="choice-option">
-                                    <input type="radio" name="question-${question.id}" value="${choice.id}">
+                                    <input type="radio" name="question-${question.id}" value="${choice.id}" onchange="handleChoiceSelection(event)">
                                     <span class="choice-text">${choice.choice_text}</span>
                                 </label>
                             `).join('')}
                         </div>
                     </div>
                     
+                    <!-- 仅保留上一题按钮，移除下一题按钮，因为选择答案后会自动跳转 -->
                     <div class="assessment-controls">
                         <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
                             上一题
                         </button>
-                        <button id="next-question-btn" class="primary-button">
-                            ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
-                        </button>
+                        <div style="visibility: hidden;">
+                            <button id="next-question-btn" class="primary-button">
+                                ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -578,6 +576,14 @@ window.initializeAssessmentTab = function() {
         document.getElementById('next-question-btn').addEventListener('click', async () => {
             await handleNextQuestion();
         });
+        
+        // 为选项添加事件监听器的全局函数
+        window.handleChoiceSelection = async function(event) {
+            // 使用setTimeout稍微延迟一下，让用户看到选择效果
+            setTimeout(async () => {
+                await handleNextQuestion();
+            }, 300);
+        };
     }
 
     // 获取题目类型标签
@@ -1065,7 +1071,8 @@ window.initializeAssessmentTab = function() {
             .assessment-welcome {
                 width: 40%;
                 margin: 5px 0 5px 5px;
-                min-height: 500px;
+                min-height: calc(100vh - 10px);
+                box-sizing: border-box;
             }
             
             .welcome-content {
@@ -1153,8 +1160,9 @@ window.initializeAssessmentTab = function() {
             .assessment-layout {
                 width: 40%;
                 margin: 5px 0 5px 5px;
-                min-height: 600px;
+                min-height: calc(100vh - 10px);
                 box-sizing: border-box;
+                overflow-y: auto;
             }
             
             .assessment-left-panel {
@@ -1201,6 +1209,25 @@ window.initializeAssessmentTab = function() {
                 transition: all 0.3s;
             }
             
+            /* 当前测评项目指示器样式 */
+            .current-assessment-indicator {
+                margin-bottom: 20px;
+            }
+            
+            .assessment-type-indicator {
+                width: 20px;
+                height: 20px;
+                background-color: #4caf50;
+                border: 2px solid #45a049;
+                border-radius: 4px;
+                transition: all 0.3s;
+            }
+            
+            .assessment-type-indicator.active {
+                background-color: #4caf50;
+                border-color: #45a049;
+            }
+            
             .type-holland {
                 background-color: #e3f2fd;
                 color: #1976d2;
@@ -1230,6 +1257,8 @@ window.initializeAssessmentTab = function() {
             .result-page {
                 width: 40%;
                 margin: 5px 0 5px 5px;
+                min-height: calc(100vh - 10px);
+                box-sizing: border-box;
             }
             
             .result-layout {
