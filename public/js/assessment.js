@@ -107,6 +107,130 @@ window.initializeAssessmentTab = function() {
             await renderPage();
         });
     }
+    
+    // 检查霍兰德测评是否激活（当前正在作答）
+    function isHollandActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'holland';
+    }
+    
+    // 检查MBTI测评是否激活（当前正在作答）
+    function isMbtiActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'mbti';
+    }
+    
+    // 检查能力自评是否激活（当前正在作答）
+    function isAbilityActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'ability';
+    }
+    
+    // 获取霍兰德测评状态
+    function getHollandStatus() {
+        // 计算霍兰德题目的总数
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        // 计算已回答的霍兰德题目数量
+        let answeredHollandQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+        }
+        
+        // 检查是否所有霍兰德题目都已完成
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        
+        if (hollandCompleted) {
+            return '已完成';
+        } else if (isHollandActive()) {
+            return '作答中';
+        } else if (answeredHollandQuestions > 0) {
+            return `${answeredHollandQuestions}/${totalHollandQuestions}`;
+        } else {
+            return '未开始';
+        }
+    }
+    
+    // 获取MBTI测评状态
+    function getMbtiStatus() {
+        // 计算MBTI题目的总数
+        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
+        let answeredHollandQuestions = 0;
+        for (let i = 0; i < allQuestions.length; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+        }
+        // 计算已回答的MBTI题目数量
+        let answeredMbtiQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+                answeredMbtiQuestions++;
+            }
+        }
+        
+        // 检查是否所有MBTI题目都已完成
+        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+        // 检查霍兰德是否已完成（MBTI是否可以开始）
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        
+        if (mbtiCompleted) {
+            return '已完成';
+        } else if (isMbtiActive()) {
+            return '作答中';
+        } else if (hollandCompleted) {
+            return `${answeredMbtiQuestions}/${totalMbtiQuestions}`;
+        } else {
+            return '未开始（需先完成霍兰德）';
+        }
+    }
+    
+    // 获取能力自评状态
+    function getAbilityStatus() {
+        // 计算能力自评题目的总数
+        const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
+        // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
+        let answeredHollandQuestions = 0;
+        let answeredMbtiQuestions = 0;
+        for (let i = 0; i < allQuestions.length; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+                answeredMbtiQuestions++;
+            }
+        }
+        // 计算已回答的能力自评题目数量
+        let answeredAbilityQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'ability' && userAnswers[i]) {
+                answeredAbilityQuestions++;
+            }
+        }
+        
+        // 检查是否所有能力自评题目都已完成
+        const abilityCompleted = totalAbilityQuestions > 0 && answeredAbilityQuestions === totalAbilityQuestions;
+        // 检查霍兰德和MBTI是否已完成（能力自评是否可以开始）
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+        
+        if (abilityCompleted) {
+            return '已完成';
+        } else if (isAbilityActive()) {
+            return '作答中';
+        } else if (hollandCompleted && mbtiCompleted) {
+            return `${answeredAbilityQuestions}/${totalAbilityQuestions}`;
+        } else {
+            return '未开始（需先完成霍兰德和MBTI）';
+        }
+    }
 
     // 加载测评题目 - 实现按维度随机抽题的逻辑
     async function loadQuestions() {
@@ -347,9 +471,16 @@ window.initializeAssessmentTab = function() {
                 abilityQuestions.push(...selected);
             });
             
-            // 合并所有抽取的题目并打乱顺序
-            allQuestions = [...hollandQuestions, ...mbtiQuestions, ...abilityQuestions];
-            allQuestions.sort(() => Math.random() - 0.5);
+            // 按类型分组，同一类型内题目随机排序，类型间保持固定顺序：holland -> mbti -> ability
+            // 霍兰德题目内部随机排序
+            const shuffledHollandQuestions = hollandQuestions.sort(() => Math.random() - 0.5);
+            // MBTI题目内部随机排序
+            const shuffledMbtiQuestions = mbtiQuestions.sort(() => Math.random() - 0.5);
+            // 能力自评题目内部随机排序
+            const shuffledAbilityQuestions = abilityQuestions.sort(() => Math.random() - 0.5);
+            
+            // 合并所有题目，保持类型顺序
+            allQuestions = [...shuffledHollandQuestions, ...shuffledMbtiQuestions, ...shuffledAbilityQuestions];
             
         } catch (error) {
             console.error('获取题目数据失败:', error);
@@ -366,18 +497,34 @@ window.initializeAssessmentTab = function() {
             <div class="assessment-layout">
                 <div class="assessment-left-panel">
                     <div class="assessment-header">
-                        <h2>个人测评</h2>
-                        <div class="assessment-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${progress}%">
-                                    <span class="progress-text">${currentQuestionIndex + 1}/${allQuestions.length}</span>
+                            <h2>个人测评</h2>
+                            <div class="assessment-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%">
+                                        <span class="progress-text">${currentQuestionIndex + 1}/${allQuestions.length}</span>
+                                    </div>
                                 </div>
+                                <span class="progress-percentage">${progress}%</span>
                             </div>
-                            <span class="progress-percentage">${progress}%</span>
                         </div>
-                    </div>
-                    
-                    <div class="question-container">
+                        
+                        <!-- 测评类型文本框 -->
+                        <div class="assessment-types">
+                            <div class="assessment-type-box ${isHollandActive() ? 'active' : ''}">
+                                <div class="type-name">霍兰德职业兴趣</div>
+                                <div class="type-status">${getHollandStatus()}</div>
+                            </div>
+                            <div class="assessment-type-box ${isMbtiActive() ? 'active' : ''}">
+                                <div class="type-name">性格倾向测评</div>
+                                <div class="type-status">${getMbtiStatus()}</div>
+                            </div>
+                            <div class="assessment-type-box ${isAbilityActive() ? 'active' : ''}">
+                                <div class="type-name">能力自评</div>
+                                <div class="type-status">${getAbilityStatus()}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="question-container">
                         <div class="question-header">
                             <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
                             <h3>${question.question_text}</h3>
@@ -546,57 +693,64 @@ window.initializeAssessmentTab = function() {
                     </div>
                 </div>
                 
-                <div class="result-content">
-                    <div class="result-section">
-                        <h3>霍兰德职业兴趣代码分析</h3>
-                        <div class="holland-result">
-                            <div class="holland-code">
-                                <span class="code-label">您的霍兰德代码：</span>
-                                <span class="code-value">${hollandCode}</span>
-                            </div>
-                            <div class="holland-description">
-                                <p>${getHollandDescription(hollandCode)}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="result-section">
-                        <h3>MBTI性格类型分析</h3>
-                        <div class="mbti-result">
-                            <div class="mbti-type">
-                                <span class="type-label">您的MBTI类型：</span>
-                                <span class="type-value">${mbtiType}</span>
-                            </div>
-                            <div class="mbti-description">
-                                <p>${getMBTIDescription(mbtiType)}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="result-section">
-                        <h3>能力优势雷达图</h3>
-                        <div class="ability-radar">
-                            <canvas id="abilityChart" width="400" height="300"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="result-section">
-                        <h3>推荐专业列表</h3>
-                        <div class="recommended-majors">
-                            ${recommendedMajors.map((major, index) => `
-                                <div class="major-card">
-                                    <div class="major-rank">${index + 1}</div>
-                                    <div class="major-info">
-                                        <h4 class="major-name">${major.name}</h4>
-                                        <p class="major-code">专业代码：${major.code}</p>
-                                        <p class="match-score">匹配度：${major.matchScore}%</p>
-                                    </div>
-                                    <div class="recommendation-reason">
-                                        <p>${major.reason}</p>
-                                    </div>
-                                    <button class="view-major-details" data-major-code="${major.code}">查看详情</button>
+                <!-- 修改为左右分栏布局 -->
+                <div class="result-layout">
+                    <!-- 左侧显示三种测评结果 -->
+                    <div class="result-left-panel">
+                        <div class="result-section">
+                            <h3>霍兰德职业兴趣代码分析</h3>
+                            <div class="holland-result">
+                                <div class="holland-code">
+                                    <span class="code-label">您的霍兰德代码：</span>
+                                    <span class="code-value">${hollandCode}</span>
                                 </div>
-                            `).join('')}
+                                <div class="holland-description">
+                                    <p>${getHollandDescription(hollandCode)}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-section">
+                            <h3>MBTI性格类型分析</h3>
+                            <div class="mbti-result">
+                                <div class="mbti-type">
+                                    <span class="type-label">您的MBTI类型：</span>
+                                    <span class="type-value">${mbtiType}</span>
+                                </div>
+                                <div class="mbti-description">
+                                    <p>${getMBTIDescription(mbtiType)}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-section">
+                            <h3>能力优势雷达图</h3>
+                            <div class="ability-radar">
+                                <canvas id="abilityChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧显示推荐专业 -->
+                    <div class="result-right-panel">
+                        <div class="result-section">
+                            <h3>推荐专业列表</h3>
+                            <div class="recommended-majors">
+                                ${recommendedMajors.map((major, index) => `
+                                    <div class="major-card">
+                                        <div class="major-rank">${index + 1}</div>
+                                        <div class="major-info">
+                                            <h4 class="major-name">${major.name}</h4>
+                                            <p class="major-code">专业代码：${major.code}</p>
+                                            <p class="match-score">匹配度：${major.matchScore}%</p>
+                                        </div>
+                                        <div class="recommendation-reason">
+                                            <p>${major.reason}</p>
+                                        </div>
+                                        <button class="view-major-details" data-major-code="${major.code}">查看详情</button>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -606,7 +760,7 @@ window.initializeAssessmentTab = function() {
                     <button id="save-report-btn" class="primary-button">保存报告</button>
                 </div>
             </div>
-        `;
+            `;
         
         // 绘制能力雷达图
         drawAbilityRadar();
@@ -1000,27 +1154,98 @@ window.initializeAssessmentTab = function() {
             /* 测评布局样式 */
             .assessment-layout {
                 display: flex;
-                gap: 20px;
-                padding: 20px;
+                gap: 15px;
+                padding: 5px;
                 min-height: 600px;
+                box-sizing: border-box;
             }
             
             .assessment-left-panel {
-                flex: 0 0 40%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .assessment-content-container {
                 background-color: white;
                 padding: 30px;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 display: flex;
                 flex-direction: column;
+                flex: 1;
             }
             
             .assessment-right-panel {
-                flex: 0 0 60%;
+                display: none; /* 答题时隐藏右侧面板 */
+                flex: 1;
                 background-color: white;
                 padding: 30px;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                overflow-y: auto;
+            }
+            
+            /* 测评类型文本框 */
+            .assessment-types {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .assessment-type-box {
+                padding: 15px 20px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                text-align: center;
+                transition: all 0.3s;
+            }
+            
+            .type-holland {
+                background-color: #e3f2fd;
+                color: #1976d2;
+                border: 2px solid #1976d2;
+            }
+            
+            .type-mbti {
+                background-color: #f3e5f5;
+                color: #7b1fa2;
+                border: 2px solid #7b1fa2;
+                opacity: 0.6;
+            }
+            
+            .type-ability {
+                background-color: #e8f5e9;
+                color: #388e3c;
+                border: 2px solid #388e3c;
+                opacity: 0.6;
+            }
+            
+            .assessment-type-box.active {
+                opacity: 1;
+                transform: translateX(5px);
+            }
+            
+            /* 结果页面布局 */
+            .result-layout {
+                display: flex;
+                gap: 15px;
+                padding: 5px;
+                box-sizing: border-box;
+            }
+            
+            .result-left-panel {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .result-right-panel {
+                flex: 1;
                 overflow-y: auto;
             }
             
