@@ -694,8 +694,8 @@ function viewMajorDetails(majorCode) {
     }, 500);
 }
 
-// 初始化页面
-function init() {
+// 全局初始化函数，供main.js调用
+window.initializeAssessmentTab = function() {
     // 获取测评标签页元素
     assessmentTab = document.getElementById('assessment-tab');
     if (!assessmentTab || assessmentTab.dataset.initialized) return;
@@ -708,11 +708,6 @@ function init() {
     
     // 渲染欢迎页面
     renderPage();
-}
-
-// 全局初始化函数，供main.js调用
-window.initializeAssessmentTab = function() {
-    init();
 };
 
 // 添加测评功能的CSS样式
@@ -1098,5 +1093,4 @@ function addAssessmentStyles() {
     document.head.appendChild(style);
 }
 
-// 初始化测评功能
-init();
+// 初始化测评功能由main.js调用window.initializeAssessmentTab触发
