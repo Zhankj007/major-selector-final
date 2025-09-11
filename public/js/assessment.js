@@ -128,8 +128,13 @@ window.initializeAssessmentTab = function() {
     
     // 获取霍兰德测评状态
     function getHollandStatus() {
+        // 安全检查：确保allQuestions数组已初始化
+        if (!allQuestions || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+            return '加载中...';
+        }
+        
         // 计算霍兰德题目的总数
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        const totalHollandQuestions = allQuestions.filter(q => q && q.question_type === 'holland').length;
         // 计算已回答的霍兰德题目数量
         let answeredHollandQuestions = 0;
         for (let i = 0; i <= currentQuestionIndex; i++) {
@@ -154,10 +159,15 @@ window.initializeAssessmentTab = function() {
     
     // 获取MBTI测评状态
     function getMbtiStatus() {
+        // 安全检查：确保allQuestions数组已初始化
+        if (!allQuestions || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+            return '加载中...';
+        }
+        
         // 计算MBTI题目的总数
-        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        const totalMbtiQuestions = allQuestions.filter(q => q && q.question_type === 'mbti').length;
         // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        const totalHollandQuestions = allQuestions.filter(q => q && q.question_type === 'holland').length;
         // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
         let answeredHollandQuestions = 0;
         for (let i = 0; i < allQuestions.length; i++) {
@@ -191,11 +201,16 @@ window.initializeAssessmentTab = function() {
     
     // 获取能力自评状态
     function getAbilityStatus() {
+        // 安全检查：确保allQuestions数组已初始化
+        if (!allQuestions || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+            return '加载中...';
+        }
+        
         // 计算能力自评题目的总数
-        const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
+        const totalAbilityQuestions = allQuestions.filter(q => q && q.question_type === 'ability').length;
         // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        const totalHollandQuestions = allQuestions.filter(q => q && q.question_type === 'holland').length;
+        const totalMbtiQuestions = allQuestions.filter(q => q && q.question_type === 'mbti').length;
         // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
         let answeredHollandQuestions = 0;
         let answeredMbtiQuestions = 0;
@@ -493,6 +508,31 @@ window.initializeAssessmentTab = function() {
         const question = allQuestions[currentQuestionIndex];
         const progress = Math.round(((currentQuestionIndex + 1) / allQuestions.length) * 100);
         
+        // 确保question存在
+        if (!question) {
+            assessmentTab.innerHTML = `
+                <div class="assessment-layout">
+                    <div class="assessment-left-panel">
+                        <div class="assessment-header">
+                            <h2>个人测评</h2>
+                            <div class="assessment-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%">
+                                        <span class="progress-text">0/0</span>
+                                    </div>
+                                </div>
+                                <span class="progress-percentage">0%</span>
+                            </div>
+                        </div>
+                        <div class="loading-message">
+                            <p>正在加载测评题目，请稍候...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
         assessmentTab.innerHTML = `
             <div class="assessment-layout">
                 <div class="assessment-left-panel">
@@ -594,6 +634,11 @@ window.initializeAssessmentTab = function() {
     
     // 获取当前测评类型的中文名称
     function getCurrentAssessmentType(type) {
+        // 安全检查：确保type参数有效
+        if (!type || typeof type !== 'string') {
+            return '个人测评';
+        }
+        
         switch (type) {
             case 'holland': return '霍兰德职业兴趣';
             case 'mbti': return '性格倾向测评';
@@ -604,6 +649,11 @@ window.initializeAssessmentTab = function() {
     
     // 获取当前测评类型的状态
     function getCurrentAssessmentStatus(type) {
+        // 安全检查：确保type参数有效
+        if (!type || typeof type !== 'string') {
+            return '加载中...';
+        }
+        
         if (type === 'holland') {
             return getHollandStatus();
         } else if (type === 'mbti') {
