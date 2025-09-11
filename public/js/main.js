@@ -342,9 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else if (targetId === 'assessment' && typeof window.initializeAssessmentTab === 'function') {
                     window.initializeAssessmentTab();
                 }
-                
-                // 标记为已初始化
-                tabPanel.dataset.initialized = 'true';
             }
         }
     }
