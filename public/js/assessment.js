@@ -1063,11 +1063,9 @@ window.initializeAssessmentTab = function() {
         style.textContent = `
             /* 测评页面整体样式 */
             .assessment-welcome {
-                display: flex;
-                justify-content: center;
-                align-items: center;
+                width: 40%;
+                margin: 5px 0 5px 5px;
                 min-height: 500px;
-                padding: 20px;
             }
             
             .welcome-content {
@@ -1076,7 +1074,7 @@ window.initializeAssessmentTab = function() {
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 text-align: center;
-                max-width: 800px;
+                width: 100%;
             }
             
             .welcome-content h2 {
@@ -1153,15 +1151,14 @@ window.initializeAssessmentTab = function() {
             
             /* 测评布局样式 */
             .assessment-layout {
-                display: flex;
-                gap: 15px;
-                padding: 5px;
+                width: 40%;
+                margin: 5px 0 5px 5px;
                 min-height: 600px;
                 box-sizing: border-box;
             }
             
             .assessment-left-panel {
-                flex: 1;
+                width: 100%;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
@@ -1230,22 +1227,28 @@ window.initializeAssessmentTab = function() {
             }
             
             /* 结果页面布局 */
+            .result-page {
+                width: 40%;
+                margin: 5px 0 5px 5px;
+            }
+            
             .result-layout {
                 display: flex;
+                flex-direction: column;
                 gap: 15px;
                 padding: 5px;
                 box-sizing: border-box;
             }
             
             .result-left-panel {
-                flex: 1;
+                width: 100%;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
             }
             
             .result-right-panel {
-                flex: 1;
+                width: 100%;
                 overflow-y: auto;
             }
             
