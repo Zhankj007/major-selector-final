@@ -136,7 +136,7 @@ function initializeAdminTab() {
             return;
         }
         
-        const availableTabs = { plans: '2025浙江高考招生计划' };
+        const availableTabs = { plans: '2025浙江高考招生计划', assessment: '个人测评' };
         let permissionsHTML = '';
 
         for (const tabKey in availableTabs) {

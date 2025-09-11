@@ -700,21 +700,6 @@ function init() {
     // 添加CSS样式
     addAssessmentStyles();
     
-    // 检查用户登录状态
-    const isLoggedIn = !document.body.classList.contains('logged-out');
-    if (!isLoggedIn) {
-        assessmentTab.innerHTML = `
-            <div class="login-required">
-                <p>请先登录后使用个人测评功能</p>
-                <button id="go-login-btn" class="query-button">去登录</button>
-            </div>
-        `;
-        document.getElementById('go-login-btn').addEventListener('click', () => {
-            document.getElementById('login-register-button').click();
-        });
-        return;
-    }
-    
     // 渲染欢迎页面
     renderPage();
 }
