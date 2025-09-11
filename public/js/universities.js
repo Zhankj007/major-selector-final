@@ -1,8 +1,19 @@
 window.initializeUniversitiesTab = function() {
-    const container = document.getElementById('universities-tab');
-    if (!container || container.dataset.initialized) return;
-    container.dataset.initialized = 'true';
-    container.innerHTML = `
+    try {
+        console.log('开始初始化高校库标签页');
+        const container = document.getElementById('universities-tab');
+        if (!container) {
+            console.error('未找到 universities-tab 容器元素');
+            return;
+        }
+        if (container.dataset.initialized) {
+            console.log('高校库标签页已初始化');
+            return;
+        }
+        container.dataset.initialized = 'true';
+        
+        // 设置完整的HTML内容
+        container.innerHTML = `
         <div class="app-container" id="app-container-universities">
             <div class="left-panel">
                 <div class="header-controls">
@@ -67,16 +78,23 @@ window.initializeUniversitiesTab = function() {
     const UNI_CODE_KEY = '院校编码';
     async function fetchData() {
         try {
+            console.log('开始加载高校数据');
             treeContainer.innerHTML="<p>正在加载高校数据...</p>";
             const response = await fetch('/api/getUniversities');
             if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
             allUniversities = await response.json();
             if (!allUniversities || !allUniversities.length) throw new Error("获取的高校数据为空或格式错误。");
+            console.log(`成功加载 ${allUniversities.length} 条高校数据`);
             generateFilterOptions();
             runQuery();
         } catch (error) {
             console.error("高校数据加载失败:", error);
             treeContainer.innerHTML = `<p style="color:red;">数据加载失败: ${error.message}<br>请检查 /_data/universities.csv 文件是否存在且格式正确。</p>`;
+            
+            // 在发生错误时也显示完整的UI界面，只是内容区域显示错误信息
+            if (detailsContent) {
+                detailsContent.innerHTML = `<p style="color:red;">无法加载院校详情: ${error.message}</p>`;
+            }
         }
     }
     function generateFilterOptions() {
@@ -200,11 +218,9 @@ window.initializeUniversitiesTab = function() {
         tree.addEventListener("dblclick", e => { if (e.target.classList.contains("uni-label")) show2027SubjectRequirements(e.target.closest("li")); });
     }
     
-    // 初始化数据加载
-    fetchData();
-        tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
-        tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
-    }
+    // 在attachUniEventListeners函数中已经添加了必要的事件监听器
+    // 不需要在这里重复调用
+    
     function handleUniCheckboxChange(checkbox) {
         const currentLi = checkbox.closest("li");
         const isChecked = checkbox.checked;
@@ -412,6 +428,8 @@ window.initializeUniversitiesTab = function() {
         details.addEventListener('mouseleave', () => { details.open = false; });
     });
     
+    
+    
     groupBySwitcher.addEventListener('change', e => { groupBy = e.target.value; runQuery(); });
     queryButton.addEventListener('click', runQuery);
     searchInput.addEventListener('keyup', e => { if (e.key === 'Enter') runQuery(); });
@@ -419,8 +437,24 @@ window.initializeUniversitiesTab = function() {
     copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
     clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); updateUniOutputUI(); });
     
+    // 添加UI元素引用检查
+    if (!groupBySwitcher || !expandCollapseSwitcher || !searchInput || !queryButton || !treeContainer || !detailsContent) {
+        console.error('未找到必要的UI元素');
+        return;
+    }
+    
+    console.log('高校库标签页UI元素初始化完成');
+    
     // 初始化数据加载
     fetchData();
+    
+    // try块结束
+} catch (error) {
+    console.error('高校库标签页初始化失败:', error);
+    const container = document.getElementById('universities-tab');
+    if (container) {
+        container.innerHTML = `<p style="color:red;">高校库初始化失败: ${error.message}</p>`;
+    }
 }
 
 
