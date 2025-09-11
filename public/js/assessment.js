@@ -1,8 +1,4 @@
 // 个人测评功能模块
-const assessmentTab = document.getElementById('assessment-tab');
-if (!assessmentTab || assessmentTab.dataset.initialized) return;
-assessmentTab.dataset.initialized = 'true';
-
 // 使用全局定义的Supabase客户端
 const supabaseClient = window.supabaseClient;
 
@@ -19,6 +15,9 @@ let mbtiScores = {
     'JP': { 'J': 0, 'P': 0 }
 };
 let abilityScores = {};
+
+// 声明全局变量
+let assessmentTab;
 
 // 渲染页面内容
 function renderPage() {
@@ -697,6 +696,13 @@ function viewMajorDetails(majorCode) {
 
 // 初始化页面
 function init() {
+    // 获取测评标签页元素
+    assessmentTab = document.getElementById('assessment-tab');
+    if (!assessmentTab || assessmentTab.dataset.initialized) return;
+    
+    // 设置初始化标志
+    assessmentTab.dataset.initialized = 'true';
+    
     // 添加CSS样式
     addAssessmentStyles();
     
