@@ -198,6 +198,11 @@ window.initializeUniversitiesTab = function() {
         if (!tree) return;
         tree.addEventListener("click", e => { if (e.target.classList.contains("tree-label")) { e.target.closest("li").querySelector(".nested")?.classList.toggle("active"); e.target.classList.toggle("caret-down"); } if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
         tree.addEventListener("dblclick", e => { if (e.target.classList.contains("uni-label")) show2027SubjectRequirements(e.target.closest("li")); });
+    }
+    
+    // 初始化数据加载
+    fetchData();
+}
         tree.addEventListener("change", e => { if (e.target.type === "checkbox") handleUniCheckboxChange(e.target); });
         tree.addEventListener("mouseover", e => { if (e.target.classList.contains("uni-label")) showUniDetails(e.target.closest("li")); });
     }
@@ -414,9 +419,9 @@ window.initializeUniversitiesTab = function() {
     expandCollapseSwitcher.addEventListener('change', e => toggleAllNodes(e.target.value === "expand"));
     copyButton.addEventListener('click', () => { if (!outputTextarea.value) return; navigator.clipboard.writeText(outputTextarea.value).then(() => { copyButton.textContent = '已复制!'; setTimeout(() => { copyButton.textContent = '复制'; }, 1500); }); });
     clearButton.addEventListener('click', () => { if (selectedUniversities.size === 0) return; selectedUniversities.clear(); runQuery(); updateUniOutputUI(); });
-
+    
+    // 初始化数据加载
     fetchData();
-    updateUniOutputUI();
 }
 
 

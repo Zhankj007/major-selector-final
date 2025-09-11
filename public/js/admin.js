@@ -1,4 +1,4 @@
-function initializeAdminTab() {
+window.initializeAdminTab = function() {
     const adminPanel = document.getElementById('admin-tab');
     if (adminPanel.dataset.initialized) return;
     adminPanel.dataset.initialized = 'true';

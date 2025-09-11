@@ -330,18 +330,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const tabPanel = document.getElementById(`${targetId}-tab`);
             
             // 直接调用初始化函数，不依赖点击事件
-            if (!tabPanel.dataset.initialized) {
-                if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
-                    window.initializeUniversitiesTab();
-                } else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
-                    window.initializeMajorsTab();
-                } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
-                    window.initializePlansTab();
-                } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
-                    window.initializeAdminTab();
-                } else if (targetId === 'assessment' && typeof window.initializeAssessmentTab === 'function') {
-                    window.initializeAssessmentTab();
+            try {
+                if (!tabPanel.dataset.initialized) {
+                    if (targetId === 'universities' && typeof window.initializeUniversitiesTab === 'function') {
+                        window.initializeUniversitiesTab();
+                    } else if (targetId === 'majors' && typeof window.initializeMajorsTab === 'function') {
+                        window.initializeMajorsTab();
+                    } else if (targetId === 'plans' && typeof window.initializePlansTab === 'function') {
+                        window.initializePlansTab();
+                    } else if (targetId === 'admin' && typeof window.initializeAdminTab === 'function') {
+                        window.initializeAdminTab();
+                    } else if (targetId === 'assessment' && typeof window.initializeAssessmentTab === 'function') {
+                        window.initializeAssessmentTab();
+                    }
                 }
+            } catch (error) {
+                console.error(`初始化${targetId}标签页失败:`, error);
             }
         }
     }

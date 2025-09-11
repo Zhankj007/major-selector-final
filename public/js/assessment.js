@@ -1,23 +1,29 @@
-// 个人测评功能模块
-// 使用全局定义的Supabase客户端
-const supabaseClient = window.supabaseClient;
+window.initializeAssessmentTab = function() {
+    // 个人测评功能模块
+    // 使用全局定义的Supabase客户端
+    const supabaseClient = window.supabaseClient;
 
-// 页面状态管理
-let currentStep = 'welcome'; // welcome, assessment, result
-let currentQuestionIndex = 0;
-let allQuestions = [];
-let userAnswers = [];
-let hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
-let mbtiScores = {
-    'EI': { 'E': 0, 'I': 0 },
-    'SN': { 'S': 0, 'N': 0 },
-    'TF': { 'T': 0, 'F': 0 },
-    'JP': { 'J': 0, 'P': 0 }
-};
-let abilityScores = {};
+    // 页面状态管理
+    let currentStep = 'welcome'; // welcome, assessment, result
+    let currentQuestionIndex = 0;
+    let allQuestions = [];
+    let userAnswers = [];
+    let hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
+    let mbtiScores = {
+        'EI': { 'E': 0, 'I': 0 },
+        'SN': { 'S': 0, 'N': 0 },
+        'TF': { 'T': 0, 'F': 0 },
+        'JP': { 'J': 0, 'P': 0 }
+    };
+    let abilityScores = {};
 
-// 声明全局变量
-let assessmentTab;
+    // 声明全局变量
+    let assessmentTab;
+    
+    // 获取DOM元素
+    assessmentTab = document.getElementById('assessment-tab');
+    if (!assessmentTab || assessmentTab.dataset.initialized) return;
+    assessmentTab.dataset.initialized = 'true';
 
 // 渲染页面内容
 function renderPage() {
@@ -696,8 +702,10 @@ function viewMajorDetails(majorCode) {
 
 // 全局初始化函数，供main.js调用
 window.initializeAssessmentTab = function() {
-    // 获取测评标签页元素
+    // 确保assessmentTab正确赋值
     assessmentTab = document.getElementById('assessment-tab');
+    
+    // 检查元素是否存在和是否已初始化
     if (!assessmentTab || assessmentTab.dataset.initialized) return;
     
     // 设置初始化标志
@@ -1091,6 +1099,10 @@ function addAssessmentStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+    // 初始化渲染页面
+    renderPage();
 }
 
 // 初始化测评功能由main.js调用window.initializeAssessmentTab触发
