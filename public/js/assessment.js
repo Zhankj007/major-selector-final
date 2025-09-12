@@ -1168,13 +1168,17 @@ window.initializeAssessmentTab = function() {
                 cursor: not-allowed;
             }
             
-            /* 测评布局样式 */
+            /* 测评布局样式 - 确保左侧整体作为容器，滚动条属于整个容器 */
             .assessment-layout {
                 width: 40%;
                 margin: 5px 0 5px 5px;
                 min-height: calc(100vh - 10px);
                 box-sizing: border-box;
                 overflow-y: auto;
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                padding: 30px;
             }
             
             .assessment-left-panel {
@@ -1182,16 +1186,17 @@ window.initializeAssessmentTab = function() {
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
+                min-height: 100%;
             }
             
-            .assessment-content-container {
-                background-color: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            /* 控制按钮容器 - 确保按钮始终可见 */
+            .assessment-controls {
                 display: flex;
-                flex-direction: column;
-                flex: 1;
+                justify-content: space-between;
+                gap: 15px;
+                margin-top: auto;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
             }
             
             .assessment-right-panel {
@@ -1221,31 +1226,9 @@ window.initializeAssessmentTab = function() {
                 transition: all 0.3s;
             }
             
-            /* 题目内容容器样式 - 添加滚动条 */
+            /* 题目内容容器样式 - 移除最大高度限制，让内容自然伸展 */
             .question-content-container {
-                max-height: 400px;
-                overflow-y: auto;
-                padding-right: 10px;
                 margin-bottom: 15px;
-            }
-            
-            /* 美化滚动条 */
-            .question-content-container::-webkit-scrollbar {
-                width: 6px;
-            }
-            
-            .question-content-container::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 3px;
-            }
-            
-            .question-content-container::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 3px;
-            }
-            
-            .question-content-container::-webkit-scrollbar-thumb:hover {
-                background: #555;
             }
             
             .type-holland {
