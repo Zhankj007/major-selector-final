@@ -91,7 +91,7 @@ window.initializeAssessmentTab = function() {
 
     // 开始测评
     function startAssessment() {
-        currentStep = 'assessment';
+        currentStep = 'welcome';
         currentQuestionIndex = 0;
         userAnswers = [];
         hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
@@ -1205,7 +1205,7 @@ window.initializeAssessmentTab = function() {
             
             /* 题目内容容器样式 - 添加滚动条 */
             .question-content-container {
-                max-height: calc(100vh - 200px);
+                max-height: 400px;
                 overflow-y: auto;
                 padding-right: 10px;
                 margin-bottom: 15px;
@@ -1261,6 +1261,7 @@ window.initializeAssessmentTab = function() {
                 margin: 5px 0 5px 5px;
                 min-height: calc(100vh - 10px);
                 box-sizing: border-box;
+                overflow-y: auto;
             }
             
             .result-layout {
