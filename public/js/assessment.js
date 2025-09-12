@@ -91,7 +91,7 @@ window.initializeAssessmentTab = function() {
 
     // 开始测评
     function startAssessment() {
-        currentStep = 'welcome';
+        currentStep = 'assessment';
         currentQuestionIndex = 0;
         userAnswers = [];
         hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
@@ -106,6 +106,24 @@ window.initializeAssessmentTab = function() {
         loadQuestions().then(async () => {
             await renderPage();
         });
+    }
+    
+    // 重新测评 - 跳转到欢迎页面
+    function restartAssessment() {
+        currentStep = 'welcome';
+        currentQuestionIndex = 0;
+        userAnswers = [];
+        hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
+        mbtiScores = {
+            'EI': { 'E': 0, 'I': 0 },
+            'SN': { 'S': 0, 'N': 0 },
+            'TF': { 'T': 0, 'F': 0 },
+            'JP': { 'J': 0, 'P': 0 }
+        };
+        abilityScores = {};
+        recommendedMajors = [];
+        
+        renderPage();
     }
     
     // 检查霍兰德测评是否激活（当前正在作答）
@@ -766,7 +784,7 @@ window.initializeAssessmentTab = function() {
         drawAbilityRadar();
         
         // 添加事件监听器
-        document.getElementById('restart-assessment-btn').addEventListener('click', startAssessment);
+        document.getElementById('restart-assessment-btn').addEventListener('click', restartAssessment);
         document.getElementById('save-report-btn').addEventListener('click', saveReport);
         document.getElementById('share-report-btn').addEventListener('click', shareReport);
         
