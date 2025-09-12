@@ -1081,10 +1081,11 @@ window.initializeAssessmentTab = function() {
         style.textContent = `
             /* 测评页面整体样式 */
             .assessment-welcome {
-                width: 40%;
-                margin: 5px 0 5px 5px;
-                min-height: calc(100vh - 10px);
+                width: 100%;
+                margin: 0;
+                min-height: calc(100vh - 60px);
                 box-sizing: border-box;
+                padding: 20px;
             }
             
             .welcome-content {
@@ -1094,6 +1095,8 @@ window.initializeAssessmentTab = function() {
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 text-align: center;
                 width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
             }
             
             .welcome-content h2 {
@@ -1149,9 +1152,9 @@ window.initializeAssessmentTab = function() {
             }
             
             .secondary-button {
-                background-color: #f0f0f0;
-                color: #333;
-                border: 1px solid #ddd;
+                background-color: #4caf50;
+                color: white;
+                border: 1px solid #4caf50;
                 padding: 15px 30px;
                 border-radius: 5px;
                 font-size: 16px;
@@ -1160,30 +1163,34 @@ window.initializeAssessmentTab = function() {
             }
             
             .secondary-button:hover {
-                background-color: #e0e0e0;
+                background-color: #45a049;
             }
             
             .secondary-button:disabled {
+                background-color: #f0f0f0;
+                color: #333;
+                border: 1px solid #ddd;
                 opacity: 0.5;
                 cursor: not-allowed;
             }
             
             /* 测评布局样式 - 参照专业目录标签页的左侧容器高度控制 */
             .assessment-layout {
-                width: 40%;
+                width: 100%;
                 height: 100%;
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
                 box-sizing: border-box;
                 background-color: white;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                padding: 30px;
+                padding: 20px;
                 overflow: hidden;
+                gap: 20px;
             }
             
             .assessment-left-panel {
-                width: 100%;
+                width: 50%;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
@@ -1212,7 +1219,7 @@ window.initializeAssessmentTab = function() {
             }
             
             .assessment-right-panel {
-                display: none; /* 答题时隐藏右侧面板 */
+                display: block;
                 flex: 1;
                 background-color: white;
                 padding: 30px;
@@ -1270,30 +1277,33 @@ window.initializeAssessmentTab = function() {
             
             /* 结果页面布局 */
             .result-page {
-                width: 40%;
-                margin: 5px 0 5px 5px;
-                min-height: calc(100vh - 10px);
+                width: 100%;
+                margin: 0;
+                min-height: calc(100vh - 60px);
                 box-sizing: border-box;
                 overflow-y: auto;
+                padding: 20px;
             }
             
             .result-layout {
                 display: flex;
-                flex-direction: column;
-                gap: 15px;
+                flex-direction: row;
+                gap: 20px;
                 padding: 5px;
                 box-sizing: border-box;
+                max-width: 1200px;
+                margin: 0 auto;
             }
             
             .result-left-panel {
-                width: 100%;
+                width: 50%;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
             }
             
             .result-right-panel {
-                width: 100%;
+                width: 50%;
                 overflow-y: auto;
             }
             
@@ -1301,6 +1311,44 @@ window.initializeAssessmentTab = function() {
             .assessment-header h2 {
                 color: #333;
                 margin-bottom: 20px;
+            }
+            
+            /* 结果页面头部 */
+            .result-header {
+                padding: 20px;
+                text-align: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .result-header h2 {
+                color: #333;
+                margin-bottom: 10px;
+            }
+            
+            .result-header p {
+                color: #666;
+                margin-bottom: 20px;
+            }
+            
+            .report-meta {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+                margin-top: 10px;
+            }
+            
+            /* 结果页脚 */
+            .result-footer {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                padding: 20px;
+                margin-top: 30px;
+                border-top: 1px solid #eee;
+                max-width: 1200px;
+                margin: 30px auto 0;
             }
             
             .assessment-progress {
