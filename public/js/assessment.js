@@ -1168,17 +1168,18 @@ window.initializeAssessmentTab = function() {
                 cursor: not-allowed;
             }
             
-            /* 测评布局样式 - 确保左侧整体作为容器，滚动条属于整个容器 */
+            /* 测评布局样式 - 参照专业目录标签页的左侧容器高度控制 */
             .assessment-layout {
                 width: 40%;
-                margin: 5px 0 5px 5px;
-                min-height: calc(100vh - 10px);
+                height: 100%;
+                display: flex;
+                flex-direction: column;
                 box-sizing: border-box;
-                overflow-y: auto;
                 background-color: white;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 padding: 30px;
+                overflow: hidden;
             }
             
             .assessment-left-panel {
@@ -1186,17 +1187,28 @@ window.initializeAssessmentTab = function() {
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
-                min-height: 100%;
+                height: 100%;
             }
             
-            /* 控制按钮容器 - 确保按钮始终可见 */
+            /* 题目内容容器样式 - 参照专业目录的树形结构容器样式 */
+            .question-content-container {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 10px;
+                flex-grow: 1;
+                min-height: 0;
+                overflow-y: auto;
+                box-sizing: border-box;
+            }
+            
+            /* 控制按钮容器 - 固定在题目内容下方，不随内容滚动 */
             .assessment-controls {
                 display: flex;
                 justify-content: space-between;
                 gap: 15px;
-                margin-top: auto;
                 padding-top: 15px;
                 border-top: 1px solid #eee;
+                flex-shrink: 0;
             }
             
             .assessment-right-panel {
