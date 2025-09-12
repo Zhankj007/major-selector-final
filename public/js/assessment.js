@@ -493,6 +493,10 @@ window.initializeAssessmentTab = function() {
         const question = allQuestions[currentQuestionIndex];
         const progress = Math.round(((currentQuestionIndex + 1) / allQuestions.length) * 100);
         
+        // 查找当前题目的用户答案
+        const userAnswer = userAnswers.find(answer => answer.question_id === question.id);
+        const selectedChoiceId = userAnswer ? userAnswer.choice_id : null;
+        
         assessmentTab.innerHTML = `
             <div class="assessment-layout">
                 <div class="assessment-left-panel">
@@ -508,44 +512,34 @@ window.initializeAssessmentTab = function() {
                             </div>
                         </div>
                         
-                        <!-- 当前测评项目指示器 -->
-                        <div class="current-assessment-indicator">
-                            <div class="assessment-type-indicator ${isHollandActive() ? 'active' : ''}"></div>
+                        <!-- 题目内容容器 - 添加滚动条支持 -->
+                        <div class="question-content-container">
+                            <div class="question-container">
+                                <div class="question-header">
+                                    <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
+                                    <h3>${question.question_text}</h3>
+                                </div>
+                                
+                                <div class="question-options">
+                                    ${question.choices.map((choice, index) => `
+                                        <label class="choice-option">
+                                            <input type="radio" name="question-${question.id}" value="${choice.id}" ${selectedChoiceId === choice.id ? 'checked' : ''} onchange="handleChoiceSelection(event)">
+                                            <span class="choice-text">${choice.choice_text}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
                         </div>
                         
-                        <!-- 隐藏其他测评项目指示器 -->
-                        <div class="hidden-assessment-indicators">
-                            <div class="assessment-type-indicator ${isMbtiActive() ? 'active' : ''}" style="opacity: 0"></div>
-                            <div class="assessment-type-indicator ${isAbilityActive() ? 'active' : ''}" style="opacity: 0"></div>
-                        </div>
-                        
-                        <div class="question-container">
-                        <div class="question-header">
-                            <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
-                            <h3>${question.question_text}</h3>
-                        </div>
-                        
-                        <div class="question-options">
-                            ${question.choices.map((choice, index) => `
-                                <label class="choice-option">
-                                    <input type="radio" name="question-${question.id}" value="${choice.id}" onchange="handleChoiceSelection(event)">
-                                    <span class="choice-text">${choice.choice_text}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <!-- 仅保留上一题按钮，移除下一题按钮，因为选择答案后会自动跳转 -->
-                    <div class="assessment-controls">
-                        <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                            上一题
-                        </button>
-                        <div style="visibility: hidden;">
+                        <!-- 显示上一题和下一题按钮 -->
+                        <div class="assessment-controls">
+                            <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                                上一题
+                            </button>
                             <button id="next-question-btn" class="primary-button">
                                 ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
                             </button>
                         </div>
-                    </div>
                 </div>
                 
                 <div class="assessment-right-panel">
@@ -1209,23 +1203,31 @@ window.initializeAssessmentTab = function() {
                 transition: all 0.3s;
             }
             
-            /* 当前测评项目指示器样式 */
-            .current-assessment-indicator {
-                margin-bottom: 20px;
+            /* 题目内容容器样式 - 添加滚动条 */
+            .question-content-container {
+                max-height: calc(100vh - 200px);
+                overflow-y: auto;
+                padding-right: 10px;
+                margin-bottom: 15px;
             }
             
-            .assessment-type-indicator {
-                width: 20px;
-                height: 20px;
-                background-color: #4caf50;
-                border: 2px solid #45a049;
-                border-radius: 4px;
-                transition: all 0.3s;
+            /* 美化滚动条 */
+            .question-content-container::-webkit-scrollbar {
+                width: 6px;
             }
             
-            .assessment-type-indicator.active {
-                background-color: #4caf50;
-                border-color: #45a049;
+            .question-content-container::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 3px;
+            }
+            
+            .question-content-container::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 3px;
+            }
+            
+            .question-content-container::-webkit-scrollbar-thumb:hover {
+                background: #555;
             }
             
             .type-holland {
