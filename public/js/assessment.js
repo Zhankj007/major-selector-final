@@ -348,17 +348,57 @@ window.initializeAssessmentTab = function() {
                     { id: '68', question_text: '我更相信：', question_type: 'mbti', dimension: 'SN' },
                     { id: '69', question_text: '在评价他人时，我更看重：', question_type: 'mbti', dimension: 'TF' },
                     { id: '70', question_text: '我更倾向于：', question_type: 'mbti', dimension: 'JP' },
-                    // 能力自评问题
-                    { id: '71', question_text: '请评价您的逻辑思维能力：', question_type: 'ability', dimension: '逻辑思维能力' },
-                    { id: '72', question_text: '请评价您的创新思维能力：', question_type: 'ability', dimension: '创新思维能力' },
-                    { id: '73', question_text: '请评价您的语言表达能力：', question_type: 'ability', dimension: '语言表达能力' },
-                    { id: '74', question_text: '请评价您的数学计算能力：', question_type: 'ability', dimension: '数学计算能力' },
-                    { id: '75', question_text: '请评价您的动手实践能力：', question_type: 'ability', dimension: '动手实践能力' },
-                    { id: '76', question_text: '请评价您的空间想象能力：', question_type: 'ability', dimension: '空间想象能力' },
-                    { id: '77', question_text: '请评价您的记忆能力：', question_type: 'ability', dimension: '记忆能力' },
-                    { id: '78', question_text: '请评价您的注意力：', question_type: 'ability', dimension: '注意力' },
-                    { id: '79', question_text: '请评价您的情绪管理能力：', question_type: 'ability', dimension: '情绪管理能力' },
-                    { id: '80', question_text: '请评价您的团队协作能力：', question_type: 'ability', dimension: '团队协作能力' }
+                    // 能力自评问题 - 每种能力4题，共40题
+            // 逻辑思维能力
+            { id: '71', question_text: '我能够轻松理解复杂的数学或逻辑问题。', question_type: 'ability', dimension: '逻辑思维能力' },
+            { id: '72', question_text: '在解决问题时，我倾向于寻找规律和模式。', question_type: 'ability', dimension: '逻辑思维能力' },
+            { id: '73', question_text: '我擅长分析问题的各个组成部分并找出它们之间的关系。', question_type: 'ability', dimension: '逻辑思维能力' },
+            { id: '74', question_text: '面对争论时，我更关注事实和逻辑而非情感因素。', question_type: 'ability', dimension: '逻辑思维能力' },
+            // 创新思维能力
+            { id: '75', question_text: '我经常能想到解决问题的新方法。', question_type: 'ability', dimension: '创新思维能力' },
+            { id: '76', question_text: '我喜欢尝试不同的方法来完成任务。', question_type: 'ability', dimension: '创新思维能力' },
+            { id: '77', question_text: '我善于将看似不相关的想法联系起来。', question_type: 'ability', dimension: '创新思维能力' },
+            { id: '78', question_text: '我经常思考如何改进现有的产品或流程。', question_type: 'ability', dimension: '创新思维能力' },
+            // 语言表达能力
+            { id: '79', question_text: '我能够清晰地表达自己的想法。', question_type: 'ability', dimension: '语言表达能力' },
+            { id: '80', question_text: '我善于说服他人接受我的观点。', question_type: 'ability', dimension: '语言表达能力' },
+            { id: '81', question_text: '我喜欢阅读和学习新的词汇。', question_type: 'ability', dimension: '语言表达能力' },
+            { id: '82', question_text: '在写作时，我能够组织好思路并清晰地表达。', question_type: 'ability', dimension: '语言表达能力' },
+            // 数学计算能力
+            { id: '83', question_text: '我对数字很敏感，能快速进行计算。', question_type: 'ability', dimension: '数学计算能力' },
+            { id: '84', question_text: '我喜欢解决数学问题。', question_type: 'ability', dimension: '数学计算能力' },
+            { id: '85', question_text: '我能够轻松理解数学公式和概念。', question_type: 'ability', dimension: '数学计算能力' },
+            { id: '86', question_text: '在处理数据时，我很少出错。', question_type: 'ability', dimension: '数学计算能力' },
+            // 动手实践能力
+            { id: '87', question_text: '我喜欢动手制作或修理东西。', question_type: 'ability', dimension: '动手实践能力' },
+            { id: '88', question_text: '我能够快速掌握新工具的使用方法。', question_type: 'ability', dimension: '动手实践能力' },
+            { id: '89', question_text: '我喜欢通过实际操作来学习。', question_type: 'ability', dimension: '动手实践能力' },
+            { id: '90', question_text: '我擅长将理论知识应用到实际问题中。', question_type: 'ability', dimension: '动手实践能力' },
+            // 空间想象能力
+            { id: '91', question_text: '我能够轻松想象出三维物体的形状。', question_type: 'ability', dimension: '空间想象能力' },
+            { id: '92', question_text: '我擅长看地图和导航。', question_type: 'ability', dimension: '空间想象能力' },
+            { id: '93', question_text: '我能够在脑海中旋转或变形物体。', question_type: 'ability', dimension: '空间想象能力' },
+            { id: '94', question_text: '我喜欢设计或绘画。', question_type: 'ability', dimension: '空间想象能力' },
+            // 记忆能力
+            { id: '95', question_text: '我能够轻松记住数字、名字或日期。', question_type: 'ability', dimension: '记忆能力' },
+            { id: '96', question_text: '我擅长背诵诗歌或文章。', question_type: 'ability', dimension: '记忆能力' },
+            { id: '97', question_text: '我能够回忆起过去经历的细节。', question_type: 'ability', dimension: '记忆能力' },
+            { id: '98', question_text: '我能够快速学习和记住新的信息。', question_type: 'ability', dimension: '记忆能力' },
+            // 注意力
+            { id: '99', question_text: '我能够长时间专注于一项任务。', question_type: 'ability', dimension: '注意力' },
+            { id: '100', question_text: '我很少在工作中犯粗心的错误。', question_type: 'ability', dimension: '注意力' },
+            { id: '101', question_text: '我能够在嘈杂的环境中集中精力。', question_type: 'ability', dimension: '注意力' },
+            { id: '102', question_text: '我擅长同时处理多项任务。', question_type: 'ability', dimension: '注意力' },
+            // 情绪管理能力
+            { id: '103', question_text: '我能够控制自己的情绪，即使在压力下。', question_type: 'ability', dimension: '情绪管理能力' },
+            { id: '104', question_text: '我能够快速从负面情绪中恢复。', question_type: 'ability', dimension: '情绪管理能力' },
+            { id: '105', question_text: '我善于识别和理解自己的情绪。', question_type: 'ability', dimension: '情绪管理能力' },
+            { id: '106', question_text: '我能够保持积极的心态面对挑战。', question_type: 'ability', dimension: '情绪管理能力' },
+            // 团队协作能力
+            { id: '107', question_text: '我喜欢与他人合作完成任务。', question_type: 'ability', dimension: '团队协作能力' },
+            { id: '108', question_text: '我能够很好地理解他人的观点。', question_type: 'ability', dimension: '团队协作能力' },
+            { id: '109', question_text: '我擅长在团队中扮演协调者的角色。', question_type: 'ability', dimension: '团队协作能力' },
+            { id: '110', question_text: '我能够与不同性格的人有效合作。', question_type: 'ability', dimension: '团队协作能力' }
                 ];
                 
                 // 生成对应的选项数据
@@ -421,7 +461,7 @@ window.initializeAssessmentTab = function() {
                 }
                 
                 // 为能力自评问题生成5点量表选项
-                for (let i = 71; i <= 80; i++) {
+                for (let i = 71; i <= 110; i++) {
                     const question = questionsData[i-1];
                     for (let j = 1; j <= 5; j++) {
                         const choiceTexts = ['很强', '较强', '一般', '较弱', '很弱'];
@@ -689,14 +729,121 @@ window.initializeAssessmentTab = function() {
         }
     }
 
-    // 渲染结果页面
-    async function renderResultPage() {
-        try {
-            const hollandCode = generateHollandCode();
-            const mbtiType = generateMBTIType();
+    // 查看专业详情函数
+            function viewMajorDetails(majorCode, event) {
+                const button = event.currentTarget;
+                const majorCard = button.closest('.major-card');
+                const detailsId = `major-details-${majorCode}`;
+                
+                // 检查是否已存在详情
+                const existingDetails = document.getElementById(detailsId);
+                
+                if (existingDetails) {
+                    // 如果已存在，切换显示状态
+                    if (existingDetails.style.display === 'none') {
+                        existingDetails.style.display = 'block';
+                        button.textContent = '收起';
+                    } else {
+                        existingDetails.style.display = 'none';
+                        button.textContent = '查看详情';
+                    }
+                    return;
+                }
+                
+                // 模拟获取专业详情数据
+                const majorDetails = {
+                    '070101': {
+                        name: '数学与应用数学',
+                        code: '070101',
+                        category: '理学',
+                        description: '本专业培养掌握数学科学的基本理论与基本方法，具备运用数学知识、使用计算机解决实际问题的能力，受到科学研究的初步训练，能在科技、教育和经济部门从事研究、教学工作或在生产经营及管理部门从事实际应用、开发研究和管理工作的高级专门人才。',
+                        coreCourses: ['数学分析', '高等代数', '解析几何', '常微分方程', '概率论与数理统计', '实变函数论', '复变函数论', '微分几何', '抽象代数', '数值方法'],
+                        careerProspects: ['教育领域（教师、研究员）', '金融领域（精算师、分析师）', 'IT领域（算法工程师、数据分析师）', '科研机构（研究员）', '政府部门（统计、规划）']
+                    },
+                    '120201': {
+                        name: '工商管理',
+                        code: '120201',
+                        category: '管理学',
+                        description: '本专业培养具备管理、经济、法律及企业管理方面的知识和能力，能在企、事业单位及政府部门从事管理以及教学、科研方面工作的工商管理学科高级专门人才。',
+                        coreCourses: ['管理学原理', '微观经济学', '宏观经济学', '管理信息系统', '统计学', '会计学', '财务管理', '市场营销', '经济法', '运营管理', '人力资源管理'],
+                        careerProspects: ['企业管理', '市场营销', '人力资源管理', '财务管理', '咨询顾问', '金融机构']
+                    },
+                    '080901': {
+                        name: '计算机科学与技术',
+                        code: '080901',
+                        category: '工学',
+                        description: '本专业培养具有良好的科学素养，系统地、较好地掌握计算机科学与技术包括计算机硬件、软件与应用的基本理论、基本知识和基本技能与方法，能在科研部门、教育单位、企业、事业、技术和行政管理部门等单位从事计算机教学、科学研究和应用的计算机科学与技术学科的高级专门科学技术人才。',
+                        coreCourses: ['计算机导论', '程序设计基础', '数据结构', '计算机组成原理', '操作系统', '计算机网络', '数据库系统原理', '编译原理', '软件工程', '人工智能导论'],
+                        careerProspects: ['软件开发', '系统分析', '网络工程', '数据科学', '人工智能', '游戏开发', 'IT咨询']
+                    },
+                    '050101': {
+                        name: '汉语言文学',
+                        code: '050101',
+                        category: '文学',
+                        description: '本专业培养具备文艺理论素养和系统的汉语言文学知识，能在新闻文艺出版部门、高校、科研机构和机关企事业单位从事文学评论、汉语言文学教学与研究工作，以及文化、宣传方面的实际工作的汉语言文学高级专门人才。',
+                        coreCourses: ['语言学概论', '古代汉语', '现代汉语', '文学概论', '中国古代文学', '中国现代文学', '中国当代文学', '外国文学', '写作', '美学'],
+                        careerProspects: ['教育工作', '编辑出版', '新闻传媒', '文化创意', '公务员', '文案策划']
+                    },
+                    '020101': {
+                        name: '经济学',
+                        code: '020101',
+                        category: '经济学',
+                        description: '本专业培养具备比较扎实的马克思主义经济学理论基础，熟悉现代西方经济学理论，比较熟练地掌握现代经济分析方法，知识面较宽，具有向经济学相关领域扩展渗透的能力，能在综合经济管理部门、政策研究部门、金融机构和企业从事经济分析、预测、规划和经济管理工作的高级专门人才。',
+                        coreCourses: ['政治经济学', '西方经济学', '计量经济学', '国际经济学', '货币银行学', '财政学', '会计学', '统计学', '发展经济学', '产业经济学'],
+                        careerProspects: ['金融机构', '经济研究', '政府部门', '企业管理', '咨询公司', '国际组织']
+                    }
+                };
+                
+                // 默认详情
+                const defaultDetails = {
+                    name: recommendedMajors.find(m => m.code === majorCode)?.name || '未知专业',
+                    code: majorCode,
+                    category: '未知',
+                    description: '暂无详细信息',
+                    coreCourses: [],
+                    careerProspects: []
+                };
+                
+                const details = majorDetails[majorCode] || defaultDetails;
+                
+                // 创建详情元素
+                const detailsElement = document.createElement('div');
+                detailsElement.id = detailsId;
+                detailsElement.className = 'major-details';
+                detailsElement.innerHTML = `
+                    <div class="details-header">
+                        <h5>${details.name} 详细信息</h5>
+                    </div>
+                    <div class="details-content">
+                        <p><strong>专业代码：</strong>${details.code}</p>
+                        <p><strong>所属门类：</strong>${details.category}</p>
+                        <p><strong>专业简介：</strong>${details.description}</p>
+                        ${details.coreCourses.length > 0 ? `
+                        <p><strong>核心课程：</strong></p>
+                        <ul>${details.coreCourses.map(course => `<li>${course}</li>`).join('')}</ul>
+                        ` : ''}
+                        ${details.careerProspects.length > 0 ? `
+                        <p><strong>就业前景：</strong></p>
+                        <ul>${details.careerProspects.map(prospect => `<li>${prospect}</li>`).join('')}</ul>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // 添加到卡片中
+                majorCard.appendChild(detailsElement);
+                
+                // 更改按钮文本
+                button.textContent = '收起';
+            }
             
-            // 使用异步专业匹配算法获取推荐专业
-            recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType);
+            // 渲染结果页面
+            async function renderResultPage() {
+                try {
+                    const hollandCode = generateHollandCode();
+                    const mbtiType = generateMBTIType();
+                    
+                    // 使用异步专业匹配算法获取推荐专业
+                    recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType);
             
             assessmentTab.innerHTML = `
             <div class="result-page">
@@ -790,9 +937,9 @@ window.initializeAssessmentTab = function() {
         
         // 为每个专业卡片的查看详情按钮添加事件监听器
         document.querySelectorAll('.view-major-details').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(event) {
                 const majorCode = this.getAttribute('data-major-code');
-                viewMajorDetails(majorCode);
+                viewMajorDetails(majorCode, event);
             });
         });
         } catch (error) {
@@ -1016,9 +1163,17 @@ window.initializeAssessmentTab = function() {
         const data = [];
         
         // 计算平均能力分数
-        Object.entries(abilityScores).forEach(([dimension, scoreInfo]) => {
+        // 确保显示所有10种能力维度，即使某些维度没有得分
+        const abilityDimensions = ['逻辑思维能力', '创新思维能力', '语言表达能力', '数学计算能力', '动手实践能力', '空间想象能力', '记忆能力', '注意力', '情绪管理能力', '团队协作能力'];
+        
+        abilityDimensions.forEach(dimension => {
             labels.push(dimension);
-            data.push(Math.round(scoreInfo.sum / scoreInfo.count));
+            if (abilityScores[dimension] && abilityScores[dimension].count > 0) {
+                data.push(Math.round(abilityScores[dimension].sum / abilityScores[dimension].count));
+            } else {
+                // 对于没有得分的维度，显示默认值3
+                data.push(3);
+            }
         });
         
         // 创建雷达图
@@ -1044,6 +1199,16 @@ window.initializeAssessmentTab = function() {
                         max: 5,
                         ticks: {
                             stepSize: 1
+                        }
+                    }
+                },
+                // 优化雷达图显示效果
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}分`;
+                            }
                         }
                     }
                 }
@@ -1279,7 +1444,7 @@ window.initializeAssessmentTab = function() {
             .result-page {
                 width: 100%;
                 margin: 0;
-                min-height: calc(100vh - 60px);
+                min-height: calc(100vh - 80px);
                 box-sizing: border-box;
                 overflow-y: auto;
                 padding: 20px;
@@ -1602,6 +1767,37 @@ window.initializeAssessmentTab = function() {
                 align-items: flex-start;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 border-left: 4px solid #4caf50;
+                transition: all 0.3s ease;
+            }
+            
+            .major-details {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+                width: 100%;
+            }
+            
+            .details-header h5 {
+                margin-top: 0;
+                color: #4caf50;
+                border-bottom: 2px solid #4caf50;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+            }
+            
+            .details-content p {
+                margin: 10px 0;
+            }
+            
+            .details-content ul {
+                margin-top: 5px;
+                padding-left: 20px;
+            }
+            
+            .details-content li {
+                margin-bottom: 5px;
             }
             
             .major-rank {
@@ -1671,6 +1867,7 @@ window.initializeAssessmentTab = function() {
                 gap: 20px;
                 margin-top: 40px;
                 padding: 20px;
+                margin-bottom: 20px; /* 增加底部边距，确保按钮不被截断 */
             }
             
             /* 加载和错误页面样式 */
