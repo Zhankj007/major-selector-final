@@ -346,6 +346,7 @@ window.initializeAssessmentTab = function() {
                     { id: '66', question_text: '我更喜欢：', question_type: 'mbti', dimension: 'JP' },
                     { id: '67', question_text: '当有空闲时间时，我更愿意：', question_type: 'mbti', dimension: 'EI' },
                     { id: '68', question_text: '我更相信：', question_type: 'mbti', dimension: 'SN' },
+                    { id: '68a', question_text: '我更关注事物的具体应用而非理论本身。', question_type: 'mbti', dimension: 'SN' },
                     { id: '69', question_text: '在评价他人时，我更看重：', question_type: 'mbti', dimension: 'TF' },
                     { id: '70', question_text: '我更倾向于：', question_type: 'mbti', dimension: 'JP' },
                     // 能力自评问题 - 每种能力4题，共40题
@@ -525,8 +526,10 @@ window.initializeAssessmentTab = function() {
             abilityDimensions.forEach(dimension => {
                 const dimQuestions = fullQuestionsList.filter(q => q.question_type === 'ability' && q.dimension === dimension);
                 const shuffled = dimQuestions.sort(() => Math.random() - 0.5);
-                const selected = shuffled.slice(0, 2);
+                const selectCount = Math.min(2, dimQuestions.length); // 确保不会抽取超过可用题目的数量
+                const selected = shuffled.slice(0, selectCount);
                 abilityQuestions.push(...selected);
+                console.log(`能力维度 '${dimension}' 抽取了 ${selected.length} 题，可用题目总数: ${dimQuestions.length}`);
             });
             
             // 按类型分组，同一类型内题目随机排序，类型间保持固定顺序：holland -> mbti -> ability
@@ -539,6 +542,12 @@ window.initializeAssessmentTab = function() {
             
             // 合并所有题目，保持类型顺序
             allQuestions = [...shuffledHollandQuestions, ...shuffledMbtiQuestions, ...shuffledAbilityQuestions];
+            
+            // 调试日志：记录各部分题目数量
+            console.log('霍兰德题目数量:', shuffledHollandQuestions.length);
+            console.log('MBTI题目数量:', shuffledMbtiQuestions.length);
+            console.log('能力测评题目数量:', shuffledAbilityQuestions.length);
+            console.log('总题目数量:', allQuestions.length);
             
         } catch (error) {
             console.error('获取题目数据失败:', error);
