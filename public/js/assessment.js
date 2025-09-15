@@ -501,7 +501,7 @@ window.initializeAssessmentTab = function() {
             // 按维度分组并随机抽取指定数量的题目
             const hollandDimensions = ['R', 'I', 'A', 'S', 'E', 'C'];
             const mbtiDimensions = ['EI', 'SN', 'TF', 'JP'];
-            const abilityDimensions = ['逻辑思维能力', '创新思维能力', '语言表达能力', '数学计算能力', '动手实践能力', '空间想象能力', '记忆能力', '注意力', '情绪管理能力', '团队协作能力'];
+            const abilityDimensions = ['逻辑思维能力', '动手实践能力', '沟通表达能力', '创新思维能力', '组织协调能力', '共情与同理心', '艺术审美能力', '数据分析能力', '耐心与专注力', '空间想象能力'];
             
             // 从每个霍兰德维度随机抽取7题
             const hollandQuestions = [];
@@ -1173,7 +1173,7 @@ window.initializeAssessmentTab = function() {
         
         // 计算平均能力分数
         // 确保显示所有10种能力维度，即使某些维度没有得分
-        const abilityDimensions = ['逻辑思维能力', '创新思维能力', '语言表达能力', '数学计算能力', '动手实践能力', '空间想象能力', '记忆能力', '注意力', '情绪管理能力', '团队协作能力'];
+        const abilityDimensions = ['逻辑思维能力', '动手实践能力', '沟通表达能力', '创新思维能力', '组织协调能力', '共情与同理心', '艺术审美能力', '数据分析能力', '耐心与专注力', '空间想象能力'];
         
         abilityDimensions.forEach(dimension => {
             labels.push(dimension);
