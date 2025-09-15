@@ -526,7 +526,7 @@ window.initializeAssessmentTab = function() {
             abilityDimensions.forEach(dimension => {
                 const dimQuestions = fullQuestionsList.filter(q => q.question_type === 'ability' && q.dimension === dimension);
                 const shuffled = dimQuestions.sort(() => Math.random() - 0.5);
-                const selectCount = Math.min(2, dimQuestions.length); // 确保不会抽取超过可用题目的数量
+                const selectCount = Math.min(3, dimQuestions.length); // 确保不会抽取超过可用题目的数量
                 const selected = shuffled.slice(0, selectCount);
                 abilityQuestions.push(...selected);
                 console.log(`能力维度 '${dimension}' 抽取了 ${selected.length} 题，可用题目总数: ${dimQuestions.length}`);
