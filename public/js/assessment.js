@@ -501,7 +501,7 @@ window.initializeAssessmentTab = function() {
             // 按维度分组并随机抽取指定数量的题目
             const hollandDimensions = ['R', 'I', 'A', 'S', 'E', 'C'];
             const mbtiDimensions = ['EI', 'SN', 'TF', 'JP'];
-            const abilityDimensions = ['逻辑思维能力', '动手实践能力', '沟通表达能力', '创新思维能力', '组织协调能力', '共情与同理心', '艺术审美能力', '数据分析能力', '耐心与专注力', '空间想象能力'];
+            const abilityDimensions = ['逻辑思维能力', '创新思维能力', '语言表达能力', '数学计算能力', '动手实践能力', '空间想象能力', '记忆能力', '注意力', '情绪管理能力', '团队协作能力'];
             
             // 从每个霍兰德维度随机抽取7题
             const hollandQuestions = [];
@@ -521,7 +521,7 @@ window.initializeAssessmentTab = function() {
                 mbtiQuestions.push(...selected);
             });
             
-            // 从每个能力维度随机抽取2题（如果没有那么多题，则抽取所有可用的）
+            // 从每个能力维度随机抽取3题（如果没有那么多题，则抽取所有可用的）
             const abilityQuestions = [];
             abilityDimensions.forEach(dimension => {
                 const dimQuestions = fullQuestionsList.filter(q => q.question_type === 'ability' && q.dimension === dimension);
