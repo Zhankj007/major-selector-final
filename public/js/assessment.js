@@ -285,6 +285,54 @@ window.initializeAssessmentTab = function() {
             
             // 构建题目和选项的关系
             let fullQuestionsList = questionsData.map(question => {
+                // 专门针对特定题目的调试代码
+                const targetQuestionId = '6b83c9f7-b842-4669-ac0a-24c798473a51';
+                const isTargetQuestion = question.id === targetQuestionId;
+                
+                if (isTargetQuestion) {
+                    console.log(`======= 调试特定题目开始 =======`);
+                    console.log(`题目ID: ${question.id}`);
+                    console.log(`题目文本: ${question.question_text}`);
+                    console.log(`题目类型: ${question.question_type}`);
+                    console.log(`题目维度: ${question.dimension}`);
+                    console.log(`题目ID数据类型: ${typeof question.id}`);
+                    
+                    // 查找所有可能匹配的选项
+                    console.log(`\n查找与该题目相关的选项:`);
+                    const allRelatedChoices = choicesData.filter(choice => {
+                        // 打印每个选项的question_id和数据类型
+                        console.log(`选项question_id: ${choice.question_id}, 数据类型: ${typeof choice.question_id}`);
+                        return choice.question_id === question.id;
+                    });
+                    
+                    console.log(`\n找到的匹配选项数量: ${allRelatedChoices.length}`);
+                    if (allRelatedChoices.length > 0) {
+                        allRelatedChoices.forEach((choice, index) => {
+                            console.log(`选项${index + 1}: ${choice.choice_text}, ID: ${choice.id}`);
+                        });
+                    } else {
+                        console.warn(`没有找到与题目ID ${question.id} 匹配的选项!`);
+                        
+                        // 打印数据库中所有选项的question_id，用于排查
+                        console.log(`\n数据库中所有选项的question_id列表:`);
+                        choicesData.forEach((choice, index) => {
+                            if (index < 20) { // 只打印前20个选项以避免日志过多
+                                console.log(`${index + 1}. ${choice.question_id}`);
+                            }
+                        });
+                        
+                        // 尝试查找包含相似ID的选项
+                        const similarChoices = choicesData.filter(choice => 
+                            choice.question_id && choice.question_id.includes(question.id.substring(0, 8))
+                        );
+                        console.log(`\n找到包含相似ID的选项数量: ${similarChoices.length}`);
+                        similarChoices.forEach((choice, index) => {
+                            console.log(`相似选项${index + 1}: question_id=${choice.question_id}, choice_text=${choice.choice_text}`);
+                        });
+                    }
+                    console.log(`======= 调试特定题目结束 =======`);
+                }
+                
                 const questionChoices = choicesData
                     .filter(choice => choice.question_id === question.id)
                     .map(choice => ({
