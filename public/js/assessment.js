@@ -126,129 +126,129 @@ window.initializeAssessmentTab = function() {
         renderPage();
     }
     
-    // 检查霍兰德测评是否激活（当前正在作答）
-    function isHollandActive() {
-        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-        return allQuestions[currentQuestionIndex].question_type === 'holland';
-    }
+    // // 检查霍兰德测评是否激活（当前正在作答）
+    // function isHollandActive() {
+    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+    //     return allQuestions[currentQuestionIndex].question_type === 'holland';
+    // }
     
-    // 检查MBTI测评是否激活（当前正在作答）
-    function isMbtiActive() {
-        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-        return allQuestions[currentQuestionIndex].question_type === 'mbti';
-    }
+    // // 检查MBTI测评是否激活（当前正在作答）
+    // function isMbtiActive() {
+    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+    //     return allQuestions[currentQuestionIndex].question_type === 'mbti';
+    // }
     
-    // 检查能力自评是否激活（当前正在作答）
-    function isAbilityActive() {
-        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-        return allQuestions[currentQuestionIndex].question_type === 'ability';
-    }
+    // // 检查能力自评是否激活（当前正在作答）
+    // function isAbilityActive() {
+    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+    //     return allQuestions[currentQuestionIndex].question_type === 'ability';
+    // }
     
-    // 获取霍兰德测评状态
-    function getHollandStatus() {
-        // 计算霍兰德题目的总数
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-        // 计算已回答的霍兰德题目数量
-        let answeredHollandQuestions = 0;
-        for (let i = 0; i <= currentQuestionIndex; i++) {
-            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-                answeredHollandQuestions++;
-            }
-        }
+    // // 获取霍兰德测评状态
+    // function getHollandStatus() {
+    //     // 计算霍兰德题目的总数
+    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+    //     // 计算已回答的霍兰德题目数量
+    //     let answeredHollandQuestions = 0;
+    //     for (let i = 0; i <= currentQuestionIndex; i++) {
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+    //             answeredHollandQuestions++;
+    //         }
+    //     }
         
-        // 检查是否所有霍兰德题目都已完成
-        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+    //     // 检查是否所有霍兰德题目都已完成
+    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
         
-        if (hollandCompleted) {
-            return '已完成';
-        } else if (isHollandActive()) {
-            return '作答中';
-        } else if (answeredHollandQuestions > 0) {
-            return `${answeredHollandQuestions}/${totalHollandQuestions}`;
-        } else {
-            return '未开始';
-        }
-    }
+    //     if (hollandCompleted) {
+    //         return '已完成';
+    //     } else if (isHollandActive()) {
+    //         return '作答中';
+    //     } else if (answeredHollandQuestions > 0) {
+    //         return `${answeredHollandQuestions}/${totalHollandQuestions}`;
+    //     } else {
+    //         return '未开始';
+    //     }
+    // }
     
-    // 获取MBTI测评状态
-    function getMbtiStatus() {
-        // 计算MBTI题目的总数
-        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
-        // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-        // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
-        let answeredHollandQuestions = 0;
-        for (let i = 0; i < allQuestions.length; i++) {
-            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-                answeredHollandQuestions++;
-            }
-        }
-        // 计算已回答的MBTI题目数量
-        let answeredMbtiQuestions = 0;
-        for (let i = 0; i <= currentQuestionIndex; i++) {
-            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
-                answeredMbtiQuestions++;
-            }
-        }
+    // // 获取MBTI测评状态
+    // function getMbtiStatus() {
+    //     // 计算MBTI题目的总数
+    //     const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+    //     // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
+    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+    //     // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
+    //     let answeredHollandQuestions = 0;
+    //     for (let i = 0; i < allQuestions.length; i++) {
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+    //             answeredHollandQuestions++;
+    //         }
+    //     }
+    //     // 计算已回答的MBTI题目数量
+    //     let answeredMbtiQuestions = 0;
+    //     for (let i = 0; i <= currentQuestionIndex; i++) {
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+    //             answeredMbtiQuestions++;
+    //         }
+    //     }
         
-        // 检查是否所有MBTI题目都已完成
-        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
-        // 检查霍兰德是否已完成（MBTI是否可以开始）
-        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+    //     // 检查是否所有MBTI题目都已完成
+    //     const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+    //     // 检查霍兰德是否已完成（MBTI是否可以开始）
+    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
         
-        if (mbtiCompleted) {
-            return '已完成';
-        } else if (isMbtiActive()) {
-            return '作答中';
-        } else if (hollandCompleted) {
-            return `${answeredMbtiQuestions}/${totalMbtiQuestions}`;
-        } else {
-            return '未开始（需先完成霍兰德）';
-        }
-    }
+    //     if (mbtiCompleted) {
+    //         return '已完成';
+    //     } else if (isMbtiActive()) {
+    //         return '作答中';
+    //     } else if (hollandCompleted) {
+    //         return `${answeredMbtiQuestions}/${totalMbtiQuestions}`;
+    //     } else {
+    //         return '未开始（需先完成霍兰德）';
+    //     }
+    // }
     
-    // 获取能力自评状态
-    function getAbilityStatus() {
-        // 计算能力自评题目的总数
-        const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
-        // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
-        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
-        // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
-        let answeredHollandQuestions = 0;
-        let answeredMbtiQuestions = 0;
-        for (let i = 0; i < allQuestions.length; i++) {
-            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-                answeredHollandQuestions++;
-            }
-            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
-                answeredMbtiQuestions++;
-            }
-        }
-        // 计算已回答的能力自评题目数量
-        let answeredAbilityQuestions = 0;
-        for (let i = 0; i <= currentQuestionIndex; i++) {
-            if (allQuestions[i] && allQuestions[i].question_type === 'ability' && userAnswers[i]) {
-                answeredAbilityQuestions++;
-            }
-        }
+    // // 获取能力自评状态
+    // function getAbilityStatus() {
+    //     // 计算能力自评题目的总数
+    //     const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
+    //     // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
+    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+    //     const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+    //     // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
+    //     let answeredHollandQuestions = 0;
+    //     let answeredMbtiQuestions = 0;
+    //     for (let i = 0; i < allQuestions.length; i++) {
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+    //             answeredHollandQuestions++;
+    //         }
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+    //             answeredMbtiQuestions++;
+    //         }
+    //     }
+    //     // 计算已回答的能力自评题目数量
+    //     let answeredAbilityQuestions = 0;
+    //     for (let i = 0; i <= currentQuestionIndex; i++) {
+    //         if (allQuestions[i] && allQuestions[i].question_type === 'ability' && userAnswers[i]) {
+    //             answeredAbilityQuestions++;
+    //         }
+    //     }
         
-        // 检查是否所有能力自评题目都已完成
-        const abilityCompleted = totalAbilityQuestions > 0 && answeredAbilityQuestions === totalAbilityQuestions;
-        // 检查霍兰德和MBTI是否已完成（能力自评是否可以开始）
-        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
-        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+    //     // 检查是否所有能力自评题目都已完成
+    //     const abilityCompleted = totalAbilityQuestions > 0 && answeredAbilityQuestions === totalAbilityQuestions;
+    //     // 检查霍兰德和MBTI是否已完成（能力自评是否可以开始）
+    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+    //     const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
         
-        if (abilityCompleted) {
-            return '已完成';
-        } else if (isAbilityActive()) {
-            return '作答中';
-        } else if (hollandCompleted && mbtiCompleted) {
-            return `${answeredAbilityQuestions}/${totalAbilityQuestions}`;
-        } else {
-            return '未开始（需先完成霍兰德和MBTI）';
-        }
-    }
+    //     if (abilityCompleted) {
+    //         return '已完成';
+    //     } else if (isAbilityActive()) {
+    //         return '作答中';
+    //     } else if (hollandCompleted && mbtiCompleted) {
+    //         return `${answeredAbilityQuestions}/${totalAbilityQuestions}`;
+    //     } else {
+    //         return '未开始（需先完成霍兰德和MBTI）';
+    //     }
+    // }
 
     // 加载测评题目 - 实现按维度随机抽题的逻辑
     async function loadQuestions() {
