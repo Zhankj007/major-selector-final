@@ -267,11 +267,39 @@ window.initializeAssessmentTab = function() {
                     .from('choices')
                     .select('*');
                 
+                // 添加调试信息，查看从数据库获取的题目和选项数量
+                console.log('从数据库获取的题目数量:', qData ? qData.length : 0);
+                console.log('从数据库获取的选项数量:', cData ? cData.length : 0);
+                
+                // 查看选项数据的详细信息
+                if (cData && cData.length > 0) {
+                    console.log('选项数据示例:', cData.slice(0, 3)); // 只显示前3个选项作为示例
+                    
+                    // 统计不同维度的选项数量
+                    const dimensionCount = {};
+                    cData.forEach(choice => {
+                        if (choice.score_type) {
+                            dimensionCount[choice.score_type] = (dimensionCount[choice.score_type] || 0) + 1;
+                        }
+                    });
+                    console.log('各维度选项数量统计:', dimensionCount);
+                    
+                    // 查找是否存在目标题目的选项
+                    const targetQuestionId = '6b83c9f7-b842-4669-ac0a-24c798473a51';
+                    const targetChoices = cData.filter(choice => choice.question_id === targetQuestionId);
+                    console.log(`目标题目(ID: ${targetQuestionId})的选项数量:`, targetChoices.length);
+                    if (targetChoices.length > 0) {
+                        console.log('目标题目选项详情:', targetChoices);
+                    }
+                }
+                
                 if (!qError && !cError) {
                     questionsData = qData;
                     choicesData = cData;
                 } else {
                     // 数据库查询失败时，抛出错误
+                    console.error('数据库查询错误 - 题目:', qError);
+                    console.error('数据库查询错误 - 选项:', cError);
                     throw new Error('数据库连接失败或查询出错');
                 }
             } else {
