@@ -270,214 +270,17 @@ window.initializeAssessmentTab = function() {
                 if (!qError && !cError) {
                     questionsData = qData;
                     choicesData = cData;
+                } else {
+                    // 数据库查询失败时，抛出错误
+                    throw new Error('数据库连接失败或查询出错');
                 }
+            } else {
+                throw new Error('Supabase客户端未初始化');
             }
             
-            // 如果数据库没有数据或连接失败，使用备用的模拟数据
+            // 如果数据库没有数据，抛出错误
             if (!questionsData.length) {
-                questionsData = [
-                    // 霍兰德问题
-                    { id: '1', question_text: '喜欢修理出故障的电器或机械设备。', question_type: 'holland', dimension: 'R' },
-                    { id: '2', question_text: '喜欢动手操作工具或机械。', question_type: 'holland', dimension: 'R' },
-                    { id: '3', question_text: '喜欢参加户外活动或运动。', question_type: 'holland', dimension: 'R' },
-                    { id: '4', question_text: '喜欢观察和研究自然现象。', question_type: 'holland', dimension: 'R' },
-                    { id: '5', question_text: '喜欢从事需要体力劳动的工作。', question_type: 'holland', dimension: 'R' },
-                    { id: '6', question_text: '喜欢使用各种工具解决实际问题。', question_type: 'holland', dimension: 'R' },
-                    { id: '7', question_text: '喜欢组装或修理家具。', question_type: 'holland', dimension: 'R' },
-                    { id: '8', question_text: '喜欢研究和解决复杂的数学问题。', question_type: 'holland', dimension: 'I' },
-                    { id: '9', question_text: '喜欢阅读科学书籍或文章。', question_type: 'holland', dimension: 'I' },
-                    { id: '10', question_text: '喜欢进行实验或研究工作。', question_type: 'holland', dimension: 'I' },
-                    { id: '11', question_text: '喜欢分析数据或统计信息。', question_type: 'holland', dimension: 'I' },
-                    { id: '12', question_text: '喜欢探索新的知识领域。', question_type: 'holland', dimension: 'I' },
-                    { id: '13', question_text: '喜欢思考抽象的哲学问题。', question_type: 'holland', dimension: 'I' },
-                    { id: '14', question_text: '喜欢撰写学术论文或报告。', question_type: 'holland', dimension: 'I' },
-                    { id: '15', question_text: '喜欢绘画、音乐、写作等创造性活动。', question_type: 'holland', dimension: 'A' },
-                    { id: '16', question_text: '喜欢设计或装饰物品。', question_type: 'holland', dimension: 'A' },
-                    { id: '17', question_text: '喜欢参加艺术展览或表演。', question_type: 'holland', dimension: 'A' },
-                    { id: '18', question_text: '喜欢创作故事或诗歌。', question_type: 'holland', dimension: 'A' },
-                    { id: '19', question_text: '喜欢学习音乐或乐器。', question_type: 'holland', dimension: 'A' },
-                    { id: '20', question_text: '喜欢摄影或录像创作。', question_type: 'holland', dimension: 'A' },
-                    { id: '21', question_text: '喜欢时尚设计或搭配。', question_type: 'holland', dimension: 'A' },
-                    { id: '22', question_text: '喜欢帮助他人解决问题。', question_type: 'holland', dimension: 'S' },
-                    { id: '23', question_text: '喜欢参与社区服务或志愿活动。', question_type: 'holland', dimension: 'S' },
-                    { id: '24', question_text: '喜欢教育或指导他人。', question_type: 'holland', dimension: 'S' },
-                    { id: '25', question_text: '喜欢与他人合作完成任务。', question_type: 'holland', dimension: 'S' },
-                    { id: '26', question_text: '喜欢倾听他人的心声或烦恼。', question_type: 'holland', dimension: 'S' },
-                    { id: '27', question_text: '喜欢照顾老人或儿童。', question_type: 'holland', dimension: 'S' },
-                    { id: '28', question_text: '喜欢从事医疗或护理工作。', question_type: 'holland', dimension: 'S' },
-                    { id: '29', question_text: '喜欢领导或组织团队活动。', question_type: 'holland', dimension: 'E' },
-                    { id: '30', question_text: '喜欢参与商业活动或创业。', question_type: 'holland', dimension: 'E' },
-                    { id: '31', question_text: '喜欢销售产品或服务。', question_type: 'holland', dimension: 'E' },
-                    { id: '32', question_text: '喜欢制定计划或策略。', question_type: 'holland', dimension: 'E' },
-                    { id: '33', question_text: '喜欢谈判或说服他人。', question_type: 'holland', dimension: 'E' },
-                    { id: '34', question_text: '喜欢竞争或挑战目标。', question_type: 'holland', dimension: 'E' },
-                    { id: '35', question_text: '喜欢关注经济或市场动态。', question_type: 'holland', dimension: 'E' },
-                    { id: '36', question_text: '喜欢整理或归档文件资料。', question_type: 'holland', dimension: 'C' },
-                    { id: '37', question_text: '喜欢按照规则或程序办事。', question_type: 'holland', dimension: 'C' },
-                    { id: '38', question_text: '喜欢处理数字或财务数据。', question_type: 'holland', dimension: 'C' },
-                    { id: '39', question_text: '喜欢填写表格或报表。', question_type: 'holland', dimension: 'C' },
-                    { id: '40', question_text: '喜欢保持环境整洁有序。', question_type: 'holland', dimension: 'C' },
-                    { id: '41', question_text: '喜欢遵守时间表或计划。', question_type: 'holland', dimension: 'C' },
-                    { id: '42', question_text: '喜欢精确计算或记录数据。', question_type: 'holland', dimension: 'C' },
-                    // MBTI问题
-                    { id: '43', question_text: '在社交场合中，我倾向于：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '44', question_text: '我更喜欢：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '45', question_text: '当我需要放松时，我通常：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '46', question_text: '我更关注：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '47', question_text: '我做决定时，更注重：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '48', question_text: '我更喜欢：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '49', question_text: '我更倾向于：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '50', question_text: '在规划未来时，我更倾向于：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '51', question_text: '当计划被打乱时，我通常：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '52', question_text: '在团队工作中，我更擅长：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '53', question_text: '我更相信：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '54', question_text: '我更重视：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '55', question_text: '我处理冲突时，通常：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '56', question_text: '在工作中，我更关注：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '57', question_text: '我更喜欢怎样的生活方式：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '58', question_text: '当面临压力时，我更倾向于：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '59', question_text: '在聚会中，我通常是：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '60', question_text: '我更擅长：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '61', question_text: '我更倾向于从哪个角度看问题：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '62', question_text: '对于待办事项，我通常：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '63', question_text: '在讨论中，我更倾向于：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '64', question_text: '我更关注事物的：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '65', question_text: '我做决策时更依赖：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '66', question_text: '我更喜欢：', question_type: 'mbti', dimension: 'JP' },
-                    { id: '67', question_text: '当有空闲时间时，我更愿意：', question_type: 'mbti', dimension: 'EI' },
-                    { id: '68', question_text: '我更相信：', question_type: 'mbti', dimension: 'SN' },
-                    { id: '68a', question_text: '我更关注事物的具体应用而非理论本身。', question_type: 'mbti', dimension: 'SN' },
-                    { id: '69', question_text: '在评价他人时，我更看重：', question_type: 'mbti', dimension: 'TF' },
-                    { id: '70', question_text: '我更倾向于：', question_type: 'mbti', dimension: 'JP' },
-                    // 能力自评问题 - 每种能力4题，共40题
-            // 逻辑思维能力
-            { id: '71', question_text: '我能够轻松理解复杂的数学或逻辑问题。', question_type: 'ability', dimension: '逻辑思维能力' },
-            { id: '72', question_text: '在解决问题时，我倾向于寻找规律和模式。', question_type: 'ability', dimension: '逻辑思维能力' },
-            { id: '73', question_text: '我擅长分析问题的各个组成部分并找出它们之间的关系。', question_type: 'ability', dimension: '逻辑思维能力' },
-            { id: '74', question_text: '面对争论时，我更关注事实和逻辑而非情感因素。', question_type: 'ability', dimension: '逻辑思维能力' },
-            // 创新思维能力
-            { id: '75', question_text: '我经常能想到解决问题的新方法。', question_type: 'ability', dimension: '创新思维能力' },
-            { id: '76', question_text: '我喜欢尝试不同的方法来完成任务。', question_type: 'ability', dimension: '创新思维能力' },
-            { id: '77', question_text: '我善于将看似不相关的想法联系起来。', question_type: 'ability', dimension: '创新思维能力' },
-            { id: '78', question_text: '我经常思考如何改进现有的产品或流程。', question_type: 'ability', dimension: '创新思维能力' },
-            // 语言表达能力
-            { id: '79', question_text: '我能够清晰地表达自己的想法。', question_type: 'ability', dimension: '语言表达能力' },
-            { id: '80', question_text: '我善于说服他人接受我的观点。', question_type: 'ability', dimension: '语言表达能力' },
-            { id: '81', question_text: '我喜欢阅读和学习新的词汇。', question_type: 'ability', dimension: '语言表达能力' },
-            { id: '82', question_text: '在写作时，我能够组织好思路并清晰地表达。', question_type: 'ability', dimension: '语言表达能力' },
-            // 数学计算能力
-            { id: '83', question_text: '我对数字很敏感，能快速进行计算。', question_type: 'ability', dimension: '数学计算能力' },
-            { id: '84', question_text: '我喜欢解决数学问题。', question_type: 'ability', dimension: '数学计算能力' },
-            { id: '85', question_text: '我能够轻松理解数学公式和概念。', question_type: 'ability', dimension: '数学计算能力' },
-            { id: '86', question_text: '在处理数据时，我很少出错。', question_type: 'ability', dimension: '数学计算能力' },
-            // 动手实践能力
-            { id: '87', question_text: '我喜欢动手制作或修理东西。', question_type: 'ability', dimension: '动手实践能力' },
-            { id: '88', question_text: '我能够快速掌握新工具的使用方法。', question_type: 'ability', dimension: '动手实践能力' },
-            { id: '89', question_text: '我喜欢通过实际操作来学习。', question_type: 'ability', dimension: '动手实践能力' },
-            { id: '90', question_text: '我擅长将理论知识应用到实际问题中。', question_type: 'ability', dimension: '动手实践能力' },
-            // 空间想象能力
-            { id: '91', question_text: '我能够轻松想象出三维物体的形状。', question_type: 'ability', dimension: '空间想象能力' },
-            { id: '92', question_text: '我擅长看地图和导航。', question_type: 'ability', dimension: '空间想象能力' },
-            { id: '93', question_text: '我能够在脑海中旋转或变形物体。', question_type: 'ability', dimension: '空间想象能力' },
-            { id: '94', question_text: '我喜欢设计或绘画。', question_type: 'ability', dimension: '空间想象能力' },
-            // 记忆能力
-            { id: '95', question_text: '我能够轻松记住数字、名字或日期。', question_type: 'ability', dimension: '记忆能力' },
-            { id: '96', question_text: '我擅长背诵诗歌或文章。', question_type: 'ability', dimension: '记忆能力' },
-            { id: '97', question_text: '我能够回忆起过去经历的细节。', question_type: 'ability', dimension: '记忆能力' },
-            { id: '98', question_text: '我能够快速学习和记住新的信息。', question_type: 'ability', dimension: '记忆能力' },
-            // 注意力
-            { id: '99', question_text: '我能够长时间专注于一项任务。', question_type: 'ability', dimension: '注意力' },
-            { id: '100', question_text: '我很少在工作中犯粗心的错误。', question_type: 'ability', dimension: '注意力' },
-            { id: '101', question_text: '我能够在嘈杂的环境中集中精力。', question_type: 'ability', dimension: '注意力' },
-            { id: '102', question_text: '我擅长同时处理多项任务。', question_type: 'ability', dimension: '注意力' },
-            // 情绪管理能力
-            { id: '103', question_text: '我能够控制自己的情绪，即使在压力下。', question_type: 'ability', dimension: '情绪管理能力' },
-            { id: '104', question_text: '我能够快速从负面情绪中恢复。', question_type: 'ability', dimension: '情绪管理能力' },
-            { id: '105', question_text: '我善于识别和理解自己的情绪。', question_type: 'ability', dimension: '情绪管理能力' },
-            { id: '106', question_text: '我能够保持积极的心态面对挑战。', question_type: 'ability', dimension: '情绪管理能力' },
-            // 团队协作能力
-            { id: '107', question_text: '我喜欢与他人合作完成任务。', question_type: 'ability', dimension: '团队协作能力' },
-            { id: '108', question_text: '我能够很好地理解他人的观点。', question_type: 'ability', dimension: '团队协作能力' },
-            { id: '109', question_text: '我擅长在团队中扮演协调者的角色。', question_type: 'ability', dimension: '团队协作能力' },
-            { id: '110', question_text: '我能够与不同性格的人有效合作。', question_type: 'ability', dimension: '团队协作能力' }
-                ];
-                
-                // 生成对应的选项数据
-                choicesData = [];
-                let choiceId = 1;
-                
-                // 为霍兰德问题生成5点量表选项
-                for (let i = 1; i <= 42; i++) {
-                    const question = questionsData[i-1];
-                    for (let j = 1; j <= 5; j++) {
-                        const choiceTexts = ['非常喜欢', '比较喜欢', '一般', '不太喜欢', '不喜欢'];
-                        choicesData.push({
-                            id: choiceId.toString(),
-                            question_id: question.id,
-                            choice_text: choiceTexts[j-1],
-                            score_type: question.dimension,
-                            score_value: 6 - j // 反向计分，非常喜欢=5分，不喜欢=1分
-                        });
-                        choiceId++;
-                    }
-                }
-                
-                // 为MBTI问题生成2选项
-                for (let i = 43; i <= 70; i++) {
-                    const question = questionsData[i-1];
-                    let options = [];
-                    
-                    if (question.dimension === 'EI') {
-                        options = [
-                            { text: '主动与他人交流，享受社交活动', type: 'E' },
-                            { text: '倾向于观察和倾听，需要独处恢复精力', type: 'I' }
-                        ];
-                    } else if (question.dimension === 'SN') {
-                        options = [
-                            { text: '关注具体事实和细节', type: 'S' },
-                            { text: '关注抽象概念和可能性', type: 'N' }
-                        ];
-                    } else if (question.dimension === 'TF') {
-                        options = [
-                            { text: '逻辑分析和客观事实', type: 'T' },
-                            { text: '个人价值观和他人感受', type: 'F' }
-                        ];
-                    } else if (question.dimension === 'JP') {
-                        options = [
-                            { text: '有计划、有条理', type: 'J' },
-                            { text: '灵活、即兴', type: 'P' }
-                        ];
-                    }
-                    
-                    options.forEach(option => {
-                        choicesData.push({
-                            id: choiceId.toString(),
-                            question_id: question.id,
-                            choice_text: option.text,
-                            score_type: option.type,
-                            score_value: 1
-                        });
-                        choiceId++;
-                    });
-                }
-                
-                // 为能力自评问题生成5点量表选项
-                // 遍历所有能力测评题目，而不是固定ID范围
-                questionsData.forEach(question => {
-                    if (question.question_type === 'ability') {
-                        for (let j = 1; j <= 5; j++) {
-                            const choiceTexts = ['很强', '较强', '一般', '较弱', '很弱'];
-                            choicesData.push({
-                                id: choiceId.toString(),
-                                question_id: question.id,
-                                choice_text: choiceTexts[j-1],
-                                score_type: question.dimension,
-                                score_value: 6 - j // 反向计分，很强=5分，很弱=1分
-                            });
-                            choiceId++;
-                        }
-                    }
-                });
+                throw new Error('数据库中没有找到题目数据');
             }
             
             // 构建题目和选项的关系
@@ -1323,8 +1126,8 @@ window.initializeAssessmentTab = function() {
         return majorsWithScores.slice(0, 10);
     }
     
-    // 获取模拟专业规则数据（用于演示或当数据库不可用时）
-    function getMockMajorRules() {
+    // 获取模拟专业规则数据（用于演示或当数据库不可用时） - 已注释掉
+    /*function getMockMajorRules() {
         // 模拟数据，包含多个专业的详细信息
         return [
             {
@@ -1472,10 +1275,10 @@ window.initializeAssessmentTab = function() {
                 '推荐理由': '您的共情能力和耐心专注力较强，非常适合学习临床医学专业。'
             }
         ];
-    }
+    }*/
     
-    // 获取默认推荐专业（当数据库查询失败时使用）
-    function getDefaultRecommendedMajors() {
+    // 获取默认推荐专业（当数据库查询失败时使用） - 已注释掉
+    /*function getDefaultRecommendedMajors() {
         return [
             {
                 code: '080901',
@@ -1508,7 +1311,7 @@ window.initializeAssessmentTab = function() {
                 reason: '适合数学计算能力和逻辑思维能力强的学生。该专业能够充分发挥您的抽象思维能力和问题解决能力，与您的能力优势高度匹配。'
             }
         ];
-    }
+    }*/
 
     // 获取霍兰德代码描述
     function getHollandDescription(code) {
@@ -1622,17 +1425,17 @@ window.initializeAssessmentTab = function() {
         });
     }
 
-    // 保存报告
-    function saveReport() {
+    // 保存报告 - 已注释掉
+    /*function saveReport() {
         // 这里可以实现保存报告到本地的功能
         alert('报告已保存！');
     }
 
-    // 分享报告
+    // 分享报告 - 已注释掉
     function shareReport() {
         // 这里可以实现生成分享链接或长图的功能
         alert('分享功能开发中，敬请期待！');
-    }
+    }*/
 
     // 查看专业详情
     async function viewMajorDetails(majorCode) {
@@ -1645,13 +1448,8 @@ window.initializeAssessmentTab = function() {
                 // 检查是否有推荐专业列表
                 let majorDetails = null;
                 
-                // 首先从本地推荐专业列表中查找
-                if (recommendedMajors.length > 0) {
-                    majorDetails = recommendedMajors.find(major => major.code === majorCode);
-                }
-                
-                // 如果本地没有找到或数据库连接可用，则从数据库查询
-                if (!majorDetails && window.supabaseClient) {
+                // 直接从数据库查询专业详情
+                if (window.supabaseClient) {
                     const { data, error } = await window.supabaseClient
                         .from('major_rules')
                         .select('*')
