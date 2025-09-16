@@ -462,20 +462,22 @@ window.initializeAssessmentTab = function() {
                 }
                 
                 // 为能力自评问题生成5点量表选项
-                for (let i = 71; i <= 110; i++) {
-                    const question = questionsData[i-1];
-                    for (let j = 1; j <= 5; j++) {
-                        const choiceTexts = ['很强', '较强', '一般', '较弱', '很弱'];
-                        choicesData.push({
-                            id: choiceId.toString(),
-                            question_id: question.id,
-                            choice_text: choiceTexts[j-1],
-                            score_type: question.dimension,
-                            score_value: 6 - j // 反向计分，很强=5分，很弱=1分
-                        });
-                        choiceId++;
+                // 遍历所有能力测评题目，而不是固定ID范围
+                questionsData.forEach(question => {
+                    if (question.question_type === 'ability') {
+                        for (let j = 1; j <= 5; j++) {
+                            const choiceTexts = ['很强', '较强', '一般', '较弱', '很弱'];
+                            choicesData.push({
+                                id: choiceId.toString(),
+                                question_id: question.id,
+                                choice_text: choiceTexts[j-1],
+                                score_type: question.dimension,
+                                score_value: 6 - j // 反向计分，很强=5分，很弱=1分
+                            });
+                            choiceId++;
+                        }
                     }
-                }
+                });
             }
             
             // 构建题目和选项的关系
