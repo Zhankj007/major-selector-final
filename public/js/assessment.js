@@ -1004,14 +1004,14 @@ window.initializeAssessmentTab = function() {
                                     <div class="major-card">
                                         <div class="major-rank">${index + 1}</div>
                                         <div class="major-info">
-                                            <h4 class="major-name">${major.name}</h4>
-                                            <p class="major-code">专业代码：${major.code}</p>
-                                            <p class="match-score">匹配度：${major.matchScore}%</p>
+                                            <h4 class="major-name">${major.name || '未定义'}</h4>
+                                            <p class="major-code">专业代码：${major.code || '未定义'}</p>
+                                            <p class="match-score">匹配度：${major.matchScore || 0}%</p>
                                         </div>
                                         <div class="recommendation-reason">
-                                            <p>${major.reason}</p>
+                                            <p>${major.reason || '该专业与您的个人特质和能力相匹配。'}</p>
                                         </div>
-                                        <button class="view-major-details" data-major-code="${major.code}">查看详情</button>
+                                        <button class="view-major-details" data-major-code="${major.code || ''}">查看详情</button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -1154,18 +1154,17 @@ window.initializeAssessmentTab = function() {
                             .from('majors')
                             .select('*')
                             .limit(50); // 限制获取数量以提高性能
-                            
+                             
                         if (allMajorsError) {
                             console.error(`获取专业数据失败: ${allMajorsError.message}`);
-                            // 如果获取专业数据也失败，使用模拟数据作为最后备选
-                            return getMockMajorRules(hollandCode, mbtiType);
+                            throw new Error('网络连接异常，请检查网络设置后重试');
                         }
-                        
+                         
                         if (!allMajors || allMajors.length === 0) {
-                            console.warn('没有获取到任何专业数据，使用模拟数据');
-                            return getMockMajorRules(hollandCode, mbtiType);
+                            console.warn('没有获取到任何专业数据');
+                            return [];
                         }
-                        
+                         
                         // 为所有专业添加必要的字段以适应processMajorsWithScores函数
                         const majorsWithRequiredFields = allMajors.map(major => ({
                             '专业码': major.code,
@@ -1183,12 +1182,11 @@ window.initializeAssessmentTab = function() {
                             '推荐理由': major.reason || '该专业与您的个人特质和能力相匹配。',
                             '所需核心能力': [] // 默认为空数组，使用基础分
                         }));
-                        
+                         
                         return processMajorsWithScores(majorsWithRequiredFields, hollandCode, mbtiType);
                     } catch (e) {
                         console.error('获取专业数据时出错:', e);
-                        // 如果出现任何错误，使用模拟数据
-                        return getMockMajorRules(hollandCode, mbtiType);
+                        throw new Error('网络连接异常，请检查网络设置后重试');
                     }
                 }
                 
@@ -1200,9 +1198,7 @@ window.initializeAssessmentTab = function() {
             
         } catch (error) {
             console.error('生成推荐专业时出错:', error);
-            // 在任何错误情况下都返回模拟数据作为最后的备选方案
-            console.warn('使用模拟数据作为最后的备选方案');
-            return getMockMajorRules(hollandCode, mbtiType);
+            throw new Error('网络连接异常，请检查网络设置后重试');
         }
     }
     
