@@ -1079,11 +1079,12 @@ window.initializeAssessmentTab = function() {
             
             // 第一阶段：初步筛选 (硬匹配)
             // 使用用户计算出的霍兰德代码和MBTI类型从major_rules表中筛选专业
+            // 注意：使用eq而非contains，因为数据库列是文本类型
             const { data: majorRules, error: rulesError } = await window.supabaseClient
                 .from('major_rules')
                 .select('*')
-                .contains('匹配的霍兰德代码组合', [hollandCode])
-                .contains('匹配的MBTI类型', [mbtiType]);
+                .eq('匹配的霍兰德代码组合', hollandCode)
+                .eq('匹配的MBTI类型', mbtiType);
                 
             if (rulesError) {
                 console.error(`查询专业规则失败: ${rulesError.message}`);
@@ -1094,10 +1095,11 @@ window.initializeAssessmentTab = function() {
                 console.warn('没有找到完全匹配的专业，使用扩大搜索范围');
                 
                 // 尝试只匹配霍兰德代码或MBTI类型中的一个
+                // 使用正确的or语法，针对文本类型字段使用eq操作符
                 const { data: fallbackRules, error: fallbackError } = await window.supabaseClient
                     .from('major_rules')
                     .select('*')
-                    .or(`contains.匹配的霍兰德代码组合,${hollandCode},contains.匹配的MBTI类型,${mbtiType}`);
+                    .or(`匹配的霍兰德代码组合.eq.${hollandCode},匹配的MBTI类型.eq.${mbtiType}`);
                     
                 if (fallbackError) {
                     console.error(`扩大搜索范围失败: ${fallbackError.message}`);
