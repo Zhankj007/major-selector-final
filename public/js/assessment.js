@@ -324,51 +324,55 @@ window.initializeAssessmentTab = function() {
                     console.log(`题目类型: ${question.question_type}`);
                     console.log(`题目维度: ${question.dimension}`);
                     console.log(`题目ID数据类型: ${typeof question.id}`);
+                }
+                
+                // 优化的选项匹配策略：根据题目类型采用不同的匹配方式
+                let questionChoices = [];
+                
+                // 对于mbti类型的题目，使用question_id进行精确匹配
+                if (question.question_type === 'mbti') {
+                    questionChoices = choicesData
+                        .filter(choice => choice.question_id === question.id)
+                        .map(choice => ({
+                            id: choice.id,
+                            choice_text: choice.choice_text,
+                            score_type: choice.score_type,
+                            score_value: choice.score_value
+                        }));
+                }
+                // 对于holland和ability类型的题目，使用question_type进行匹配（question_id为NULL）
+                else if (question.question_type === 'holland' || question.question_type === 'ability') {
+                    // 筛选出对应类型的选项，并确保question_id为NULL（统一选项）
+                    questionChoices = choicesData
+                        .filter(choice => choice.question_type === question.question_type && choice.question_id === null)
+                        .map(choice => ({
+                            id: choice.id,
+                            choice_text: choice.choice_text,
+                            // 动态设置score_type为题目维度
+                            score_type: question.dimension,
+                            score_value: choice.score_value
+                        }));
                     
-                    // 查找所有可能匹配的选项
-                    console.log(`\n查找与该题目相关的选项:`);
-                    const allRelatedChoices = choicesData.filter(choice => {
-                        // 打印每个选项的question_id和数据类型
-                        console.log(`选项question_id: ${choice.question_id}, 数据类型: ${typeof choice.question_id}`);
-                        return choice.question_id === question.id;
-                    });
+                    // 如果没有从数据库中找到对应类型的选项，报错提示
+                    if (questionChoices.length === 0) {
+                        throw new Error(`数据库中未找到${question.question_type}类型的统一选项，请确保数据表中有正确的选项配置`);
+                    }
+                }
+                
+                // 调试信息：显示选项匹配结果
+                if (isTargetQuestion) {
+                    console.log(`匹配策略: ${question.question_type === 'mbti' ? 'question_id匹配' : 'question_type匹配（统一选项）'}`);
+                    console.log(`找到的选项数量: ${questionChoices.length}`);
                     
-                    console.log(`\n找到的匹配选项数量: ${allRelatedChoices.length}`);
-                    if (allRelatedChoices.length > 0) {
-                        allRelatedChoices.forEach((choice, index) => {
-                            console.log(`选项${index + 1}: ${choice.choice_text}, ID: ${choice.id}`);
+                    if (questionChoices.length > 0) {
+                        questionChoices.forEach((choice, index) => {
+                            console.log(`选项${index + 1}: ${choice.choice_text}, ID: ${choice.id}, 分值: ${choice.score_value}`);
                         });
                     } else {
                         console.warn(`没有找到与题目ID ${question.id} 匹配的选项!`);
-                        
-                        // 打印数据库中所有选项的question_id，用于排查
-                        console.log(`\n数据库中所有选项的question_id列表:`);
-                        choicesData.forEach((choice, index) => {
-                            if (index < 20) { // 只打印前20个选项以避免日志过多
-                                console.log(`${index + 1}. ${choice.question_id}`);
-                            }
-                        });
-                        
-                        // 尝试查找包含相似ID的选项
-                        const similarChoices = choicesData.filter(choice => 
-                            choice.question_id && choice.question_id.includes(question.id.substring(0, 8))
-                        );
-                        console.log(`\n找到包含相似ID的选项数量: ${similarChoices.length}`);
-                        similarChoices.forEach((choice, index) => {
-                            console.log(`相似选项${index + 1}: question_id=${choice.question_id}, choice_text=${choice.choice_text}`);
-                        });
                     }
                     console.log(`======= 调试特定题目结束 =======`);
                 }
-                
-                const questionChoices = choicesData
-                    .filter(choice => choice.question_id === question.id)
-                    .map(choice => ({
-                        id: choice.id,
-                        choice_text: choice.choice_text,
-                        score_type: choice.score_type,
-                        score_value: choice.score_value
-                    }));
                 
                 return {
                     id: question.id,
