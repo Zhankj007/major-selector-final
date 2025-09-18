@@ -1059,11 +1059,12 @@ window.initializeAssessmentTab = function() {
         });
         } catch (error) {
             console.error('渲染结果页面时出错:', error);
-            // 显示错误信息
+            // 显示错误信息，包含具体的错误消息
+            const errorMessage = error.message || '抱歉，生成您的专属报告时遇到了问题。请稍后再试。';
             assessmentTab.innerHTML = `
                 <div class="error-container">
                     <h2>生成报告失败</h2>
-                    <p>抱歉，生成您的专属报告时遇到了问题。请稍后再试。</p>
+                    <p>${errorMessage}</p>
                     <button id="retry-btn" class="primary-button">重试</button>
                 </div>
             `;
@@ -1112,7 +1113,7 @@ window.initializeAssessmentTab = function() {
             // 检查是否有Supabase客户端实例
             if (!window.supabaseClient) {
                 console.error('未找到数据库连接实例');
-                throw new Error('网络连接异常，请检查网络设置后重试');
+                throw new Error('系统错误：无法连接到数据库服务，请稍后再试');
             }
             
             // 第一阶段：初步筛选 (硬匹配)
@@ -1126,7 +1127,7 @@ window.initializeAssessmentTab = function() {
                 
             if (rulesError) {
                 console.error(`查询专业规则失败: ${rulesError.message}`);
-                throw new Error('网络连接异常，请检查网络设置后重试');
+                throw new Error('数据查询错误：无法获取专业匹配规则，请稍后再试');
             }
             
             if (!majorRules || majorRules.length === 0) {
@@ -1141,7 +1142,7 @@ window.initializeAssessmentTab = function() {
                     
                 if (fallbackError) {
                     console.error(`扩大搜索范围失败: ${fallbackError.message}`);
-                    throw new Error('网络连接异常，请检查网络设置后重试');
+                    throw new Error('数据查询错误：扩大搜索范围失败，请稍后再试');
                 }
                 
                 if (!fallbackRules || fallbackRules.length === 0) {
@@ -1151,13 +1152,13 @@ window.initializeAssessmentTab = function() {
                     try {
                         // 获取所有专业信息
                         const { data: allMajors, error: allMajorsError } = await window.supabaseClient
-                            .from('majors')
+                            .from('major_rules')
                             .select('*')
                             .limit(50); // 限制获取数量以提高性能
                              
                         if (allMajorsError) {
                             console.error(`获取专业数据失败: ${allMajorsError.message}`);
-                            throw new Error('网络连接异常，请检查网络设置后重试');
+                            throw new Error('数据查询错误：无法获取专业数据，请稍后再试');
                         }
                          
                         if (!allMajors || allMajors.length === 0) {
@@ -1165,29 +1166,13 @@ window.initializeAssessmentTab = function() {
                             return [];
                         }
                          
-                        // 为所有专业添加必要的字段以适应processMajorsWithScores函数
-                        const majorsWithRequiredFields = allMajors.map(major => ({
-                            '专业码': major.code,
-                            '专业名': major.name,
-                            '门类': major.category,
-                            '专业类': major.subCategory,
-                            '学位': major.degree,
-                            '学制': major.duration,
-                            '设立年份': major.establishedYear,
-                            '指引必选科目': major.requiredCourses,
-                            '体检限制': major.medicalRestrictions,
-                            '培养目标': major.objectives || major.description,
-                            '专业课程': major.courses || (major.coreCourses && major.coreCourses.join('、')),
-                            '就业方向': major.careerPaths,
-                            '推荐理由': major.reason || '该专业与您的个人特质和能力相匹配。',
-                            '所需核心能力': [] // 默认为空数组，使用基础分
-                        }));
-                         
-                        return processMajorsWithScores(majorsWithRequiredFields, hollandCode, mbtiType);
+                        // major_rules表的数据已经包含processMajorsWithScores函数所需的所有字段
+                        // 直接将数据传递给处理函数
+                        return processMajorsWithScores(allMajors, hollandCode, mbtiType);
                     } catch (e) {
-                        console.error('获取专业数据时出错:', e);
-                        throw new Error('网络连接异常，请检查网络设置后重试');
-                    }
+                            console.error('获取专业数据时出错:', e);
+                            throw new Error('数据处理错误：处理专业数据时发生异常，请稍后再试');
+                        }
                 }
                 
                 return processMajorsWithScores(fallbackRules, hollandCode, mbtiType);
@@ -1198,7 +1183,7 @@ window.initializeAssessmentTab = function() {
             
         } catch (error) {
             console.error('生成推荐专业时出错:', error);
-            throw new Error('网络连接异常，请检查网络设置后重试');
+            throw new Error('推荐系统错误：生成专业推荐时发生异常，请稍后再试');
         }
     }
     
