@@ -1201,12 +1201,34 @@ window.initializeAssessmentTab = function() {
                 } else if (typeof majorRule['所需核心能力'] === 'string') {
                     // 尝试解析字符串格式的数组
                     try {
-                        requiredAbilities = JSON.parse(majorRule['所需核心能力']);
+                        // 处理不同格式的核心能力字符串
+                        let abilityStr = majorRule['所需核心能力'].trim();
+                        
+                        // 处理 {内容1,内容2} 格式
+                        if (abilityStr.startsWith('{') && abilityStr.endsWith('}')) {
+                            // 移除大括号
+                            abilityStr = abilityStr.substring(1, abilityStr.length - 1);
+                            // 分割并清理每一项
+                            requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
+                        }
+                        // 处理 [内容1,内容2] 格式
+                        else if (abilityStr.startsWith('[') && abilityStr.endsWith(']')) {
+                            requiredAbilities = JSON.parse(abilityStr);
+                        }
+                        // 处理内容1,内容2 格式
+                        else if (abilityStr.includes(',')) {
+                            requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
+                        }
+                        // 单个能力
+                        else if (abilityStr.length > 0) {
+                            requiredAbilities = [abilityStr];
+                        }
+                        
                         if (!Array.isArray(requiredAbilities)) {
                             requiredAbilities = [];
                         }
                     } catch (e) {
-                        console.warn(`无法解析核心能力字符串: ${majorRule['所需核心能力']}`);
+                        console.warn(`无法解析核心能力字符串: ${majorRule['所需核心能力']}，错误: ${e.message}`);
                         requiredAbilities = [];
                     }
                 }
@@ -1599,25 +1621,25 @@ window.initializeAssessmentTab = function() {
     }*/
 
     // 查看专业详情
-    async function viewMajorDetails(majorCode) {
-        // 切换到专业目录标签页
-        window.switchToTab('majors-tab');
+    async function viewMajorDetails(majorCode, event) {
+        // 阻止事件冒泡（如果有event参数）
+        if (event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+        }
         
-        // 延迟执行，确保标签页切换完成
-        setTimeout(async () => {
-            try {
-                // 检查是否有推荐专业列表
-                let majorDetails = null;
+        try {
+            // 检查是否有推荐专业列表
+            let majorDetails = null;
+            
+            // 直接从数据库查询专业详情
+            if (window.supabaseClient) {
+                const { data, error } = await window.supabaseClient
+                    .from('major_rules')
+                    .select('*')
+                    .eq('专业码', majorCode)
+                    .single();
                 
-                // 直接从数据库查询专业详情
-                if (window.supabaseClient) {
-                    const { data, error } = await window.supabaseClient
-                        .from('major_rules')
-                        .select('*')
-                        .eq('专业码', majorCode)
-                        .single();
-                    
-                    if (error) {
+                if (error) {
                         throw new Error(`查询专业详情失败: ${error.message}`);
                     }
                     
@@ -1660,7 +1682,6 @@ window.initializeAssessmentTab = function() {
                 console.error('查看专业详情时出错:', error);
                 alert(`获取专业详情失败: ${error.message}`);
             }
-        }, 500);
     }
     
     // 渲染专业详情
