@@ -1038,14 +1038,8 @@ window.initializeAssessmentTab = function() {
         }
         document.getElementById('save-report-btn').addEventListener('click', window.saveReport);
         
-        // 确保shareReport函数存在，如果不存在则创建一个临时函数
-        if (typeof shareReport !== 'function') {
-            console.warn('shareReport函数未定义，创建临时函数');
-            window.shareReport = function() {
-                alert('报告分享功能即将上线！');
-            };
-        }
-        document.getElementById('share-report-btn').addEventListener('click', window.shareReport);
+        // 由于分享报告功能已移除，不再为shareReport按钮添加事件监听器
+        // 原代码已被注释，避免尝试为不存在的元素添加事件监听器
         
         // 为每个专业卡片的查看详情按钮添加事件监听器
         document.querySelectorAll('.view-major-details').forEach(button => {
