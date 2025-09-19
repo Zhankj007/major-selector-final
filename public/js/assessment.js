@@ -1772,82 +1772,95 @@ window.initializeAssessmentTab = function() {
                 padding: 20px;
             }
             
+            /* 欢迎内容样式优化 */
             .welcome-content {
                 background-color: white;
-                padding: 40px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.08);
                 text-align: center;
                 width: 100%;
-                max-width: 1200px;
-                margin: 0 auto;
+                margin: 0;
+                border: 1px solid #e0e0e0;
             }
             
             .welcome-content h2 {
                 color: #333;
-                margin-bottom: 20px;
+                margin: 0 0 15px 0;
+                font-size: 20px;
             }
             
             .welcome-content p {
                 color: #666;
-                line-height: 1.6;
-                margin-bottom: 30px;
+                line-height: 1.4;
+                margin: 0 0 20px 0;
+                font-size: 14px;
             }
             
+            /* 测评信息样式优化 */
             .assessment-info {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
             }
             
             .info-item {
                 background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
+                padding: 15px;
+                border-radius: 6px;
+                border: 1px solid #e9ecef;
             }
             
             .info-item h3 {
                 color: #4caf50;
-                margin-bottom: 10px;
-                font-size: 18px;
+                margin: 0 0 8px 0;
+                font-size: 16px;
             }
             
             .info-item p {
                 color: #666;
                 margin: 0;
-                font-size: 14px;
+                font-size: 13px;
+                line-height: 1.4;
             }
             
-            /* 按钮样式 */
+            /* 按钮样式优化 */
             .primary-button {
                 background-color: #4caf50;
                 color: white;
                 border: none;
-                padding: 15px 30px;
-                border-radius: 5px;
-                font-size: 16px;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 500;
                 cursor: pointer;
-                transition: background-color 0.3s;
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 3px rgba(76,175,80,0.3);
             }
             
             .primary-button:hover {
                 background-color: #45a049;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(76,175,80,0.4);
             }
             
+            /* 主按钮和次按钮差异化设计 */
             .secondary-button {
-                background-color: #4caf50;
-                color: white;
+                background-color: transparent;
+                color: #4caf50;
                 border: 1px solid #4caf50;
-                padding: 15px 30px;
-                border-radius: 5px;
-                font-size: 16px;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 14px;
                 cursor: pointer;
-                transition: all 0.3s;
+                transition: all 0.2s ease;
             }
             
             .secondary-button:hover {
-                background-color: #45a049;
+                background-color: #f8f9fa;
+                border-color: #45a049;
+                color: #45a049;
             }
             
             .secondary-button:disabled {
@@ -1959,36 +1972,40 @@ window.initializeAssessmentTab = function() {
                 transform: translateX(5px);
             }
             
-            /* 结果页面布局 */
+            /* 结果页面布局 - 优化以减少页面长度 */
             .result-page {
-                width: 100%;
-                margin: 0;
-                min-height: calc(100vh - 80px);
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                padding: 10px;
                 box-sizing: border-box;
-                overflow-y: auto;
-                padding: 20px;
             }
             
             .result-layout {
                 display: flex;
-                flex-direction: row;
                 gap: 20px;
-                padding: 5px;
-                box-sizing: border-box;
-                max-width: 1200px;
-                margin: 0 auto;
+                height: 100%;
+                overflow: hidden;
             }
             
+            /* 左侧面板优化 */
             .result-left-panel {
-                width: 50%;
+                width: 45%;
+                flex-shrink: 0;
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
+                overflow-y: auto;
+                padding-right: 10px;
+                max-height: calc(100vh - 150px); /* 限制最大高度，防止页面过长 */
             }
             
+            /* 右侧面板优化 */
             .result-right-panel {
-                width: 50%;
-                overflow-y: auto;
+                width: 55%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
             }
             
             /* 测评头部和进度条 */
@@ -1997,42 +2014,45 @@ window.initializeAssessmentTab = function() {
                 margin-bottom: 20px;
             }
             
-            /* 结果页面头部 */
+            /* 结果页面头部优化 */
             .result-header {
-                padding: 20px;
+                padding: 10px 15px;
                 text-align: center;
-                max-width: 1200px;
-                margin: 0 auto;
+                margin: 0;
             }
             
             .result-header h2 {
                 color: #333;
-                margin-bottom: 10px;
+                margin: 0 0 8px 0;
+                font-size: 18px;
             }
             
             .result-header p {
                 color: #666;
-                margin-bottom: 20px;
+                margin: 0;
+                font-size: 14px;
             }
             
+            /* 报告元数据优化 */
             .report-meta {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                gap: 20px;
-                margin-top: 10px;
+                gap: 15px;
+                margin-top: 8px;
+                font-size: 14px;
+                color: #666;
             }
             
-            /* 结果页脚 */
+            /* 结果页脚优化 */
             .result-footer {
                 display: flex;
                 justify-content: center;
-                gap: 20px;
-                padding: 20px;
-                margin-top: 30px;
+                gap: 15px;
+                padding: 12px;
+                margin-top: 15px;
                 border-top: 1px solid #eee;
-                max-width: 1200px;
-                margin: 30px auto 0;
+                font-size: 14px;
             }
             
             .assessment-progress {
@@ -2204,55 +2224,62 @@ window.initializeAssessmentTab = function() {
                 font-size: 14px;
             }
             
-            /* 结果内容区域 */
+            /* 结果内容区域优化 */
             .result-content {
                 display: flex;
                 flex-direction: column;
-                gap: 40px;
-                max-width: 1200px;
-                margin: 0 auto;
+                gap: 15px;
+                width: 100%;
+                margin: 0;
             }
             
+            /* 结果区块优化 */
             .result-section {
-                background-color: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                background-color: #fff;
+                border-radius: 8px;
+                padding: 12px;
+                border: 1px solid #e0e0e0;
+                margin-bottom: 10px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.08);
             }
             
             .result-section h3 {
+                margin-top: 0;
+                margin-bottom: 12px;
                 color: #333;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #4caf50;
+                font-size: 15px;
+                font-weight: 600;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #4caf50;
             }
             
-            /* 霍兰德和MBTI结果样式 */
+            /* 霍兰德和MBTI结果样式优化 */
             .holland-result, .mbti-result {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
             }
             
             .holland-code, .mbti-type {
                 display: flex;
                 align-items: center;
-                gap: 15px;
+                gap: 12px;
             }
             
             .code-label, .type-label {
                 font-weight: bold;
                 color: #666;
-                min-width: 120px;
+                min-width: 90px;
+                font-size: 14px;
             }
             
             .code-value, .type-value {
-                font-size: 24px;
+                font-size: 18px;
                 font-weight: bold;
                 color: #4caf50;
-                padding: 10px 20px;
+                padding: 6px 12px;
                 background-color: #f8f9fa;
-                border-radius: 5px;
+                border-radius: 4px;
             }
             
             .holland-description, .mbti-description {
@@ -2263,120 +2290,153 @@ window.initializeAssessmentTab = function() {
                 border-radius: 5px;
             }
             
-            /* 能力雷达图容器 */
+            /* 能力雷达图容器 - 优化大小 */
             .ability-radar {
+                margin: 10px 0;
                 display: flex;
                 justify-content: center;
-                padding: 20px;
+                padding: 10px;
             }
             
-            /* 推荐专业样式 */
+            .ability-radar canvas {
+                max-width: 100% !important;
+                height: auto !important;
+                max-height: 220px; /* 限制雷达图的最大高度 */
+            }
+            
+            /* 推荐专业样式 - 优化布局 */
             .recommended-majors {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 10px;
+                overflow-y: auto;
+                flex-grow: 1;
+                max-height: calc(100vh - 180px); /* 限制最大高度，防止页面过长 */
             }
             
             .major-card {
                 background-color: white;
-                padding: 20px;
-                border-radius: 10px;
+                padding: 12px;
+                border-radius: 8px;
                 display: flex;
-                gap: 20px;
+                gap: 12px;
                 align-items: flex-start;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 border-left: 4px solid #4caf50;
                 transition: all 0.3s ease;
+                max-height: 80px; /* 限制卡片最大高度 */
             }
             
+            .major-card:hover {
+                border-color: var(--primary-color);
+                background-color: #f0f7ff;
+            }
+            
+            /* 专业详情样式优化 */
             .major-details {
-                margin-top: 20px;
-                padding: 15px;
+                margin-top: 12px;
+                padding: 10px;
                 background-color: #f8f9fa;
-                border-radius: 8px;
+                border-radius: 6px;
                 border: 1px solid #e9ecef;
                 width: 100%;
+                font-size: 14px;
             }
             
             .details-header h5 {
-                margin-top: 0;
+                margin: 0 0 10px 0;
                 color: #4caf50;
-                border-bottom: 2px solid #4caf50;
-                padding-bottom: 5px;
-                margin-bottom: 15px;
+                border-bottom: 1px solid #4caf50;
+                padding-bottom: 4px;
+                font-size: 16px;
             }
             
             .details-content p {
-                margin: 10px 0;
+                margin: 6px 0;
+                line-height: 1.4;
             }
             
             .details-content ul {
-                margin-top: 5px;
-                padding-left: 20px;
+                margin-top: 4px;
+                padding-left: 18px;
+                margin-bottom: 8px;
+            }
+            
+            .details-content li {
+                margin: 4px 0;
             }
             
             .details-content li {
                 margin-bottom: 5px;
             }
             
+            /* 卡片内部元素样式优化 */
             .major-rank {
-                width: 40px;
-                height: 40px;
+                width: 24px;
+                height: 24px;
                 background-color: #4caf50;
                 color: white;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 border-radius: 50%;
-                font-size: 18px;
+                font-size: 12px;
                 font-weight: bold;
                 flex-shrink: 0;
             }
             
             .major-info {
-                flex: 1;
-                min-width: 200px;
+                flex-grow: 1;
+                min-width: 0;
             }
             
             .major-name {
-                font-size: 18px;
-                font-weight: bold;
+                margin: 0 0 4px 0;
+                font-size: 14px;
+                font-weight: 600;
                 color: #333;
-                margin-bottom: 5px;
+                line-height: 1.3;
             }
             
             .major-code {
-                font-size: 14px;
+                margin: 0 0 3px 0;
+                font-size: 12px;
                 color: #666;
-                margin-bottom: 5px;
+                line-height: 1.2;
             }
             
             .match-score {
-                font-size: 14px;
-                color: #4caf50;
-                font-weight: bold;
+                margin: 0;
+                font-size: 13px;
+                color: #28a745;
+                font-weight: 500;
+                line-height: 1.2;
             }
             
             .recommendation-reason {
-                flex: 2;
-                line-height: 1.6;
-                color: #333;
-                font-size: 14px;
+                display: none; /* 隐藏推荐理由以节省空间 */
+                font-size: 12px;
+                color: #666;
+                line-height: 1.3;
+                margin-bottom: 8px;
             }
             
             .view-major-details {
+                padding: 6px 12px;
+                font-size: 12px;
                 background-color: #4caf50;
                 color: white;
                 border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
+                border-radius: 4px;
                 cursor: pointer;
-                font-size: 14px;
+                transition: background-color 0.2s;
+                white-space: nowrap;
+                height: fit-content;
                 align-self: center;
             }
             
             .view-major-details:hover {
-                background-color: #45a049;
+                background-color: #0056b3;
             }
             
             /* 结果页脚样式 */
@@ -2471,25 +2531,37 @@ window.initializeAssessmentTab = function() {
                 }
             }
             
-            /* 加载和错误页面样式 */
+            /* 加载和错误页面样式优化 */
             .loading-container, .error-container, .login-required {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                min-height: 500px;
-                gap: 20px;
+                min-height: 300px;
+                gap: 15px;
                 text-align: center;
-                padding: 20px;
+                padding: 15px;
             }
             
             .loading-spinner {
-                width: 80px;
-                height: 80px;
-                border: 8px solid #f3f3f3;
-                border-top: 8px solid #4caf50;
+                width: 60px;
+                height: 60px;
+                border: 6px solid #f3f3f3;
+                border-top: 6px solid #4caf50;
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
+            }
+            
+            .error-container h3 {
+                margin: 0;
+                font-size: 18px;
+                color: #d32f2f;
+            }
+            
+            .error-container p {
+                margin: 8px 0;
+                font-size: 14px;
+                color: #666;
             }
             
             @keyframes spin {
