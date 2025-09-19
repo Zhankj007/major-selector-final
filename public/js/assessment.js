@@ -951,9 +951,6 @@ window.initializeAssessmentTab = function() {
                     <p>根据您的回答，我们为您生成了专属的专业推荐</p>
                     <div class="report-meta">
                         <span>生成时间：${new Date().toLocaleString()}</span>
-                        <button id="share-report-btn" class="secondary-button">
-                            <i class="fas fa-share-alt"></i> 分享报告
-                        </button>
                     </div>
                 </div>
                 
@@ -1772,29 +1769,30 @@ window.initializeAssessmentTab = function() {
                 padding: 20px;
             }
             
-            /* 欢迎内容样式优化 */
+            /* 欢迎内容样式优化 - 调整宽度为页面80%并增大字体 */
             .welcome-content {
                 background-color: white;
-                padding: 20px;
+                padding: 25px;
                 border-radius: 8px;
                 box-shadow: 0 1px 4px rgba(0,0,0,0.08);
                 text-align: center;
-                width: 100%;
-                margin: 0;
+                width: 80%;
+                max-width: 900px;
+                margin: 0 auto;
                 border: 1px solid #e0e0e0;
             }
             
             .welcome-content h2 {
                 color: #333;
-                margin: 0 0 15px 0;
-                font-size: 20px;
+                margin: 0 0 20px 0;
+                font-size: 24px;
             }
             
             .welcome-content p {
                 color: #666;
-                line-height: 1.4;
-                margin: 0 0 20px 0;
-                font-size: 14px;
+                line-height: 1.5;
+                margin: 0 0 25px 0;
+                font-size: 16px;
             }
             
             /* 测评信息样式优化 */
@@ -1972,20 +1970,24 @@ window.initializeAssessmentTab = function() {
                 transform: translateX(5px);
             }
             
-            /* 结果页面布局 - 优化以减少页面长度 */
+            /* 结果页面布局 - 调整为整体滚动 */
             .result-page {
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-                padding: 10px;
+                width: 100%;
+                margin: 0;
+                min-height: calc(100vh - 80px);
                 box-sizing: border-box;
+                overflow-y: auto;
+                padding: 20px;
             }
             
             .result-layout {
                 display: flex;
+                flex-direction: row;
                 gap: 20px;
-                height: 100%;
-                overflow: hidden;
+                padding: 5px;
+                box-sizing: border-box;
+                max-width: 1200px;
+                margin: 0 auto;
             }
             
             /* 左侧面板优化 */
@@ -1995,9 +1997,6 @@ window.initializeAssessmentTab = function() {
                 display: flex;
                 flex-direction: column;
                 gap: 15px;
-                overflow-y: auto;
-                padding-right: 10px;
-                max-height: calc(100vh - 150px); /* 限制最大高度，防止页面过长 */
             }
             
             /* 右侧面板优化 */
@@ -2005,7 +2004,7 @@ window.initializeAssessmentTab = function() {
                 width: 55%;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden;
+                gap: 15px;
             }
             
             /* 测评头部和进度条 */
@@ -2290,46 +2289,37 @@ window.initializeAssessmentTab = function() {
                 border-radius: 5px;
             }
             
-            /* 能力雷达图容器 - 优化大小 */
+            /* 能力雷达图容器 - 增大尺寸 */
             .ability-radar {
-                margin: 10px 0;
+                margin: 20px 0;
                 display: flex;
                 justify-content: center;
-                padding: 10px;
+                padding: 15px;
             }
             
             .ability-radar canvas {
                 max-width: 100% !important;
                 height: auto !important;
-                max-height: 220px; /* 限制雷达图的最大高度 */
+                min-height: 350px; /* 增大雷达图的最小高度 */
             }
             
-            /* 推荐专业样式 - 优化布局 */
+            /* 推荐专业样式 - 调整布局，添加推荐理由显示 */
             .recommended-majors {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
-                overflow-y: auto;
-                flex-grow: 1;
-                max-height: calc(100vh - 180px); /* 限制最大高度，防止页面过长 */
+                gap: 15px;
             }
             
             .major-card {
                 background-color: white;
-                padding: 12px;
+                padding: 15px;
                 border-radius: 8px;
                 display: flex;
-                gap: 12px;
+                gap: 15px;
                 align-items: flex-start;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 border-left: 4px solid #4caf50;
                 transition: all 0.3s ease;
-                max-height: 80px; /* 限制卡片最大高度 */
-            }
-            
-            .major-card:hover {
-                border-color: var(--primary-color);
-                background-color: #f0f7ff;
             }
             
             /* 专业详情样式优化 */
@@ -2370,17 +2360,17 @@ window.initializeAssessmentTab = function() {
                 margin-bottom: 5px;
             }
             
-            /* 卡片内部元素样式优化 */
+            /* 卡片内部元素样式优化 - 调整字体大小，显示推荐理由 */
             .major-rank {
-                width: 24px;
-                height: 24px;
+                width: 30px;
+                height: 30px;
                 background-color: #4caf50;
                 color: white;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 border-radius: 50%;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
                 flex-shrink: 0;
             }
@@ -2391,52 +2381,56 @@ window.initializeAssessmentTab = function() {
             }
             
             .major-name {
-                margin: 0 0 4px 0;
-                font-size: 14px;
+                margin: 0 0 5px 0;
+                font-size: 16px;
                 font-weight: 600;
                 color: #333;
                 line-height: 1.3;
             }
             
             .major-code {
-                margin: 0 0 3px 0;
-                font-size: 12px;
+                margin: 0 0 5px 0;
+                font-size: 13px;
                 color: #666;
                 line-height: 1.2;
             }
             
             .match-score {
-                margin: 0;
-                font-size: 13px;
+                margin: 0 0 8px 0;
+                font-size: 14px;
                 color: #28a745;
                 font-weight: 500;
                 line-height: 1.2;
             }
             
+            /* 推荐理由样式 - 显示在中间空白部分 */
             .recommendation-reason {
-                display: none; /* 隐藏推荐理由以节省空间 */
-                font-size: 12px;
+                display: block;
+                font-size: 14px;
                 color: #666;
-                line-height: 1.3;
-                margin-bottom: 8px;
+                line-height: 1.4;
+                margin-bottom: 10px;
+                padding: 8px;
+                background-color: #f8f9fa;
+                border-radius: 4px;
             }
             
             .view-major-details {
-                padding: 6px 12px;
-                font-size: 12px;
+                padding: 8px 16px;
+                font-size: 14px;
                 background-color: #4caf50;
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 cursor: pointer;
-                transition: background-color 0.2s;
+                transition: background-color 0.3s;
                 white-space: nowrap;
                 height: fit-content;
                 align-self: center;
             }
             
             .view-major-details:hover {
-                background-color: #0056b3;
+                background-color: #45a049;
             }
             
             /* 结果页脚样式 */
@@ -2588,7 +2582,7 @@ window.initializeAssessmentTab = function() {
         }
     })();
 
-    // 保存报告函数 - 安全且健壮的实现
+    // 保存报告函数 - 生成以时间点命名的PDF文件并自动下载保存
     function saveReport() {
         console.log('[调试信息] 开始保存报告');
         try {
@@ -2627,24 +2621,38 @@ window.initializeAssessmentTab = function() {
             
             console.log('[调试信息] 生成的报告数据:', report);
             
-            // 在本地存储中保存报告
+            // 生成时间点命名的文件名
+            const date = new Date();
+            const fileName = `高考志愿测评报告_${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}_${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}.json`;
+            
+            // 创建JSON格式的报告数据并下载
             try {
-                // 先验证localStorage是否可用
-                if (typeof Storage !== 'undefined') {
-                    const savedReports = JSON.parse(localStorage.getItem('assessmentReports') || '[]');
-                    savedReports.push(report);
-                    localStorage.setItem('assessmentReports', JSON.stringify(savedReports));
-                    console.log('[调试信息] 报告已保存到本地存储');
-                    
-                    // 显示保存成功消息
-                    alert('报告保存成功！您可以在浏览器本地存储中查看报告数据。');
-                } else {
-                    console.error('[调试信息] 浏览器不支持本地存储');
-                    alert('报告保存失败：您的浏览器不支持此功能');
+                // 将报告对象转换为JSON字符串
+                const reportData = JSON.stringify(report, null, 2);
+                
+                // 创建Blob对象
+                const blob = new Blob([reportData], { type: 'application/json;charset=utf-8;' });
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                
+                // 对于Firefox，需要设置download属性
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', fileName);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url); // 释放URL对象
                 }
-            } catch (storageError) {
-                console.error('[调试信息] 本地存储保存失败:', storageError);
-                alert('报告保存失败：本地存储不可用或存储空间不足');
+                
+                console.log('[调试信息] 报告已成功下载');
+                alert('报告已成功下载为文件：' + fileName);
+            } catch (downloadError) {
+                console.error('[调试信息] 下载报告失败:', downloadError);
+                alert('报告下载失败：' + downloadError.message);
             }
         } catch (error) {
             console.error('[调试信息] 保存报告时发生错误:', error);
@@ -2652,54 +2660,8 @@ window.initializeAssessmentTab = function() {
         }
     }
     
-    // 分享报告函数 - 安全且健壮的实现
-    function shareReport() {
-        console.log('[调试信息] 开始分享报告');
-        try {
-            // 多层次安全检查，确保数据完整性
-            if (!window.assessmentResult) {
-                console.warn('[调试信息] 没有找到测评结果数据');
-                alert('无法分享报告：测评结果数据不存在');
-                return;
-            }
-            
-            // 验证关键数据字段
-            const hasValidData = window.assessmentResult.hollandCode && 
-                               window.assessmentResult.mbtiType && 
-                               Array.isArray(window.assessmentResult.recommendedMajors);
-                                
-            if (!hasValidData) {
-                console.warn('[调试信息] 测评结果数据不完整', window.assessmentResult);
-                alert('无法分享报告：测评结果数据不完整，请重新进行测评');
-                return;
-            }
-            
-            // 创建分享链接（模拟实现，包含报告ID以便未来能够加载报告）
-            const reportId = window.assessmentResult.reportId || 'report_' + Date.now();
-            const shareUrl = `${window.location.origin}${window.location.pathname}?share=true&reportId=${reportId}&timestamp=${new Date().getTime()}`;
-            
-            console.log('[调试信息] 生成的分享链接:', shareUrl);
-            
-            // 复制分享链接到剪贴板，提供降级方案
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    console.log('[调试信息] 分享链接已复制到剪贴板');
-                    alert('分享链接已复制到剪贴板！\n\n' + shareUrl);
-                }).catch(err => {
-                    console.error('[调试信息] 复制链接失败:', err);
-                    // 降级方案：显示链接让用户手动复制
-                    prompt('请手动复制以下分享链接:', shareUrl);
-                });
-            } else {
-                // 浏览器不支持剪贴板API，直接显示链接
-                console.warn('[调试信息] 浏览器不支持剪贴板API');
-                prompt('请手动复制以下分享链接:', shareUrl);
-            }
-        } catch (error) {
-            console.error('[调试信息] 分享报告时发生错误:', error);
-            alert('分享报告失败：' + error.message);
-        }
-    }
+    // 分享报告功能已移除 - 不再需要此功能
+    // function shareReport() { ... }
     
     // 添加全局变量初始化，确保assessmentResult存在
     if (!window.assessmentResult) {
