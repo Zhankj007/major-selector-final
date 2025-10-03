@@ -454,7 +454,8 @@ window.initializeAssessmentTab = function() {
         
         assessmentTab.innerHTML = `
             <div class="assessment-layout">
-                <div class="assessment-main-panel">
+                <!-- 左侧做题区域 70% -->
+                <div class="assessment-left-panel">
                     <!-- 进度条 -->
                     <div class="assessment-progress">
                         <div class="progress-bar">
@@ -465,8 +466,8 @@ window.initializeAssessmentTab = function() {
                         <span class="progress-percentage">${progress}%</span>
                     </div>
                     
-                    <!-- 题目和控制按钮容器 -->
-                    <div class="question-controls-container">
+                    <!-- 题目内容容器 -->
+                    <div class="question-content-container">
                         <div class="question-content">
                             <div class="question-header">
                                 <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
@@ -482,19 +483,20 @@ window.initializeAssessmentTab = function() {
                                 `).join('')}
                             </div>
                         </div>
-                        
-                        <!-- 控制按钮 -->
-                        <div class="assessment-controls">
-                            <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                                上一题
-                            </button>
-                            <button id="next-question-btn" class="primary-button">
-                                ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
-                            </button>
-                        </div>
+                    </div>
+                    
+                    <!-- 控制按钮 -->
+                    <div class="assessment-controls">
+                        <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                            上一题
+                        </button>
+                        <button id="next-question-btn" class="primary-button">
+                            ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
+                        </button>
                     </div>
                 </div>
                 
+                <!-- 右侧提示区域 30% -->
                 <div class="assessment-right-panel">
                     <div class="result-preview">
                         <h3>结果预览</h3>
@@ -1592,39 +1594,51 @@ window.initializeAssessmentTab = function() {
                 cursor: not-allowed;
             }
             
-            /* 测评布局样式 - 优化为全宽单列布局 */
+            /* 测评布局样式 - 左右布局：左侧70%做题，右侧30%提示 */
             .assessment-layout {
                 width: 100%;
                 max-width: 1200px;
                 margin: 0 auto;
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
                 box-sizing: border-box;
                 background-color: white;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 padding: 20px;
-                min-height: calc(100vh - 120px);
+                gap: 20px;
+                height: calc(100vh - 120px);
+                min-height: 600px;
             }
             
-            .assessment-main-panel {
-                width: 100%;
+            /* 左侧做题区域 70% */
+            .assessment-left-panel {
+                width: 70%;
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 15px;
+                height: 100%;
+                overflow: hidden;
             }
             
-            /* 题目和控制按钮容器 - 确保在1080P下无需滚动 */
-            .question-controls-container {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-                max-height: calc(100vh - 200px);
+            /* 右侧提示区域 30% */
+            .assessment-right-panel {
+                width: 30%;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                padding: 20px;
                 overflow-y: auto;
+                height: 100%;
             }
             
-            .question-content {
+            /* 题目内容容器 - 确保有滚动条 */
+            .question-content-container {
                 flex: 1;
+                overflow-y: auto;
+                padding: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                background-color: #fff;
             }
             
             /* 控制按钮容器 - 固定在底部 */
@@ -1635,21 +1649,14 @@ window.initializeAssessmentTab = function() {
                 padding: 15px 0;
                 border-top: 1px solid #eee;
                 flex-shrink: 0;
+                background-color: white;
             }
             
-            /* 题目标题优化 */
             .question-header h3 {
                 color: #333;
                 font-size: 18px;
                 line-height: 1.4;
                 margin: 10px 0 20px 0;
-            }
-            
-            /* 选项文字优化 */
-            .choice-text {
-                font-size: 15px;
-                color: #333;
-                cursor: pointer;
             }
             
             /* 测评类型文本框 */
@@ -1735,9 +1742,10 @@ window.initializeAssessmentTab = function() {
                 display: flex;
                 align-items: center;
                 gap: 15px;
-                margin-bottom: 20px;
                 padding: 15px 0;
                 border-bottom: 1px solid #eee;
+                flex-shrink: 0;
+                background-color: white;
             }
             
             .progress-bar {
@@ -1818,6 +1826,64 @@ window.initializeAssessmentTab = function() {
             .choice-option input[type="radio"] {
                 margin-right: 12px;
                 transform: scale(1.3);
+            }
+            
+            /* 选项文字优化 */
+            .choice-text {
+                font-size: 15px;
+                color: #333;
+                cursor: pointer;
+            }
+            
+            /* 右侧结果预览样式 */
+            .result-preview {
+                height: 100%;
+            }
+            
+            .result-preview h3 {
+                color: #333;
+                margin: 0 0 15px 0;
+                font-size: 18px;
+                border-bottom: 2px solid #4caf50;
+                padding-bottom: 8px;
+            }
+            
+            .result-preview p {
+                color: #666;
+                line-height: 1.6;
+                margin: 0 0 15px 0;
+                font-size: 14px;
+            }
+            
+            .result-preview ul {
+                color: #666;
+                line-height: 1.8;
+                margin: 0 0 20px 0;
+                padding-left: 20px;
+                font-size: 14px;
+            }
+            
+            .result-preview li {
+                margin-bottom: 8px;
+            }
+            
+            .preview-tips {
+                background-color: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 20px;
+            }
+            
+            .preview-tips strong {
+                color: #856404;
+                font-size: 14px;
+            }
+            
+            .preview-tips p {
+                margin: 8px 0;
+                font-size: 13px;
+                line-height: 1.5;
             }
             
             /* 结果页面头部优化 */
