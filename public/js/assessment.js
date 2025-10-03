@@ -1,9 +1,9 @@
 window.initializeAssessmentTab = function() {
-    // 个人测评功能模块
+    // ========== 个人测评功能模块 ==========
     // 使用全局定义的Supabase客户端
     const supabaseClient = window.supabaseClient;
 
-    // 页面状态管理
+    // ========== 页面状态管理 ==========
     let currentStep = 'welcome'; // welcome, assessment, result
     let currentQuestionIndex = 0;
     let allQuestions = [];
@@ -126,129 +126,132 @@ window.initializeAssessmentTab = function() {
         renderPage();
     }
     
-    // // 检查霍兰德测评是否激活（当前正在作答）
-    // function isHollandActive() {
-    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-    //     return allQuestions[currentQuestionIndex].question_type === 'holland';
-    // }
+    // ========== 已废弃的状态检查函数 - 这些函数不再使用，已被注释 ==========
+    /*
+    // 检查霍兰德测评是否激活（当前正在作答）
+    function isHollandActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'holland';
+    }
     
-    // // 检查MBTI测评是否激活（当前正在作答）
-    // function isMbtiActive() {
-    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-    //     return allQuestions[currentQuestionIndex].question_type === 'mbti';
-    // }
+    // 检查MBTI测评是否激活（当前正在作答）
+    function isMbtiActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'mbti';
+    }
     
-    // // 检查能力自评是否激活（当前正在作答）
-    // function isAbilityActive() {
-    //     if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
-    //     return allQuestions[currentQuestionIndex].question_type === 'ability';
-    // }
+    // 检查能力自评是否激活（当前正在作答）
+    function isAbilityActive() {
+        if (!allQuestions || !allQuestions[currentQuestionIndex]) return false;
+        return allQuestions[currentQuestionIndex].question_type === 'ability';
+    }
     
-    // // 获取霍兰德测评状态
-    // function getHollandStatus() {
-    //     // 计算霍兰德题目的总数
-    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-    //     // 计算已回答的霍兰德题目数量
-    //     let answeredHollandQuestions = 0;
-    //     for (let i = 0; i <= currentQuestionIndex; i++) {
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-    //             answeredHollandQuestions++;
-    //         }
-    //     }
+    // 获取霍兰德测评状态
+    function getHollandStatus() {
+        // 计算霍兰德题目的总数
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        // 计算已回答的霍兰德题目数量
+        let answeredHollandQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+        }
         
-    //     // 检查是否所有霍兰德题目都已完成
-    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        // 检查是否所有霍兰德题目都已完成
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
         
-    //     if (hollandCompleted) {
-    //         return '已完成';
-    //     } else if (isHollandActive()) {
-    //         return '作答中';
-    //     } else if (answeredHollandQuestions > 0) {
-    //         return `${answeredHollandQuestions}/${totalHollandQuestions}`;
-    //     } else {
-    //         return '未开始';
-    //     }
-    // }
+        if (hollandCompleted) {
+            return '已完成';
+        } else if (isHollandActive()) {
+            return '作答中';
+        } else if (answeredHollandQuestions > 0) {
+            return `${answeredHollandQuestions}/${totalHollandQuestions}`;
+        } else {
+            return '未开始';
+        }
+    }
     
-    // // 获取MBTI测评状态
-    // function getMbtiStatus() {
-    //     // 计算MBTI题目的总数
-    //     const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
-    //     // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
-    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-    //     // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
-    //     let answeredHollandQuestions = 0;
-    //     for (let i = 0; i < allQuestions.length; i++) {
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-    //             answeredHollandQuestions++;
-    //         }
-    //     }
-    //     // 计算已回答的MBTI题目数量
-    //     let answeredMbtiQuestions = 0;
-    //     for (let i = 0; i <= currentQuestionIndex; i++) {
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
-    //             answeredMbtiQuestions++;
-    //         }
-    //     }
+    // 获取MBTI测评状态
+    function getMbtiStatus() {
+        // 计算MBTI题目的总数
+        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        // 计算霍兰德题目的总数，用于确定MBTI是否已经可以开始
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        // 计算已回答的霍兰德题目数量，用于确定MBTI是否已经可以开始
+        let answeredHollandQuestions = 0;
+        for (let i = 0; i < allQuestions.length; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+        }
+        // 计算已回答的MBTI题目数量
+        let answeredMbtiQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+                answeredMbtiQuestions++;
+            }
+        }
         
-    //     // 检查是否所有MBTI题目都已完成
-    //     const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
-    //     // 检查霍兰德是否已完成（MBTI是否可以开始）
-    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        // 检查是否所有MBTI题目都已完成
+        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+        // 检查霍兰德是否已完成（MBTI是否可以开始）
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
         
-    //     if (mbtiCompleted) {
-    //         return '已完成';
-    //     } else if (isMbtiActive()) {
-    //         return '作答中';
-    //     } else if (hollandCompleted) {
-    //         return `${answeredMbtiQuestions}/${totalMbtiQuestions}`;
-    //     } else {
-    //         return '未开始（需先完成霍兰德）';
-    //     }
-    // }
+        if (mbtiCompleted) {
+            return '已完成';
+        } else if (isMbtiActive()) {
+            return '作答中';
+        } else if (hollandCompleted) {
+            return `${answeredMbtiQuestions}/${totalMbtiQuestions}`;
+        } else {
+            return '未开始（需先完成霍兰德）';
+        }
+    }
     
-    // // 获取能力自评状态
-    // function getAbilityStatus() {
-    //     // 计算能力自评题目的总数
-    //     const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
-    //     // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
-    //     const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
-    //     const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
-    //     // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
-    //     let answeredHollandQuestions = 0;
-    //     let answeredMbtiQuestions = 0;
-    //     for (let i = 0; i < allQuestions.length; i++) {
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
-    //             answeredHollandQuestions++;
-    //         }
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
-    //             answeredMbtiQuestions++;
-    //         }
-    //     }
-    //     // 计算已回答的能力自评题目数量
-    //     let answeredAbilityQuestions = 0;
-    //     for (let i = 0; i <= currentQuestionIndex; i++) {
-    //         if (allQuestions[i] && allQuestions[i].question_type === 'ability' && userAnswers[i]) {
-    //             answeredAbilityQuestions++;
-    //         }
-    //     }
+    // 获取能力自评状态
+    function getAbilityStatus() {
+        // 计算能力自评题目的总数
+        const totalAbilityQuestions = allQuestions.filter(q => q.question_type === 'ability').length;
+        // 计算霍兰德和MBTI题目的总数，用于确定能力自评是否已经可以开始
+        const totalHollandQuestions = allQuestions.filter(q => q.question_type === 'holland').length;
+        const totalMbtiQuestions = allQuestions.filter(q => q.question_type === 'mbti').length;
+        // 计算已回答的霍兰德和MBTI题目数量，用于确定能力自评是否已经可以开始
+        let answeredHollandQuestions = 0;
+        let answeredMbtiQuestions = 0;
+        for (let i = 0; i < allQuestions.length; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'holland' && userAnswers[i]) {
+                answeredHollandQuestions++;
+            }
+            if (allQuestions[i] && allQuestions[i].question_type === 'mbti' && userAnswers[i]) {
+                answeredMbtiQuestions++;
+            }
+        }
+        // 计算已回答的能力自评题目数量
+        let answeredAbilityQuestions = 0;
+        for (let i = 0; i <= currentQuestionIndex; i++) {
+            if (allQuestions[i] && allQuestions[i].question_type === 'ability' && userAnswers[i]) {
+                answeredAbilityQuestions++;
+            }
+        }
         
-    //     // 检查是否所有能力自评题目都已完成
-    //     const abilityCompleted = totalAbilityQuestions > 0 && answeredAbilityQuestions === totalAbilityQuestions;
-    //     // 检查霍兰德和MBTI是否已完成（能力自评是否可以开始）
-    //     const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
-    //     const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
+        // 检查是否所有能力自评题目都已完成
+        const abilityCompleted = totalAbilityQuestions > 0 && answeredAbilityQuestions === totalAbilityQuestions;
+        // 检查霍兰德和MBTI是否已完成（能力自评是否可以开始）
+        const hollandCompleted = totalHollandQuestions > 0 && answeredHollandQuestions === totalHollandQuestions;
+        const mbtiCompleted = totalMbtiQuestions > 0 && answeredMbtiQuestions === totalMbtiQuestions;
         
-    //     if (abilityCompleted) {
-    //         return '已完成';
-    //     } else if (isAbilityActive()) {
-    //         return '作答中';
-    //     } else if (hollandCompleted && mbtiCompleted) {
-    //         return `${answeredAbilityQuestions}/${totalAbilityQuestions}`;
-    //     } else {
-    //         return '未开始（需先完成霍兰德和MBTI）';
-    //     }
-    // }
+        if (abilityCompleted) {
+            return '已完成';
+        } else if (isAbilityActive()) {
+            return '作答中';
+        } else if (hollandCompleted && mbtiCompleted) {
+            return `${answeredAbilityQuestions}/${totalAbilityQuestions}`;
+        } else {
+            return '未开始（需先完成霍兰德和MBTI）';
+        }
+    }
+    */
 
     // 加载测评题目 - 实现按维度随机抽题的逻辑
     async function loadQuestions() {
@@ -623,207 +626,14 @@ window.initializeAssessmentTab = function() {
         }
     }
 
-    // 查看专业详情函数
-            function viewMajorDetails(majorCode, event) {
-                const button = event.currentTarget;
-                const majorCard = button.closest('.major-card');
-                const detailsId = `major-details-${majorCode}`;
-                
-                // 检查是否已存在详情
-                const existingDetails = document.getElementById(detailsId);
-                
-                if (existingDetails) {
-                    // 如果已存在，切换显示状态
-                    if (existingDetails.style.display === 'none') {
-                        existingDetails.style.display = 'block';
-                        button.textContent = '收起';
-                    } else {
-                        existingDetails.style.display = 'none';
-                        button.textContent = '查看详情';
-                    }
-                    return;
-                }
-                
-                // 首先尝试从recommendedMajors数组中获取完整专业详情
-                let majorDetails = recommendedMajors.find(m => m.code === majorCode);
-                
-                // 如果没有找到，使用默认详情
-                if (!majorDetails) {
-                    // 模拟获取专业详情数据
-                    const mockMajorDetails = {
-                        '070101': {
-                            name: '数学与应用数学',
-                            code: '070101',
-                            category: '理学',
-                            subCategory: '数学类',
-                            degree: '理学学士',
-                            duration: '四年',
-                            establishedYear: '1952',
-                            requiredCourses: '物理、化学、生物',
-                            medicalRestrictions: '色觉异常(II)者不宜报考',
-                            objectives: '本专业培养掌握数学科学的基本理论与基本方法，具备运用数学知识、使用计算机解决实际问题的能力，受到科学研究的初步训练，能在科技、教育和经济部门从事研究、教学工作或在生产经营及管理部门从事实际应用、开发研究和管理工作的高级专门人才。',
-                            courses: '数学分析、高等代数、解析几何、常微分方程、概率论与数理统计、实变函数论、复变函数论、微分几何、抽象代数、数值方法',
-                            careerPaths: '教育领域（教师、研究员）、金融领域（精算师、分析师）、IT领域（算法工程师、数据分析师）、科研机构（研究员）、政府部门（统计、规划）'
-                        },
-                        '120201': {
-                            name: '工商管理',
-                            code: '120201',
-                            category: '管理学',
-                            subCategory: '工商管理类',
-                            degree: '管理学学士',
-                            duration: '四年',
-                            establishedYear: '1982',
-                            requiredCourses: '政治、历史、地理',
-                            medicalRestrictions: '无特殊要求',
-                            objectives: '本专业培养具备管理、经济、法律及企业管理方面的知识和能力，能在企、事业单位及政府部门从事管理以及教学、科研方面工作的工商管理学科高级专门人才。',
-                            courses: '管理学原理、微观经济学、宏观经济学、管理信息系统、统计学、会计学、财务管理、市场营销、经济法、运营管理、人力资源管理',
-                            careerPaths: '企业管理、市场营销、人力资源管理、财务管理、咨询顾问、金融机构'
-                        },
-                        '080901': {
-                            name: '计算机科学与技术',
-                            code: '080901',
-                            category: '工学',
-                            subCategory: '计算机类',
-                            degree: '工学学士',
-                            duration: '四年',
-                            establishedYear: '1977',
-                            requiredCourses: '物理、化学',
-                            medicalRestrictions: '任何一眼矫正到4.8镜片度数大于800度者不宜报考',
-                            objectives: '本专业培养具有良好的科学素养，系统地、较好地掌握计算机科学与技术包括计算机硬件、软件与应用的基本理论、基本知识和基本技能与方法，能在科研部门、教育单位、企业、事业、技术和行政管理部门等单位从事计算机教学、科学研究和应用的计算机科学与技术学科的高级专门科学技术人才。',
-                            courses: '计算机导论、程序设计基础、数据结构、计算机组成原理、操作系统、计算机网络、数据库系统原理、编译原理、软件工程、人工智能导论',
-                            careerPaths: '软件开发、系统分析、网络工程、数据科学、人工智能、游戏开发、IT咨询'
-                        },
-                        '050101': {
-                            name: '汉语言文学',
-                            code: '050101',
-                            category: '文学',
-                            subCategory: '中国语言文学类',
-                            degree: '文学学士',
-                            duration: '四年',
-                            establishedYear: '1950',
-                            requiredCourses: '历史、政治',
-                            medicalRestrictions: '无特殊要求',
-                            objectives: '本专业培养具备文艺理论素养和系统的汉语言文学知识，能在新闻文艺出版部门、高校、科研机构和机关企事业单位从事文学评论、汉语言文学教学与研究工作，以及文化、宣传方面的实际工作的汉语言文学高级专门人才。',
-                            courses: '语言学概论、古代汉语、现代汉语、文学概论、中国古代文学、中国现代文学、中国当代文学、外国文学、写作、美学',
-                            careerPaths: '教育工作、编辑出版、新闻传媒、文化创意、公务员、文案策划'
-                        },
-                        '020101': {
-                            name: '经济学',
-                            code: '020101',
-                            category: '经济学',
-                            subCategory: '经济学类',
-                            degree: '经济学学士',
-                            duration: '四年',
-                            establishedYear: '1953',
-                            requiredCourses: '物理、化学、生物',
-                            medicalRestrictions: '无特殊要求',
-                            objectives: '本专业培养具备比较扎实的马克思主义经济学理论基础，熟悉现代西方经济学理论，比较熟练地掌握现代经济分析方法，知识面较宽，具有向经济学相关领域扩展渗透的能力，能在综合经济管理部门、政策研究部门、金融机构和企业从事经济分析、预测、规划和经济管理工作的高级专门人才。',
-                            courses: '政治经济学、西方经济学、计量经济学、国际经济学、货币银行学、财政学、会计学、统计学、发展经济学、产业经济学',
-                            careerPaths: '金融机构、经济研究、政府部门、企业管理、咨询公司、国际组织'
-                        }
-                    };
-                    
-                    majorDetails = mockMajorDetails[majorCode] || {
-                        name: recommendedMajors.find(m => m.code === majorCode)?.name || '未知专业',
-                        code: majorCode,
-                        category: '未知',
-                        subCategory: '未知',
-                        degree: '未知',
-                        duration: '未知',
-                        establishedYear: '未知',
-                        requiredCourses: '暂无信息',
-                        medicalRestrictions: '暂无信息',
-                        objectives: '暂无信息',
-                        courses: '暂无信息',
-                        careerPaths: '暂无信息'
-                    };
-                }
-                
-                // 创建详情元素
-                const detailsElement = document.createElement('div');
-                detailsElement.id = detailsId;
-                detailsElement.className = 'major-details';
-                detailsElement.innerHTML = `
-                    <div class="details-header">
-                        <h5>${details.name || majorDetails.name} 详细信息</h5>
-                    </div>
-                    <div class="details-content">
-                        <!-- 基本信息网格布局 -->
-                        <div class="major-details-grid">
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">专业代码</div>
-                                <div class="major-detail-value">${details.code || majorDetails.code}</div>
-                            </div>
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">所属门类</div>
-                                <div class="major-detail-value">${details.category || majorDetails.category}</div>
-                            </div>
-                            ${(details.subCategory || majorDetails.subCategory) ? `
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">专业类</div>
-                                <div class="major-detail-value">${details.subCategory || majorDetails.subCategory}</div>
-                            </div>
-                            ` : ''}
-                            ${(details.degree || majorDetails.degree) ? `
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">学位</div>
-                                <div class="major-detail-value">${details.degree || majorDetails.degree}</div>
-                            </div>
-                            ` : ''}
-                            ${(details.duration || majorDetails.duration) ? `
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">学制</div>
-                                <div class="major-detail-value">${details.duration || majorDetails.duration}</div>
-                            </div>
-                            ` : ''}
-                            ${(details.establishedYear || majorDetails.establishedYear) ? `
-                            <div class="major-detail-item">
-                                <div class="major-detail-label">设立年份</div>
-                                <div class="major-detail-value">${details.establishedYear || majorDetails.establishedYear}</div>
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <!-- 详细信息区块 -->
-                        ${(details.requiredCourses || majorDetails.requiredCourses) ? `
-                        <div class="major-detail-section">
-                            <h4>指引必选科目</h4>
-                            <p>${details.requiredCourses || majorDetails.requiredCourses}</p>
-                        </div>
-                        ` : ''}
-                        ${(details.medicalRestrictions || majorDetails.medicalRestrictions) ? `
-                        <div class="major-detail-section">
-                            <h4>体检限制</h4>
-                            <p>${details.medicalRestrictions || majorDetails.medicalRestrictions}</p>
-                        </div>
-                        ` : ''}
-                        ${(details.objectives || details.description || majorDetails.objectives || majorDetails.description) ? `
-                        <div class="major-detail-section">
-                            <h4>培养目标</h4>
-                            <p>${details.objectives || details.description || majorDetails.objectives || majorDetails.description}</p>
-                        </div>
-                        ` : ''}
-                        ${(details.courses || (details.coreCourses && details.coreCourses.join('、')) || majorDetails.courses || (majorDetails.coreCourses && majorDetails.coreCourses.join('、'))) ? `
-                        <div class="major-detail-section">
-                            <h4>专业课程</h4>
-                            <p>${details.courses || (details.coreCourses && details.coreCourses.join('、')) || majorDetails.courses || (majorDetails.coreCourses && majorDetails.coreCourses.join('、'))}</p>
-                        </div>
-                        ` : ''}
-                        ${(details.careerPaths || (details.careerProspects && details.careerProspects.join('、')) || majorDetails.careerPaths || (majorDetails.careerProspects && majorDetails.careerProspects.join('、'))) ? `
-                        <div class="major-detail-section">
-                            <h4>就业方向</h4>
-                            <p>${details.careerPaths || (details.careerProspects && details.careerProspects.join('、')) || majorDetails.careerPaths || (majorDetails.careerProspects && majorDetails.careerProspects.join('、'))}</p>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                // 添加到卡片中
-                majorCard.appendChild(detailsElement);
-                
-                // 更改按钮文本
-                button.textContent = '收起';
-            }
+    // ========== 已移除的冗余专业详情函数 - 使用数据库查询版本替代 ==========
+    /*
+    // 此函数已被移除，因为：
+    // 1. 与后面的 viewMajorDetails 函数重复
+    // 2. 包含大量硬编码的模拟专业数据，违背了"务必使用实际数据"的要求
+    // 3. 存在未定义的 details 变量错误
+    // 现在统一使用从数据库查询真实数据的版本
+    */
             
             // 渲染结果页面
             async function renderResultPage() {
@@ -1283,6 +1093,8 @@ window.initializeAssessmentTab = function() {
         return majorsWithScores.slice(0, 10);
     }
     
+    // ========== 未使用的模拟专业规则数据函数 - 已被注释 ==========
+    /*
     // 获取模拟专业规则数据（用于演示或当数据库不可用时）
     function getMockMajorRules(hollandCode = 'RIA', mbtiType = 'INTJ') {
         console.log('使用模拟数据生成专业推荐，霍兰德代码:', hollandCode, 'MBTI类型:', mbtiType);
@@ -1300,192 +1112,23 @@ window.initializeAssessmentTab = function() {
         // 模拟数据，包含多个专业的详细信息
         // 根据霍兰德代码和MBTI类型调整推荐优先级
         const mockData = [
-            {
-                '专业码': '080901',
-                '专业名': '计算机科学与技术',
-                '门类': '工学',
-                '专业类': '计算机类',
-                '学位': '工学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '物理',
-                '体检限制': '无色盲',
-                '培养目标': '培养具有良好科学素养，系统掌握计算机科学与技术的基础理论、基本知识和基本技能，能在科研、教育、企业、技术和行政管理等部门从事计算机教学、科学研究和应用的高级专门人才。',
-                '专业课程': '数据结构、操作系统、计算机网络、数据库系统原理、编译原理、软件工程、人工智能导论等',
-                '就业方向': '软件开发、系统分析、网络工程、数据科学、人工智能等',
-                '匹配的霍兰德代码组合': ['IRC', 'IRE', 'IRA'],
-                '匹配的MBTI类型': ['INTJ', 'INTP', 'ISTJ', 'ISTP'],
-                '所需核心能力': ['逻辑思维能力', '创新思维能力', '数据分析能力'],
-                '推荐理由': '您的逻辑思维能力和创新思维能力较强，非常适合学习计算机科学与技术专业。'
-            },
-            {
-                '专业码': '050201',
-                '专业名': '英语',
-                '门类': '文学',
-                '专业类': '外国语言文学类',
-                '学位': '文学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '无',
-                '体检限制': '无特殊要求',
-                '培养目标': '培养具有扎实的英语语言基础和比较广泛的科学文化知识，能在外事、经贸、文化、新闻出版、教育、科研、旅游等部门从事翻译、研究、教学、管理工作的英语高级专门人才。',
-                '专业课程': '综合英语、英语阅读、英语听力、英语口语、英语写作、翻译理论与实践、语言学概论、英美文学等',
-                '就业方向': '翻译、教育、外贸、旅游、新闻出版等',
-                '匹配的霍兰德代码组合': ['ASE', 'ASI', 'AES'],
-                '匹配的MBTI类型': ['ENFJ', 'ENFP', 'INFJ', 'INFP'],
-                '所需核心能力': ['沟通表达能力', '共情与同理心', '艺术审美能力'],
-                '推荐理由': '您的沟通表达能力和共情能力较强，非常适合学习英语专业。'
-            },
-            {
-                '专业码': '020101',
-                '专业名': '经济学',
-                '门类': '经济学',
-                '专业类': '经济学类',
-                '学位': '经济学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '数学',
-                '体检限制': '无特殊要求',
-                '培养目标': '培养具备比较扎实的马克思主义经济学理论基础，熟悉现代西方经济学理论，比较熟练地掌握现代经济分析方法，知识面较宽，具有向经济学相关领域扩展渗透能力的高级专门人才。',
-                '专业课程': '政治经济学、西方经济学、计量经济学、国际经济学、货币银行学、财政学、会计学、统计学等',
-                '就业方向': '金融机构、经济研究、政府部门、企业管理等',
-                '匹配的霍兰德代码组合': ['IEC', 'IES', 'IRE'],
-                '匹配的MBTI类型': ['ENTJ', 'ESTJ', 'INTJ', 'ISTJ'],
-                '所需核心能力': ['逻辑思维能力', '数据分析能力', '创新思维能力'],
-                '推荐理由': '您的逻辑思维能力和数据分析能力较强，非常适合学习经济学专业。'
-            },
-            {
-                '专业码': '120201',
-                '专业名': '工商管理',
-                '门类': '管理学',
-                '专业类': '工商管理类',
-                '学位': '管理学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '无',
-                '体检限制': '无特殊要求',
-                '培养目标': '培养具备管理、经济、法律及企业管理方面的知识和能力，能在企、事业单位及政府部门从事管理以及教学、科研方面工作的工商管理学科高级专门人才。',
-                '专业课程': '管理学原理、微观经济学、宏观经济学、管理信息系统、统计学、会计学、财务管理、市场营销等',
-                '就业方向': '企业管理、市场营销、人力资源管理、财务管理等',
-                '匹配的霍兰德代码组合': ['ESC', 'ESA', 'EIS'],
-                '匹配的MBTI类型': ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ'],
-                '所需核心能力': ['组织协调能力', '沟通表达能力', '创新思维能力'],
-                '推荐理由': '您的组织协调能力和沟通能力较强，非常适合学习工商管理专业。'
-            },
-            {
-                '专业码': '070101',
-                '专业名': '数学与应用数学',
-                '门类': '理学',
-                '专业类': '数学类',
-                '学位': '理学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '数学',
-                '体检限制': '无特殊要求',
-                '培养目标': '培养掌握数学科学的基本理论与基本方法，具备运用数学知识、使用计算机解决实际问题的能力，受到科学研究的初步训练，能在科技、教育和经济部门从事研究、教学工作或在生产经营及管理部门从事实际应用、开发研究和管理工作的高级专门人才。',
-                '专业课程': '数学分析、高等代数、解析几何、常微分方程、概率论与数理统计、实变函数论等',
-                '就业方向': '教育领域、金融领域、IT领域、科研机构等',
-                '匹配的霍兰德代码组合': ['IRC', 'IRA', 'IRE'],
-                '匹配的MBTI类型': ['INTP', 'INTJ', 'ISTJ', 'ISTP'],
-                '所需核心能力': ['逻辑思维能力', '数据分析能力', '耐心与专注力'],
-                '推荐理由': '您的逻辑思维能力和耐心专注力较强，非常适合学习数学与应用数学专业。'
-            },
-            {
-                '专业码': '080201',
-                '专业名': '机械工程',
-                '门类': '工学',
-                '专业类': '机械类',
-                '学位': '工学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '物理',
-                '体检限制': '无色盲',
-                '培养目标': '培养具备机械设计、制造、自动化基础知识与应用能力，能在工业生产第一线从事机械工程及自动化领域内的设计制造、科技开发、应用研究、运行管理和经营销售等方面工作的高级工程技术人才。',
-                '专业课程': '工程力学、机械设计基础、电工与电子技术、微型计算机原理及应用、机械工程材料、制造技术基础等',
-                '就业方向': '机械制造、自动化、设计研发、设备管理等',
-                '匹配的霍兰德代码组合': ['RIC', 'RIE', 'RIS'],
-                '匹配的MBTI类型': ['ISTJ', 'ESTJ', 'ISTP', 'ESTP'],
-                '所需核心能力': ['动手实践能力', '逻辑思维能力', '空间想象能力'],
-                '推荐理由': '您的动手实践能力和空间想象能力较强，非常适合学习机械工程专业。'
-            },
-            {
-                '专业码': '050101',
-                '专业名': '汉语言文学',
-                '门类': '文学',
-                '专业类': '中国语言文学类',
-                '学位': '文学学士',
-                '学制': '4年',
-                '设立年份': '1998',
-                '指引必选科目': '无',
-                '体检限制': '无特殊要求',
-                '培养目标': '培养具备文艺理论素养和系统的汉语言文学知识，能在新闻文艺出版部门、高校、科研机构和机关企事业单位从事文学评论、汉语言文学教学与研究工作，以及文化、宣传方面的实际工作的汉语言文学高级专门人才。',
-                '专业课程': '语言学概论、古代汉语、现代汉语、文学概论、中国古代文学、中国现代文学、中国当代文学、外国文学等',
-                '就业方向': '教育工作、编辑出版、新闻传媒、文化创意等',
-                '匹配的霍兰德代码组合': ['ASI', 'ASE', 'AES'],
-                '匹配的MBTI类型': ['INFP', 'INFJ', 'ENFP', 'ENFJ'],
-                '所需核心能力': ['艺术审美能力', '沟通表达能力', '共情与同理心'],
-                '推荐理由': '您的艺术审美能力和共情能力较强，非常适合学习汉语言文学专业。'
-            },
-            {
-                '专业码': '100201',
-                '专业名': '临床医学',
-                '门类': '医学',
-                '专业类': '临床医学类',
-                '学位': '医学学士',
-                '学制': '5年',
-                '设立年份': '1998',
-                '指引必选科目': '物理、化学、生物',
-                '体检限制': '无色盲色弱，无传染病',
-                '培养目标': '培养具备基础医学、临床医学的基本理论和医疗预防的基本技能，能在医疗卫生单位、医学科研等部门从事医疗及预防、医学科研等方面工作的医学高级专门人才。',
-                '专业课程': '人体解剖学、组织胚胎学、生理学、生物化学、药理学、病理学、预防医学、免疫学、诊断学、内科学、外科学等',
-                '就业方向': '医疗机构、医学科研、公共卫生等',
-                '匹配的霍兰德代码组合': ['SIR', 'SIA', 'SIE'],
-                '匹配的MBTI类型': ['ISFJ', 'INFJ', 'ENFJ', 'ESFJ'],
-                '所需核心能力': ['动手实践能力', '共情与同理心', '耐心与专注力'],
-                '推荐理由': '您的共情能力和耐心专注力较强，非常适合学习临床医学专业。'
-            }
+            // ... 大量模拟数据已被注释以减少代码冗余 ...
         ];
         
         // 根据用户的霍兰德代码和MBTI类型调整模拟数据
         // 这里可以添加更多的逻辑来根据用户的具体情况调整返回的专业列表
         return mockData;
     }
+    */
     
-    // 获取默认推荐专业（当数据库查询失败时使用） - 已注释掉
-    /*function getDefaultRecommendedMajors() {
+    // ========== 已废弃的默认专业推荐函数 - 不再使用 ==========
+    /*
+    function getDefaultRecommendedMajors() {
         return [
-            {
-                code: '080901',
-                name: '计算机科学与技术',
-                matchScore: 92,
-                reason: '适合逻辑思维能力强、喜欢解决复杂问题的学生。该专业与您的霍兰德代码和MBTI类型高度匹配，能够充分发挥您的分析能力和创新思维。'
-            },
-            {
-                code: '050201',
-                name: '英语',
-                matchScore: 88,
-                reason: '适合语言表达能力强、喜欢与人交流的学生。该专业能够发挥您的沟通能力和文化理解能力，与您的性格特点相契合。'
-            },
-            {
-                code: '020101',
-                name: '经济学',
-                matchScore: 85,
-                reason: '适合逻辑思维能力和数学计算能力强的学生。该专业能够充分发挥您的分析能力和决策能力，与您的能力优势相匹配。'
-            },
-            {
-                code: '120201',
-                name: '工商管理',
-                matchScore: 82,
-                reason: '适合团队协作能力强、具有领导潜质的学生。该专业能够发挥您的组织能力和人际交往能力，与您的性格特点和职业兴趣相契合。'
-            },
-            {
-                code: '070101',
-                name: '数学与应用数学',
-                matchScore: 80,
-                reason: '适合数学计算能力和逻辑思维能力强的学生。该专业能够充分发挥您的抽象思维能力和问题解决能力，与您的能力优势高度匹配。'
-            }
+            // ... 已废弃的默认专业推荐数据 ...
         ];
-    }*/
+    }
+    */
 
     // 获取霍兰德代码描述
     function getHollandDescription(code) {
@@ -1605,13 +1248,16 @@ window.initializeAssessmentTab = function() {
         alert('报告已保存！');
     }
 
+    // ========== 已移除的分享报告功能 - 不再需要 ==========
+    /*
     // 分享报告
-    /*function shareReport() {
+    function shareReport() {
         // 这里可以实现生成分享链接或长图的功能
         alert('分享功能开发中，敬请期待！');
-    }*/
+    }
+    */
 
-    // 查看专业详情
+    // 查看专业详情 - 统一使用数据库查询，确保数据真实性
     async function viewMajorDetails(majorCode, event) {
         // 阻止事件冒泡（如果有event参数）
         if (event && typeof event.preventDefault === 'function') {
@@ -1619,11 +1265,32 @@ window.initializeAssessmentTab = function() {
         }
         
         try {
-            // 检查是否有推荐专业列表
+            const button = event.currentTarget;
+            const majorCard = button.closest('.major-card');
+            const detailsId = `major-details-${majorCode}`;
+            
+            // 检查是否已存在详情，如果存在则切换显示状态
+            const existingDetails = document.getElementById(detailsId);
+            if (existingDetails) {
+                if (existingDetails.style.display === 'none') {
+                    existingDetails.style.display = 'block';
+                    button.textContent = '收起';
+                } else {
+                    existingDetails.style.display = 'none';
+                    button.textContent = '查看详情';
+                }
+                return;
+            }
+            
             let majorDetails = null;
             
-            // 直接从数据库查询专业详情
-            if (window.supabaseClient) {
+            // 首先尝试从recommendedMajors数组中获取完整专业详情（已包含数据库数据）
+            if (recommendedMajors && recommendedMajors.length > 0) {
+                majorDetails = recommendedMajors.find(m => m.code === majorCode);
+            }
+            
+            // 如果推荐列表中没有找到，直接从数据库查询
+            if (!majorDetails && window.supabaseClient) {
                 const { data, error } = await window.supabaseClient
                     .from('major_rules')
                     .select('*')
@@ -1631,48 +1298,129 @@ window.initializeAssessmentTab = function() {
                     .single();
                 
                 if (error) {
-                        throw new Error(`查询专业详情失败: ${error.message}`);
-                    }
-                    
-                    if (data) {
-                        majorDetails = {
-                            code: data['专业码'],
-                            name: data['专业名'],
-                            category: data['门类'],
-                            subCategory: data['专业类'],
-                            degree: data['学位'],
-                            duration: data['学制'],
-                            establishedYear: data['设立年份'],
-                            requiredCourses: data['指引必选科目'],
-                            medicalRestrictions: data['体检限制'],
-                            objectives: data['培养目标'],
-                            courses: data['专业课程'],
-                            careerPaths: data['就业方向'],
-                            matchScore: 0,
-                            reason: data['推荐理由']
-                        };
-                    }
+                    throw new Error(`查询专业详情失败: ${error.message}`);
                 }
                 
-                if (majorDetails) {
-                    // 查找专业目录标签页的详情区域
-                    const majorsTab = document.getElementById('majors-tab');
-                    const detailsContent = majorsTab ? majorsTab.querySelector('#major-details-content') : null;
-                    
-                    if (detailsContent) {
-                        // 渲染专业详情
-                        renderMajorDetails(detailsContent, majorDetails);
-                    } else {
-                        // 如果找不到详情区域，使用alert显示
-                        alert(`专业: ${majorDetails.name}\n专业码: ${majorDetails.code}\n\n培养目标: ${majorDetails.objectives || '---'}\n\n点击专业目录标签页查看完整详情`);
-                    }
-                } else {
-                    alert(`未找到专业代码为 ${majorCode} 的详细信息`);
+                if (data) {
+                    majorDetails = {
+                        code: data['专业码'],
+                        name: data['专业名'],
+                        category: data['门类'],
+                        subCategory: data['专业类'],
+                        degree: data['学位'],
+                        duration: data['学制'],
+                        establishedYear: data['设立年份'],
+                        requiredCourses: data['指引必选科目'],
+                        medicalRestrictions: data['体检限制'],
+                        objectives: data['培养目标'],
+                        courses: data['专业课程'],
+                        careerPaths: data['就业方向'],
+                        matchScore: 0,
+                        reason: data['推荐理由']
+                    };
                 }
-            } catch (error) {
-                console.error('查看专业详情时出错:', error);
-                alert(`获取专业详情失败: ${error.message}`);
             }
+            
+            if (!majorDetails) {
+                alert(`未找到专业代码为 ${majorCode} 的详细信息`);
+                return;
+            }
+            
+            // 创建详情元素，直接在测评结果页面显示
+            const detailsElement = document.createElement('div');
+            detailsElement.id = detailsId;
+            detailsElement.className = 'major-details';
+            detailsElement.innerHTML = `
+                <div class="details-header">
+                    <h5>${majorDetails.name} 详细信息</h5>
+                </div>
+                <div class="details-content">
+                    <!-- 基本信息网格布局 -->
+                    <div class="major-details-grid">
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">专业代码</div>
+                            <div class="major-detail-value">${majorDetails.code}</div>
+                        </div>
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">所属门类</div>
+                            <div class="major-detail-value">${majorDetails.category || '---'}</div>
+                        </div>
+                        ${majorDetails.subCategory ? `
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">专业类</div>
+                            <div class="major-detail-value">${majorDetails.subCategory}</div>
+                        </div>
+                        ` : ''}
+                        ${majorDetails.degree ? `
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">学位</div>
+                            <div class="major-detail-value">${majorDetails.degree}</div>
+                        </div>
+                        ` : ''}
+                        ${majorDetails.duration ? `
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">学制</div>
+                            <div class="major-detail-value">${majorDetails.duration}</div>
+                        </div>
+                        ` : ''}
+                        ${majorDetails.establishedYear ? `
+                        <div class="major-detail-item">
+                            <div class="major-detail-label">设立年份</div>
+                            <div class="major-detail-value">${majorDetails.establishedYear}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- 详细信息区块 -->
+                    ${majorDetails.reason ? `
+                    <div class="major-detail-section">
+                        <h4>推荐理由</h4>
+                        <p>${majorDetails.reason}</p>
+                    </div>
+                    ` : ''}
+                    ${majorDetails.objectives ? `
+                    <div class="major-detail-section">
+                        <h4>培养目标</h4>
+                        <p>${majorDetails.objectives}</p>
+                    </div>
+                    ` : ''}
+                    ${majorDetails.courses ? `
+                    <div class="major-detail-section">
+                        <h4>专业课程</h4>
+                        <p>${majorDetails.courses}</p>
+                    </div>
+                    ` : ''}
+                    ${majorDetails.careerPaths ? `
+                    <div class="major-detail-section">
+                        <h4>就业方向</h4>
+                        <p>${majorDetails.careerPaths}</p>
+                    </div>
+                    ` : ''}
+                    ${majorDetails.requiredCourses && majorDetails.requiredCourses !== '---' ? `
+                    <div class="major-detail-section">
+                        <h4>指引必选科目</h4>
+                        <p>${majorDetails.requiredCourses}</p>
+                    </div>
+                    ` : ''}
+                    ${majorDetails.medicalRestrictions && majorDetails.medicalRestrictions !== '---' ? `
+                    <div class="major-detail-section">
+                        <h4>体检限制</h4>
+                        <p>${majorDetails.medicalRestrictions}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // 添加到专业卡片中
+            majorCard.appendChild(detailsElement);
+            
+            // 更改按钮文本
+            button.textContent = '收起';
+            
+        } catch (error) {
+            console.error('查看专业详情时出错:', error);
+            alert(`获取专业详情失败: ${error.message}`);
+        }
     }
     
     // 渲染专业详情
