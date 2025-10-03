@@ -454,39 +454,36 @@ window.initializeAssessmentTab = function() {
         
         assessmentTab.innerHTML = `
             <div class="assessment-layout">
-                <div class="assessment-left-panel">
-                    <div class="assessment-header">
-                            <h2>个人测评</h2>
-                            <div class="assessment-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%">
-                                        <span class="progress-text">${currentQuestionIndex + 1}/${allQuestions.length}</span>
-                                    </div>
-                                </div>
-                                <span class="progress-percentage">${progress}%</span>
+                <div class="assessment-main-panel">
+                    <!-- 进度条 -->
+                    <div class="assessment-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%">
+                                <span class="progress-text">${currentQuestionIndex + 1}/${allQuestions.length}</span>
+                            </div>
+                        </div>
+                        <span class="progress-percentage">${progress}%</span>
+                    </div>
+                    
+                    <!-- 题目和控制按钮容器 -->
+                    <div class="question-controls-container">
+                        <div class="question-content">
+                            <div class="question-header">
+                                <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
+                                <h3>${question.question_text}</h3>
+                            </div>
+                            
+                            <div class="question-options">
+                                ${question.choices.map((choice, index) => `
+                                    <label class="choice-option">
+                                        <input type="radio" name="question-${question.id}" value="${choice.id}" ${selectedChoiceId === choice.id ? 'checked' : ''} onchange="handleChoiceSelection(event)">
+                                        <span class="choice-text">${choice.choice_text}</span>
+                                    </label>
+                                `).join('')}
                             </div>
                         </div>
                         
-                        <!-- 题目内容容器 - 添加滚动条支持 -->
-                        <div class="question-content-container">
-                            <div class="question-container">
-                                <div class="question-header">
-                                    <span class="question-type">${getQuestionTypeLabel(question.question_type)}</span>
-                                    <h3>${question.question_text}</h3>
-                                </div>
-                                
-                                <div class="question-options">
-                                    ${question.choices.map((choice, index) => `
-                                        <label class="choice-option">
-                                            <input type="radio" name="question-${question.id}" value="${choice.id}" ${selectedChoiceId === choice.id ? 'checked' : ''} onchange="handleChoiceSelection(event)">
-                                            <span class="choice-text">${choice.choice_text}</span>
-                                        </label>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 显示上一题和下一题按钮 -->
+                        <!-- 控制按钮 -->
                         <div class="assessment-controls">
                             <button id="prev-question-btn" class="secondary-button" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
                                 上一题
@@ -495,6 +492,7 @@ window.initializeAssessmentTab = function() {
                                 ${currentQuestionIndex === allQuestions.length - 1 ? '完成测评' : '下一题'}
                             </button>
                         </div>
+                    </div>
                 </div>
                 
                 <div class="assessment-right-panel">
@@ -764,7 +762,7 @@ window.initializeAssessmentTab = function() {
                     </div>
                 </div>
                 
-                <!-- 修改为左右分栏布局 -->
+                <!-- 全宽布局 -->
                 <div class="result-layout">
                     <!-- 左侧显示三种测评结果 -->
                     <div class="result-left-panel">
@@ -809,16 +807,20 @@ window.initializeAssessmentTab = function() {
                             <div class="recommended-majors">
                                 ${recommendedMajors.map((major, index) => `
                                     <div class="major-card">
-                                        <div class="major-rank">${index + 1}</div>
-                                        <div class="major-info">
-                                            <h4 class="major-name">${major.name || '未定义'}</h4>
-                                            <p class="major-code">专业代码：${major.code || '未定义'}</p>
-                                            <p class="match-score">匹配度：${major.matchScore || 0}%</p>
+                                        <div class="major-header">
+                                            <div class="major-rank">${index + 1}</div>
+                                            <div class="major-info">
+                                                <h4 class="major-name">${major.name || '未定义'}</h4>
+                                                <div class="major-meta">
+                                                    <span class="major-code">代码：${major.code || '未定义'}</span>
+                                                    <span class="match-score">匹配度：${major.matchScore || 0}%</span>
+                                                </div>
+                                            </div>
+                                            <button class="view-major-details" data-major-code="${major.code || ''}">查看详情</button>
                                         </div>
                                         <div class="recommendation-reason">
                                             <p>${major.reason || '该专业与您的个人特质和能力相匹配。'}</p>
                                         </div>
-                                        <button class="view-major-details" data-major-code="${major.code || ''}">查看详情</button>
                                     </div>
                                 `).join('')}
                             </div>
@@ -1335,79 +1337,58 @@ window.initializeAssessmentTab = function() {
                     <h5>${majorDetails.name} 详细信息</h5>
                 </div>
                 <div class="details-content">
-                    <!-- 基本信息网格布局 -->
-                    <div class="major-details-grid">
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">专业代码</div>
-                            <div class="major-detail-value">${majorDetails.code}</div>
+                    <!-- 紧凑的左右布局 -->
+                    <div class="major-details-compact">
+                        <div class="basic-info-row">
+                            <span><strong>代码：</strong>${majorDetails.code}</span>
+                            <span><strong>门类：</strong>${majorDetails.category || '---'}</span>
+                            ${majorDetails.subCategory ? `<span><strong>专业类：</strong>${majorDetails.subCategory}</span>` : ''}
+                            ${majorDetails.degree ? `<span><strong>学位：</strong>${majorDetails.degree}</span>` : ''}
+                            ${majorDetails.duration ? `<span><strong>学制：</strong>${majorDetails.duration}</span>` : ''}
                         </div>
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">所属门类</div>
-                            <div class="major-detail-value">${majorDetails.category || '---'}</div>
-                        </div>
-                        ${majorDetails.subCategory ? `
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">专业类</div>
-                            <div class="major-detail-value">${majorDetails.subCategory}</div>
-                        </div>
-                        ` : ''}
-                        ${majorDetails.degree ? `
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">学位</div>
-                            <div class="major-detail-value">${majorDetails.degree}</div>
+                        
+                        ${majorDetails.reason ? `
+                        <div class="detail-row">
+                            <strong>推荐理由：</strong>
+                            <span>${majorDetails.reason}</span>
                         </div>
                         ` : ''}
-                        ${majorDetails.duration ? `
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">学制</div>
-                            <div class="major-detail-value">${majorDetails.duration}</div>
+                        
+                        ${majorDetails.objectives ? `
+                        <div class="detail-row">
+                            <strong>培养目标：</strong>
+                            <span>${majorDetails.objectives}</span>
                         </div>
                         ` : ''}
-                        ${majorDetails.establishedYear ? `
-                        <div class="major-detail-item">
-                            <div class="major-detail-label">设立年份</div>
-                            <div class="major-detail-value">${majorDetails.establishedYear}</div>
+                        
+                        ${majorDetails.courses ? `
+                        <div class="detail-row">
+                            <strong>专业课程：</strong>
+                            <span>${majorDetails.courses}</span>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorDetails.careerPaths ? `
+                        <div class="detail-row">
+                            <strong>就业方向：</strong>
+                            <span>${majorDetails.careerPaths}</span>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorDetails.requiredCourses && majorDetails.requiredCourses !== '---' ? `
+                        <div class="detail-row">
+                            <strong>指引必选科目：</strong>
+                            <span>${majorDetails.requiredCourses}</span>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorDetails.medicalRestrictions && majorDetails.medicalRestrictions !== '---' ? `
+                        <div class="detail-row">
+                            <strong>体检限制：</strong>
+                            <span>${majorDetails.medicalRestrictions}</span>
                         </div>
                         ` : ''}
                     </div>
-
-                    <!-- 详细信息区块 -->
-                    ${majorDetails.reason ? `
-                    <div class="major-detail-section">
-                        <h4>推荐理由</h4>
-                        <p>${majorDetails.reason}</p>
-                    </div>
-                    ` : ''}
-                    ${majorDetails.objectives ? `
-                    <div class="major-detail-section">
-                        <h4>培养目标</h4>
-                        <p>${majorDetails.objectives}</p>
-                    </div>
-                    ` : ''}
-                    ${majorDetails.courses ? `
-                    <div class="major-detail-section">
-                        <h4>专业课程</h4>
-                        <p>${majorDetails.courses}</p>
-                    </div>
-                    ` : ''}
-                    ${majorDetails.careerPaths ? `
-                    <div class="major-detail-section">
-                        <h4>就业方向</h4>
-                        <p>${majorDetails.careerPaths}</p>
-                    </div>
-                    ` : ''}
-                    ${majorDetails.requiredCourses && majorDetails.requiredCourses !== '---' ? `
-                    <div class="major-detail-section">
-                        <h4>指引必选科目</h4>
-                        <p>${majorDetails.requiredCourses}</p>
-                    </div>
-                    ` : ''}
-                    ${majorDetails.medicalRestrictions && majorDetails.medicalRestrictions !== '---' ? `
-                    <div class="major-detail-section">
-                        <h4>体检限制</h4>
-                        <p>${majorDetails.medicalRestrictions}</p>
-                    </div>
-                    ` : ''}
                 </div>
             `;
             
@@ -1611,58 +1592,64 @@ window.initializeAssessmentTab = function() {
                 cursor: not-allowed;
             }
             
-            /* 测评布局样式 - 参照专业目录标签页的左侧容器高度控制 */
+            /* 测评布局样式 - 优化为全宽单列布局 */
             .assessment-layout {
                 width: 100%;
-                height: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
                 display: flex;
-                flex-direction: row;
+                flex-direction: column;
                 box-sizing: border-box;
                 background-color: white;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 padding: 20px;
-                overflow: hidden;
+                min-height: calc(100vh - 120px);
+            }
+            
+            .assessment-main-panel {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
                 gap: 20px;
             }
             
-            .assessment-left-panel {
-                width: 50%;
+            /* 题目和控制按钮容器 - 确保在1080P下无需滚动 */
+            .question-controls-container {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
-                height: 100%;
-            }
-            
-            /* 题目内容容器样式 - 参照专业目录的树形结构容器样式 */
-            .question-content-container {
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                padding: 10px;
-                flex-grow: 1;
-                min-height: 0;
+                gap: 20px;
+                max-height: calc(100vh - 200px);
                 overflow-y: auto;
-                box-sizing: border-box;
             }
             
-            /* 控制按钮容器 - 固定在题目内容下方，不随内容滚动 */
+            .question-content {
+                flex: 1;
+            }
+            
+            /* 控制按钮容器 - 固定在底部 */
             .assessment-controls {
                 display: flex;
                 justify-content: space-between;
                 gap: 15px;
-                padding-top: 15px;
+                padding: 15px 0;
                 border-top: 1px solid #eee;
                 flex-shrink: 0;
             }
             
-            .assessment-right-panel {
-                display: block;
-                flex: 1;
-                background-color: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                overflow-y: auto;
+            /* 题目标题优化 */
+            .question-header h3 {
+                color: #333;
+                font-size: 18px;
+                line-height: 1.4;
+                margin: 10px 0 20px 0;
+            }
+            
+            /* 选项文字优化 */
+            .choice-text {
+                font-size: 15px;
+                color: #333;
+                cursor: pointer;
             }
             
             /* 测评类型文本框 */
@@ -1680,11 +1667,6 @@ window.initializeAssessmentTab = function() {
                 font-weight: bold;
                 text-align: center;
                 transition: all 0.3s;
-            }
-            
-            /* 题目内容容器样式 - 移除最大高度限制，让内容自然伸展 */
-            .question-content-container {
-                margin-bottom: 15px;
             }
             
             .type-holland {
@@ -1712,10 +1694,11 @@ window.initializeAssessmentTab = function() {
                 transform: translateX(5px);
             }
             
-            /* 结果页面布局 - 调整为整体滚动 */
+            /* 结果页面布局 - 全宽无留空 */
             .result-page {
                 width: 100%;
-                margin: 0;
+                max-width: 1200px;
+                margin: 0 auto;
                 min-height: calc(100vh - 80px);
                 box-sizing: border-box;
                 overflow-y: auto;
@@ -1725,11 +1708,10 @@ window.initializeAssessmentTab = function() {
             .result-layout {
                 display: flex;
                 flex-direction: row;
-                gap: 20px;
-                padding: 5px;
+                gap: 30px;
+                padding: 0;
                 box-sizing: border-box;
-                max-width: 1200px;
-                margin: 0 auto;
+                width: 100%;
             }
             
             /* 左侧面板优化 */
@@ -1738,7 +1720,7 @@ window.initializeAssessmentTab = function() {
                 flex-shrink: 0;
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 20px;
             }
             
             /* 右侧面板优化 */
@@ -1746,61 +1728,16 @@ window.initializeAssessmentTab = function() {
                 width: 55%;
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 20px;
             }
-            
             /* 测评头部和进度条 */
-            .assessment-header h2 {
-                color: #333;
-                margin-bottom: 20px;
-            }
-            
-            /* 结果页面头部优化 */
-            .result-header {
-                padding: 10px 15px;
-                text-align: center;
-                margin: 0;
-            }
-            
-            .result-header h2 {
-                color: #333;
-                margin: 0 0 8px 0;
-                font-size: 18px;
-            }
-            
-            .result-header p {
-                color: #666;
-                margin: 0;
-                font-size: 14px;
-            }
-            
-            /* 报告元数据优化 */
-            .report-meta {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 15px;
-                margin-top: 8px;
-                font-size: 14px;
-                color: #666;
-            }
-            
-            /* 结果页脚优化 */
-            .result-footer {
-                display: flex;
-                justify-content: center;
-                gap: 15px;
-                padding: 12px;
-                margin-top: 15px;
-                border-top: 1px solid #eee;
-                font-size: 14px;
-            }
-            
             .assessment-progress {
                 display: flex;
                 align-items: center;
                 gap: 15px;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
+                padding: 15px 0;
+                border-bottom: 1px solid #eee;
             }
             
             .progress-bar {
@@ -1832,6 +1769,7 @@ window.initializeAssessmentTab = function() {
                 color: #666;
                 font-size: 14px;
                 font-weight: bold;
+                min-width: 40px;
             }
             
             /* 问题容器 */
@@ -1854,24 +1792,17 @@ window.initializeAssessmentTab = function() {
                 display: inline-block;
             }
             
-            .question-header h3 {
-                color: #333;
-                font-size: 24px;
-                line-height: 1.4;
-                margin: 15px 0;
-            }
-            
             /* 选项样式 */
             .question-options {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
             }
             
             .choice-option {
                 display: flex;
                 align-items: center;
-                padding: 15px 20px;
+                padding: 12px 16px;
                 background-color: #f8f9fa;
                 border-radius: 8px;
                 cursor: pointer;
@@ -1885,21 +1816,49 @@ window.initializeAssessmentTab = function() {
             }
             
             .choice-option input[type="radio"] {
-                margin-right: 15px;
-                transform: scale(1.5);
+                margin-right: 12px;
+                transform: scale(1.3);
             }
             
-            .choice-text {
-                font-size: 18px;
+            /* 结果页面头部优化 */
+            .result-header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding: 20px 0;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .result-header h2 {
                 color: #333;
-                cursor: pointer;
+                margin: 0 0 10px 0;
+                font-size: 24px;
             }
             
-            /* 控制按钮 */
-            .assessment-controls {
+            .result-header p {
+                color: #666;
+                margin: 0 0 15px 0;
+                font-size: 16px;
+            }
+            
+            /* 报告元数据优化 */
+            .report-meta {
                 display: flex;
-                justify-content: space-between;
+                justify-content: center;
+                align-items: center;
                 gap: 15px;
+                font-size: 14px;
+                color: #666;
+            }
+            
+            /* 结果页脚优化 */
+            .result-footer {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin-top: 40px;
+                padding: 20px;
+                border-top: 1px solid #eee;
+            }
             }
             
             /* 结果预览 */
@@ -2045,7 +2004,7 @@ window.initializeAssessmentTab = function() {
                 min-height: 350px; /* 增大雷达图的最小高度 */
             }
             
-            /* 推荐专业样式 - 调整布局，添加推荐理由显示 */
+            /* 推荐专业样式 - 优化布局，减少换行和留空 */
             .recommended-majors {
                 display: flex;
                 flex-direction: column;
@@ -2057,55 +2016,23 @@ window.initializeAssessmentTab = function() {
                 padding: 15px;
                 border-radius: 8px;
                 display: flex;
-                gap: 15px;
-                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 border-left: 4px solid #4caf50;
                 transition: all 0.3s ease;
             }
             
-            /* 专业详情样式优化 */
-            .major-details {
-                margin-top: 12px;
-                padding: 10px;
-                background-color: #f8f9fa;
-                border-radius: 6px;
-                border: 1px solid #e9ecef;
-                width: 100%;
-                font-size: 14px;
+            /* 专业卡片头部 - 横向排列 */
+            .major-header {
+                display: flex;
+                align-items: center;
+                gap: 15px;
             }
             
-            .details-header h5 {
-                margin: 0 0 10px 0;
-                color: #4caf50;
-                border-bottom: 1px solid #4caf50;
-                padding-bottom: 4px;
-                font-size: 16px;
-            }
-            
-            .details-content p {
-                margin: 6px 0;
-                line-height: 1.4;
-            }
-            
-            .details-content ul {
-                margin-top: 4px;
-                padding-left: 18px;
-                margin-bottom: 8px;
-            }
-            
-            .details-content li {
-                margin: 4px 0;
-            }
-            
-            .details-content li {
-                margin-bottom: 5px;
-            }
-            
-            /* 卡片内部元素样式优化 - 调整字体大小，显示推荐理由 */
             .major-rank {
-                width: 30px;
-                height: 30px;
+                width: 32px;
+                height: 32px;
                 background-color: #4caf50;
                 color: white;
                 display: flex;
@@ -2123,38 +2050,45 @@ window.initializeAssessmentTab = function() {
             }
             
             .major-name {
-                margin: 0 0 5px 0;
+                margin: 0;
                 font-size: 16px;
                 font-weight: 600;
                 color: #333;
                 line-height: 1.3;
             }
             
-            .major-code {
-                margin: 0 0 5px 0;
+            /* 专业元信息 - 横向排列 */
+            .major-meta {
+                display: flex;
+                gap: 20px;
+                margin-top: 5px;
                 font-size: 13px;
                 color: #666;
+            }
+            
+            .major-code, .match-score {
+                margin: 0;
                 line-height: 1.2;
             }
             
             .match-score {
-                margin: 0 0 8px 0;
-                font-size: 14px;
                 color: #28a745;
                 font-weight: 500;
-                line-height: 1.2;
             }
             
-            /* 推荐理由样式 - 显示在中间空白部分 */
+            /* 推荐理由样式 - 紧凑显示 */
             .recommendation-reason {
-                display: block;
                 font-size: 14px;
                 color: #666;
                 line-height: 1.4;
-                margin-bottom: 10px;
-                padding: 8px;
+                margin: 0;
+                padding: 8px 12px;
                 background-color: #f8f9fa;
                 border-radius: 4px;
+            }
+            
+            .recommendation-reason p {
+                margin: 0;
             }
             
             .view-major-details {
@@ -2167,12 +2101,78 @@ window.initializeAssessmentTab = function() {
                 cursor: pointer;
                 transition: background-color 0.3s;
                 white-space: nowrap;
-                height: fit-content;
-                align-self: center;
+                align-self: flex-start;
             }
             
             .view-major-details:hover {
                 background-color: #45a049;
+            }
+            
+            /* 专业详情样式 - 紧凑的左右布局 */
+            .major-details {
+                margin-top: 15px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 6px;
+                border: 1px solid #e9ecef;
+                font-size: 14px;
+            }
+            
+            .details-header h5 {
+                margin: 0 0 15px 0;
+                color: #4caf50;
+                border-bottom: 1px solid #4caf50;
+                padding-bottom: 8px;
+                font-size: 16px;
+            }
+            
+            /* 紧凑布局容器 */
+            .major-details-compact {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            /* 基本信息行 - 横向排列 */
+            .basic-info-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                padding: 10px;
+                background-color: white;
+                border-radius: 4px;
+                border: 1px solid #dee2e6;
+            }
+            
+            .basic-info-row span {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            
+            /* 详情行 - 左右布局 */
+            .detail-row {
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                padding: 8px 0;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+            
+            .detail-row strong {
+                color: #4caf50;
+                min-width: 100px;
+                flex-shrink: 0;
+                font-size: 13px;
+            }
+            
+            .detail-row span {
+                flex: 1;
+                line-height: 1.4;
+                font-size: 13px;
             }
             
             /* 结果页脚样式 */
