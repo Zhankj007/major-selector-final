@@ -8,6 +8,8 @@ window.initializeAssessmentTab = function() {
     let currentQuestionIndex = 0;
     let allQuestions = [];
     let userAnswers = [];
+    let isQuickTestMode = false; // 标记是否为快速测试模式
+    let quickTestData = {}; // 保存快速测试设置的数据
     let hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
     let mbtiScores = {
         'EI': { 'E': 0, 'I': 0 },
@@ -103,6 +105,8 @@ window.initializeAssessmentTab = function() {
         currentStep = 'assessment';
         currentQuestionIndex = 0;
         userAnswers = [];
+        isQuickTestMode = false; // 重置快速测试模式标记
+        quickTestData = {}; // 清空快速测试数据
         hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
         mbtiScores = {
             'EI': { 'E': 0, 'I': 0 },
@@ -122,6 +126,8 @@ window.initializeAssessmentTab = function() {
         currentStep = 'welcome';
         currentQuestionIndex = 0;
         userAnswers = [];
+        isQuickTestMode = false; // 重置快速测试模式标记
+        quickTestData = {}; // 清空快速测试数据
         hollandScores = { 'R': 0, 'I': 0, 'A': 0, 'S': 0, 'E': 0, 'C': 0 };
         mbtiScores = {
             'EI': { 'E': 0, 'I': 0 },
@@ -916,11 +922,23 @@ window.initializeAssessmentTab = function() {
         }
         
         // 生成快速测试结果
-        async function generateQuickTestResult() {
+        window.generateQuickTestResult = async function() {
             try {
                 // 获取设置的参数
                 const hollandCode = document.getElementById('hollandPreview').textContent;
                 const mbtiType = document.getElementById('mbtiPreview').textContent;
+                
+                console.log('🛠️ 快速测试 - 输入参数:', { hollandCode, mbtiType });
+                
+                // 验证输入参数
+                if (!hollandCode || hollandCode.length !== 3) {
+                    alert('霍兰德代码格式错误，应为3位字母');
+                    return;
+                }
+                if (!mbtiType || mbtiType.length !== 4) {
+                    alert('MBTI类型格式错误，应为4位字母');
+                    return;
+                }
                 
                 // 模拟霍兰德分数
                 hollandScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
@@ -966,6 +984,13 @@ window.initializeAssessmentTab = function() {
                     abilityScores[name] = { sum: score, count: 1 };
                 });
                 
+                // 设置快速测试模式标记和数据
+                isQuickTestMode = true;
+                quickTestData = {
+                    hollandCode: hollandCode,
+                    mbtiType: mbtiType
+                };
+                
                 console.log('🛠️ 快速测试模式 - 模拟数据:', {
                     hollandCode, mbtiType, hollandScores, mbtiScores, abilityScores
                 });
@@ -994,8 +1019,20 @@ window.initializeAssessmentTab = function() {
             // 渲染结果页面
             async function renderResultPage() {
                 try {
-            const hollandCode = generateHollandCode();
-            const mbtiType = generateMBTIType();
+            // 根据模式选择不同的代码生成方式
+            let hollandCode, mbtiType;
+            if (isQuickTestMode && quickTestData.hollandCode && quickTestData.mbtiType) {
+                // 快速测试模式：使用预设的值
+                hollandCode = quickTestData.hollandCode;
+                mbtiType = quickTestData.mbtiType;
+                console.log('🛠️ 使用快速测试预设值:', { hollandCode, mbtiType });
+            } else {
+                // 正常测试模式：基于评分计算
+                hollandCode = generateHollandCode();
+                mbtiType = generateMBTIType();
+                console.log('📊 使用正常测试计算值:', { hollandCode, mbtiType });
+            }
+            
             const hollandAnalysis = generateHollandAnalysis();
             const mbtiAnalysis = generateMBTIAnalysis();
             
@@ -1021,8 +1058,8 @@ window.initializeAssessmentTab = function() {
                 assessmentTab.innerHTML = `
                 <div class="result-page">
                     <div class="result-header">
-                        <h2>您的个人测评报告</h2>
-                        <p>根据您的回答，我们为您生成了专属的测评结果</p>
+                        <h2>您的个人测评报告${isQuickTestMode ? ' 🛠️ (快速测试模式)' : ''}</h2>
+                        <p>根据您的回答，我们为您生成了专属的测评结果${isQuickTestMode ? ' (模拟数据)' : ''}</p>
                         <div class="report-meta">
                             <span>生成时间：${new Date().toLocaleString()}</span>
                         </div>
@@ -1119,6 +1156,14 @@ window.initializeAssessmentTab = function() {
                     </div>
                     
                     <div class="result-footer">
+                        ${isQuickTestMode ? `
+                        <div class="debug-info" style="background: #f0f8ff; padding: 10px; margin: 20px 0; border-left: 4px solid #2196f3; font-size: 12px;">
+                            <strong>🛠️ 快速测试调试信息:</strong><br>
+                            霍兰德代码: ${quickTestData.hollandCode}<br>
+                            MBTI类型: ${quickTestData.mbtiType}<br>
+                            模式标记: ${isQuickTestMode ? '✅ 快速测试' : '❌ 正常测试'}
+                        </div>
+                        ` : ''}
                         <button id="restart-assessment-btn" class="secondary-button">重新测评</button>
                         <button id="save-report-btn" class="primary-button">保存报告</button>
                     </div>
@@ -4083,83 +4128,6 @@ window.initializeAssessmentTab = function() {
         // 更新预览
         document.getElementById('hollandPreview').textContent = preset.holland.join('');
         document.getElementById('mbtiPreview').textContent = preset.mbti.join('');
-    };
-    
-    window.generateQuickTestResult = async function() {
-        try {
-            const hollandCode = document.getElementById('hollandPreview').textContent;
-            const mbtiType = document.getElementById('mbtiPreview').textContent;
-            
-            // 收集能力分值
-            const abilities = [];
-            for (let i = 1; i <= 10; i++) {
-                const slider = document.getElementById(`ability${i}`);
-                abilities.push(parseInt(slider.value));
-            }
-            
-            console.log('🛠️ 快速测试模式 - 生成结果:', { 
-                hollandCode, 
-                mbtiType, 
-                abilities 
-            });
-            
-            // 构造虚拟的测评结果数据
-            const mockResult = {
-                hollandCode: hollandCode,
-                mbtiType: mbtiType,
-                hollandScores: {},
-                mbtiScores: {
-                    'EI': { [mbtiType[0]]: 60, [mbtiType[0] === 'E' ? 'I' : 'E']: 40 },
-                    'SN': { [mbtiType[1]]: 60, [mbtiType[1] === 'S' ? 'N' : 'S']: 40 },
-                    'TF': { [mbtiType[2]]: 60, [mbtiType[2] === 'T' ? 'F' : 'T']: 40 },
-                    'JP': { [mbtiType[3]]: 60, [mbtiType[3] === 'J' ? 'P' : 'J']: 40 }
-                },
-                abilityScores: {
-                    '逻辑思维能力': abilities[0],
-                    '创新思维能力': abilities[1], 
-                    '数据分析能力': abilities[2],
-                    '组织协调能力': abilities[3],
-                    '沟通表达能力': abilities[4],
-                    '动手实践能力': abilities[5],
-                    '共情与同理心': abilities[6],
-                    '艺术审美能力': abilities[7],
-                    '耐心与专注力': abilities[8],
-                    '空间想象能力': abilities[9]
-                }
-            };
-            
-            // 设置霍兰德分数 (将代码转换为分数)
-            hollandCode.split('').forEach((letter, index) => {
-                mockResult.hollandScores[letter] = (3 - index) * 20 + 40; // 第一位60分，第二位40分，第三位20分
-            });
-            
-            // 补充其他字母的分数
-            ['R', 'I', 'A', 'S', 'E', 'C'].forEach(letter => {
-                if (!mockResult.hollandScores[letter]) {
-                    mockResult.hollandScores[letter] = Math.floor(Math.random() * 20) + 10; // 10-30分
-                }
-            });
-            
-            console.log('🛠️ 构造的虚拟结果:', mockResult);
-            
-            // 使用现有的推荐系统计算专业推荐
-            const majors = await generateRecommendedMajors(mockResult.hollandCode, mockResult.mbtiType);
-            
-            // 设置全局结果对象
-            window.assessmentResult = {
-                ...mockResult,
-                recommendedMajors: majors,
-                isQuickTest: true // 标记这是快速测试结果
-            };
-            
-            // 切换到结果页面
-            currentStep = 'result';
-            await renderPage();
-            
-        } catch (error) {
-            console.error('快速测试错误:', error);
-            alert('生成测试结果失败，请检查设置参数');
-        }
     };
     
     // 添加全局变量初始化，确保assessmentResult存在
