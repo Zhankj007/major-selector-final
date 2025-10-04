@@ -63,6 +63,15 @@ window.initializeAssessmentTab = function() {
     function renderWelcomePage() {
         assessmentTab.innerHTML = `
             <div class="assessment-welcome">
+                <!-- 快速测试模式入口 -->
+                <div class="test-mode-panel">
+                    <h3>🛠️ 开发者调试模式</h3>
+                    <button class="quick-test-btn" onclick="showQuickTestPanel()">
+                        快速测试模式
+                        <span class="test-mode-hint">跳过100道题，直接设置参数</span>
+                    </button>
+                </div>
+                
                 <div class="welcome-content">
                     <h2>个人测评中心</h2>
                     <p>欢迎使用詹老师高考志愿工具箱的个人测评功能！</p>
@@ -594,39 +603,386 @@ window.initializeAssessmentTab = function() {
         }
     }
 
-    // 显示加载动画
-    function showLoadingAnimation() {
-        assessmentTab.innerHTML = `
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <h3>正在为您生成专属报告...</h3>
-                <p>我们正在分析您的测评结果，为您推荐最适合的专业</p>
-            </div>
-        `;
-    }
-
-    // 计算分数
-    function calculateScores(choice) {
-        const questionType = allQuestions[currentQuestionIndex].question_type;
-        
-        if (questionType === 'holland') {
-            // 霍兰德分数计算
-            hollandScores[choice.score_type] += choice.score_value;
-        } else if (questionType === 'mbti') {
-            // MBTI分数计算
-            const dimension = allQuestions[currentQuestionIndex].dimension;
-            mbtiScores[dimension][choice.score_type] += choice.score_value;
-        } else if (questionType === 'ability') {
-            // 能力分数计算
-            if (!abilityScores[choice.score_type]) {
-                abilityScores[choice.score_type] = { sum: 0, count: 0 };
+        // 显示快速测试面板
+        function showQuickTestPanel() {
+            assessmentTab.innerHTML = `
+                <div class="quick-test-panel">
+                    <div class="panel-header">
+                        <h2>🛠️ 快速测试模式</h2>
+                        <p>跳过100道题，直接设置测评参数进行算法测试</p>
+                        <button class="back-to-normal" onclick="startAssessment()">返回正常测评</button>
+                    </div>
+                    
+                    <div class="test-form">
+                        <!-- 霍兰德代码选择 -->
+                        <div class="form-section">
+                            <h3>霍兰德兴趣代码</h3>
+                            <div class="holland-selector">
+                                <div class="code-builder">
+                                    <label>第一位（主导兴趣）：</label>
+                                    <select id="holland1">
+                                        <option value="R">实用型 (R) - 喜欢动手操作</option>
+                                        <option value="I">研究型 (I) - 喜欢分析研究</option>
+                                        <option value="A">艺术型 (A) - 喜欢创造表达</option>
+                                        <option value="S">社会型 (S) - 喜欢帮助他人</option>
+                                        <option value="E">企业型 (E) - 喜欢领导管理</option>
+                                        <option value="C" selected>常规型 (C) - 喜欢有序规则</option>
+                                    </select>
+                                </div>
+                                <div class="code-builder">
+                                    <label>第二位：</label>
+                                    <select id="holland2">
+                                        <option value="R" selected>实用型 (R)</option>
+                                        <option value="I">研究型 (I)</option>
+                                        <option value="A">艺术型 (A)</option>
+                                        <option value="S">社会型 (S)</option>
+                                        <option value="E">企业型 (E)</option>
+                                        <option value="C">常规型 (C)</option>
+                                    </select>
+                                </div>
+                                <div class="code-builder">
+                                    <label>第三位：</label>
+                                    <select id="holland3">
+                                        <option value="R">实用型 (R)</option>
+                                        <option value="I" selected>研究型 (I)</option>
+                                        <option value="A">艺术型 (A)</option>
+                                        <option value="S">社会型 (S)</option>
+                                        <option value="E">企业型 (E)</option>
+                                        <option value="C">常规型 (C)</option>
+                                    </select>
+                                </div>
+                                <div class="code-preview">
+                                    预览：<span id="hollandPreview">CRI</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- MBTI类型选择 -->
+                        <div class="form-section">
+                            <h3>MBTI性格类型</h3>
+                            <div class="mbti-selector">
+                                <div class="mbti-dimension">
+                                    <label>精力来源：</label>
+                                    <select id="mbti1">
+                                        <option value="E">外倾 (E) - 外向交际</option>
+                                        <option value="I" selected>内倾 (I) - 内向思考</option>
+                                    </select>
+                                </div>
+                                <div class="mbti-dimension">
+                                    <label>信息获取：</label>
+                                    <select id="mbti2">
+                                        <option value="S" selected>感觉 (S) - 关注细节</option>
+                                        <option value="N">直觉 (N) - 关注概念</option>
+                                    </select>
+                                </div>
+                                <div class="mbti-dimension">
+                                    <label>决策方式：</label>
+                                    <select id="mbti3">
+                                        <option value="T" selected>思考 (T) - 逻辑分析</option>
+                                        <option value="F">情感 (F) - 价值关怀</option>
+                                    </select>
+                                </div>
+                                <div class="mbti-dimension">
+                                    <label>生活方式：</label>
+                                    <select id="mbti4">
+                                        <option value="J" selected>判断 (J) - 有计划</option>
+                                        <option value="P">感知 (P) - 灵活开放</option>
+                                    </select>
+                                </div>
+                                <div class="mbti-preview">
+                                    预览：<span id="mbtiPreview">ISTJ</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 能力分值设置 -->
+                        <div class="form-section">
+                            <h3>个人能力评分 (1-5分)</h3>
+                            <div class="ability-sliders">
+                                <div class="ability-item">
+                                    <label>逻辑思维能力：</label>
+                                    <input type="range" id="ability1" min="1" max="5" value="4" step="1">
+                                    <span class="score-display">4</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>创新思维能力：</label>
+                                    <input type="range" id="ability2" min="1" max="5" value="3" step="1">
+                                    <span class="score-display">3</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>数据分析能力：</label>
+                                    <input type="range" id="ability3" min="1" max="5" value="4" step="1">
+                                    <span class="score-display">4</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>组织协调能力：</label>
+                                    <input type="range" id="ability4" min="1" max="5" value="3" step="1">
+                                    <span class="score-display">3</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>沟通表达能力：</label>
+                                    <input type="range" id="ability5" min="1" max="5" value="3" step="1">
+                                    <span class="score-display">3</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>动手实践能力：</label>
+                                    <input type="range" id="ability6" min="1" max="5" value="4" step="1">
+                                    <span class="score-display">4</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>共情与同理心：</label>
+                                    <input type="range" id="ability7" min="1" max="5" value="3" step="1">
+                                    <span class="score-display">3</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>艺术审美能力：</label>
+                                    <input type="range" id="ability8" min="1" max="5" value="2" step="1">
+                                    <span class="score-display">2</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>耐心与专注力：</label>
+                                    <input type="range" id="ability9" min="1" max="5" value="4" step="1">
+                                    <span class="score-display">4</span>
+                                </div>
+                                <div class="ability-item">
+                                    <label>空间想象能力：</label>
+                                    <input type="range" id="ability10" min="1" max="5" value="3" step="1">
+                                    <span class="score-display">3</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 预设方案 -->
+                        <div class="form-section">
+                            <h3>快速预设</h3>
+                            <div class="preset-buttons">
+                                <button class="preset-btn" onclick="applyPreset('engineering')">工科生 (RIC + 高逻辑)</button>
+                                <button class="preset-btn" onclick="applyPreset('business')">商科生 (ECS + 高沟通)</button>
+                                <button class="preset-btn" onclick="applyPreset('liberal')">文科生 (SAI + 高情感)</button>
+                                <button class="preset-btn" onclick="applyPreset('research')">研究型 (IAE + 高创新)</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="generate-result-btn" onclick="generateQuickTestResult()">生成测评结果</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 绑定事件监听器
+            bindQuickTestEvents();
+        }        // 绑定快速测试事件
+        function bindQuickTestEvents() {
+            // 霍兰德代码预览更新
+            const updateHollandPreview = () => {
+                const h1 = document.getElementById('holland1').value;
+                const h2 = document.getElementById('holland2').value;
+                const h3 = document.getElementById('holland3').value;
+                document.getElementById('hollandPreview').textContent = h1 + h2 + h3;
+            };
+            
+            document.getElementById('holland1').addEventListener('change', updateHollandPreview);
+            document.getElementById('holland2').addEventListener('change', updateHollandPreview);
+            document.getElementById('holland3').addEventListener('change', updateHollandPreview);
+            
+            // MBTI类型预览更新
+            const updateMBTIPreview = () => {
+                const m1 = document.getElementById('mbti1').value;
+                const m2 = document.getElementById('mbti2').value;
+                const m3 = document.getElementById('mbti3').value;
+                const m4 = document.getElementById('mbti4').value;
+                document.getElementById('mbtiPreview').textContent = m1 + m2 + m3 + m4;
+            };
+            
+            document.getElementById('mbti1').addEventListener('change', updateMBTIPreview);
+            document.getElementById('mbti2').addEventListener('change', updateMBTIPreview);
+            document.getElementById('mbti3').addEventListener('change', updateMBTIPreview);
+            document.getElementById('mbti4').addEventListener('change', updateMBTIPreview);
+            
+            // 能力滑块更新
+            for (let i = 1; i <= 10; i++) {
+                const slider = document.getElementById(`ability${i}`);
+                const display = slider.nextElementSibling;
+                slider.addEventListener('input', function() {
+                    display.textContent = this.value;
+                });
             }
-            abilityScores[choice.score_type].sum += choice.score_value;
-            abilityScores[choice.score_type].count += 1;
         }
-    }
-
-    // ========== 已移除的冗余专业详情函数 - 使用数据库查询版本替代 ==========
+        
+        // 应用预设方案
+        function applyPreset(type) {
+            switch(type) {
+                case 'engineering': // 工科生
+                    document.getElementById('holland1').value = 'R';
+                    document.getElementById('holland2').value = 'I';
+                    document.getElementById('holland3').value = 'C';
+                    document.getElementById('mbti1').value = 'I';
+                    document.getElementById('mbti2').value = 'S';
+                    document.getElementById('mbti3').value = 'T';
+                    document.getElementById('mbti4').value = 'J';
+                    // 能力设置
+                    document.getElementById('ability1').value = 5; // 逻辑思维
+                    document.getElementById('ability2').value = 4; // 创新思维
+                    document.getElementById('ability3').value = 5; // 数据分析
+                    document.getElementById('ability4').value = 3; // 组织协调
+                    document.getElementById('ability5').value = 3; // 沟通表达
+                    document.getElementById('ability6').value = 5; // 动手实践
+                    document.getElementById('ability7').value = 2; // 共情同理
+                    document.getElementById('ability8').value = 2; // 艺术审美
+                    document.getElementById('ability9').value = 4; // 耐心专注
+                    document.getElementById('ability10').value = 4; // 空间想象
+                    break;
+                case 'business': // 商科生
+                    document.getElementById('holland1').value = 'E';
+                    document.getElementById('holland2').value = 'C';
+                    document.getElementById('holland3').value = 'S';
+                    document.getElementById('mbti1').value = 'E';
+                    document.getElementById('mbti2').value = 'S';
+                    document.getElementById('mbti3').value = 'T';
+                    document.getElementById('mbti4').value = 'J';
+                    // 能力设置
+                    document.getElementById('ability1').value = 4; // 逻辑思维
+                    document.getElementById('ability2').value = 4; // 创新思维
+                    document.getElementById('ability3').value = 4; // 数据分析
+                    document.getElementById('ability4').value = 5; // 组织协调
+                    document.getElementById('ability5').value = 5; // 沟通表达
+                    document.getElementById('ability6').value = 3; // 动手实践
+                    document.getElementById('ability7').value = 4; // 共情同理
+                    document.getElementById('ability8').value = 3; // 艺术审美
+                    document.getElementById('ability9').value = 4; // 耐心专注
+                    document.getElementById('ability10').value = 3; // 空间想象
+                    break;
+                case 'liberal': // 文科生
+                    document.getElementById('holland1').value = 'S';
+                    document.getElementById('holland2').value = 'A';
+                    document.getElementById('holland3').value = 'I';
+                    document.getElementById('mbti1').value = 'I';
+                    document.getElementById('mbti2').value = 'N';
+                    document.getElementById('mbti3').value = 'F';
+                    document.getElementById('mbti4').value = 'P';
+                    // 能力设置
+                    document.getElementById('ability1').value = 3; // 逻辑思维
+                    document.getElementById('ability2').value = 5; // 创新思维
+                    document.getElementById('ability3').value = 3; // 数据分析
+                    document.getElementById('ability4').value = 4; // 组织协调
+                    document.getElementById('ability5').value = 5; // 沟通表达
+                    document.getElementById('ability6').value = 2; // 动手实践
+                    document.getElementById('ability7').value = 5; // 共情同理
+                    document.getElementById('ability8').value = 5; // 艺术审美
+                    document.getElementById('ability9').value = 4; // 耐心专注
+                    document.getElementById('ability10').value = 3; // 空间想象
+                    break;
+                case 'research': // 研究型
+                    document.getElementById('holland1').value = 'I';
+                    document.getElementById('holland2').value = 'A';
+                    document.getElementById('holland3').value = 'E';
+                    document.getElementById('mbti1').value = 'I';
+                    document.getElementById('mbti2').value = 'N';
+                    document.getElementById('mbti3').value = 'T';
+                    document.getElementById('mbti4').value = 'P';
+                    // 能力设置
+                    document.getElementById('ability1').value = 5; // 逻辑思维
+                    document.getElementById('ability2').value = 5; // 创新思维
+                    document.getElementById('ability3').value = 5; // 数据分析
+                    document.getElementById('ability4').value = 3; // 组织协调
+                    document.getElementById('ability5').value = 3; // 沟通表达
+                    document.getElementById('ability6').value = 3; // 动手实践
+                    document.getElementById('ability7').value = 3; // 共情同理
+                    document.getElementById('ability8').value = 4; // 艺术审美
+                    document.getElementById('ability9').value = 5; // 耐心专注
+                    document.getElementById('ability10').value = 4; // 空间想象
+                    break;
+            }
+            
+            // 更新所有显示
+            document.getElementById('hollandPreview').textContent = 
+                document.getElementById('holland1').value + 
+                document.getElementById('holland2').value + 
+                document.getElementById('holland3').value;
+                
+            document.getElementById('mbtiPreview').textContent = 
+                document.getElementById('mbti1').value + 
+                document.getElementById('mbti2').value + 
+                document.getElementById('mbti3').value + 
+                document.getElementById('mbti4').value;
+                
+            // 更新所有能力滑块显示
+            for (let i = 1; i <= 10; i++) {
+                const slider = document.getElementById(`ability${i}`);
+                const display = slider.nextElementSibling;
+                display.textContent = slider.value;
+            }
+        }
+        
+        // 生成快速测试结果
+        async function generateQuickTestResult() {
+            try {
+                // 获取设置的参数
+                const hollandCode = document.getElementById('hollandPreview').textContent;
+                const mbtiType = document.getElementById('mbtiPreview').textContent;
+                
+                // 模拟霍兰德分数
+                hollandScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+                const codes = hollandCode.split('');
+                hollandScores[codes[0]] = 50; // 第一位最高分
+                hollandScores[codes[1]] = 35; // 第二位中等分
+                hollandScores[codes[2]] = 25; // 第三位较低分
+                // 其他类型随机低分
+                Object.keys(hollandScores).forEach(key => {
+                    if (!codes.includes(key)) {
+                        hollandScores[key] = Math.floor(Math.random() * 15) + 5;
+                    }
+                });
+                
+                // 模拟MBTI分数
+                mbtiScores = {
+                    'EI': { 'E': 0, 'I': 0 },
+                    'SN': { 'S': 0, 'N': 0 },
+                    'TF': { 'T': 0, 'F': 0 },
+                    'JP': { 'J': 0, 'P': 0 }
+                };
+                
+                const mbtiChars = mbtiType.split('');
+                mbtiScores['EI'][mbtiChars[0]] = 30;
+                mbtiScores['EI'][mbtiChars[0] === 'E' ? 'I' : 'E'] = 15;
+                mbtiScores['SN'][mbtiChars[1]] = 30;
+                mbtiScores['SN'][mbtiChars[1] === 'S' ? 'N' : 'S'] = 15;
+                mbtiScores['TF'][mbtiChars[2]] = 30;
+                mbtiScores['TF'][mbtiChars[2] === 'T' ? 'F' : 'T'] = 15;
+                mbtiScores['JP'][mbtiChars[3]] = 30;
+                mbtiScores['JP'][mbtiChars[3] === 'J' ? 'P' : 'J'] = 15;
+                
+                // 模拟能力分数
+                const abilityNames = [
+                    '逻辑思维能力', '创新思维能力', '数据分析能力', 
+                    '组织协调能力', '沟通表达能力', '动手实践能力',
+                    '共情与同理心', '艺术审美能力', '耐心与专注力', '空间想象能力'
+                ];
+                
+                abilityScores = {};
+                abilityNames.forEach((name, index) => {
+                    const score = parseInt(document.getElementById(`ability${index + 1}`).value);
+                    abilityScores[name] = { sum: score, count: 1 };
+                });
+                
+                console.log('🛠️ 快速测试模式 - 模拟数据:', {
+                    hollandCode, mbtiType, hollandScores, mbtiScores, abilityScores
+                });
+                
+                // 显示加载动画
+                showLoadingAnimation();
+                
+                // 等待一下再显示结果，模拟真实计算过程
+                setTimeout(async () => {
+                    await renderResultPage();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('快速测试错误:', error);
+                alert('生成测试结果失败，请检查设置参数');
+            }
+        }    // ========== 已移除的冗余专业详情函数 - 使用数据库查询版本替代 ==========
     /*
     // 此函数已被移除，因为：
     // 1. 与后面的 viewMajorDetails 函数重复
@@ -2659,6 +3015,245 @@ window.initializeAssessmentTab = function() {
                 font-style: italic;
             }
             
+            /* 快速测试模式样式 */
+            .test-mode-panel {
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                color: white;
+            }
+            
+            .quick-test-btn {
+                background: rgba(255,255,255,0.2);
+                color: white;
+                border: 2px solid rgba(255,255,255,0.3);
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+            }
+            
+            .quick-test-btn:hover {
+                background: rgba(255,255,255,0.3);
+                border-color: rgba(255,255,255,0.5);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            }
+            
+            .test-mode-hint {
+                display: block;
+                margin-top: 8px;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+            
+            .quick-test-panel {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .panel-header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 12px;
+                color: white;
+            }
+            
+            .panel-header h2 {
+                margin: 0 0 10px 0;
+                font-size: 28px;
+            }
+            
+            .panel-header p {
+                margin: 0 0 15px 0;
+                opacity: 0.9;
+            }
+            
+            .back-to-normal {
+                background: rgba(255,255,255,0.2);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.3);
+                padding: 8px 16px;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .back-to-normal:hover {
+                background: rgba(255,255,255,0.3);
+            }
+            
+            .test-form {
+                display: grid;
+                gap: 25px;
+            }
+            
+            .form-section {
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            
+            .form-section h3 {
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 20px;
+                border-bottom: 2px solid #e0e0e0;
+                padding-bottom: 10px;
+            }
+            
+            .holland-selector, .mbti-selector {
+                display: grid;
+                gap: 15px;
+            }
+            
+            .code-builder, .mbti-dimension {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .code-builder label, .mbti-dimension label {
+                min-width: 120px;
+                font-weight: 600;
+                color: #555;
+            }
+            
+            .code-builder select, .mbti-dimension select {
+                flex: 1;
+                padding: 8px 12px;
+                border: 2px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: border-color 0.3s ease;
+            }
+            
+            .code-builder select:focus, .mbti-dimension select:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+            
+            .code-preview, .mbti-preview {
+                text-align: center;
+                margin-top: 15px;
+                padding: 12px;
+                background: #f0f8ff;
+                border-radius: 8px;
+                font-size: 18px;
+                font-weight: bold;
+                color: #2196f3;
+            }
+            
+            .ability-sliders {
+                display: grid;
+                gap: 15px;
+            }
+            
+            .ability-item {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 12px;
+                background: #f8f9fa;
+                border-radius: 8px;
+            }
+            
+            .ability-item label {
+                min-width: 140px;
+                font-weight: 600;
+                color: #555;
+            }
+            
+            .ability-item input[type="range"] {
+                flex: 1;
+                height: 6px;
+                background: #ddd;
+                border-radius: 3px;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+            
+            .ability-item input[type="range"]::-webkit-slider-thumb {
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                background: #667eea;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .ability-item input[type="range"]::-webkit-slider-thumb:hover {
+                background: #5a6fd8;
+                transform: scale(1.1);
+            }
+            
+            .score-display {
+                min-width: 30px;
+                text-align: center;
+                font-weight: bold;
+                color: #667eea;
+                background: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                border: 1px solid #e0e0e0;
+            }
+            
+            .preset-buttons {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 12px;
+            }
+            
+            .preset-btn {
+                padding: 12px 16px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .preset-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+            
+            .form-actions {
+                text-align: center;
+                margin-top: 20px;
+            }
+            
+            .generate-result-btn {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                border-radius: 25px;
+                font-size: 18px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            }
+            
+            .generate-result-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+            }
+            
             /* 推荐理由样式 - 紧凑显示 */
             .recommendation-reason {
                 font-size: 14px;
@@ -2987,6 +3582,561 @@ window.initializeAssessmentTab = function() {
     
     // 分享报告功能已移除 - 不再需要此功能
     // function shareReport() { ... }
+    
+    // ========== 快速测试模式功能 (仅用于调试) ==========
+    
+    // 全局快速测试函数，在window范围内定义
+    window.showQuickTestPanel = function() {
+        const assessmentTab = document.getElementById('assessment-tab');
+        assessmentTab.innerHTML = `
+            <div class="quick-test-panel">
+                <div class="panel-header">
+                    <h2>🛠️ 快速测试模式</h2>
+                    <p>跳过100道题，直接设置测评参数进行算法测试</p>
+                    <button class="back-to-normal" onclick="location.reload()">返回正常测评</button>
+                </div>
+                
+                <div class="test-form">
+                    <!-- 霍兰德代码选择 -->
+                    <div class="form-section">
+                        <h3>霍兰德兴趣代码</h3>
+                        <div class="holland-selector">
+                            <div class="code-builder">
+                                <label>第一位（主导兴趣）：</label>
+                                <select id="holland1">
+                                    <option value="R">实用型 (R) - 喜欢动手操作</option>
+                                    <option value="I">研究型 (I) - 喜欢分析研究</option>
+                                    <option value="A">艺术型 (A) - 喜欢创造表达</option>
+                                    <option value="S">社会型 (S) - 喜欢帮助他人</option>
+                                    <option value="E">企业型 (E) - 喜欢领导管理</option>
+                                    <option value="C" selected>常规型 (C) - 喜欢有序规则</option>
+                                </select>
+                            </div>
+                            <div class="code-builder">
+                                <label>第二位：</label>
+                                <select id="holland2">
+                                    <option value="R" selected>实用型 (R)</option>
+                                    <option value="I">研究型 (I)</option>
+                                    <option value="A">艺术型 (A)</option>
+                                    <option value="S">社会型 (S)</option>
+                                    <option value="E">企业型 (E)</option>
+                                    <option value="C">常规型 (C)</option>
+                                </select>
+                            </div>
+                            <div class="code-builder">
+                                <label>第三位：</label>
+                                <select id="holland3">
+                                    <option value="R">实用型 (R)</option>
+                                    <option value="I" selected>研究型 (I)</option>
+                                    <option value="A">艺术型 (A)</option>
+                                    <option value="S">社会型 (S)</option>
+                                    <option value="E">企业型 (E)</option>
+                                    <option value="C">常规型 (C)</option>
+                                </select>
+                            </div>
+                            <div class="code-preview">
+                                预览：<span id="hollandPreview">CRI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- MBTI类型选择 -->
+                    <div class="form-section">
+                        <h3>MBTI性格类型</h3>
+                        <div class="mbti-selector">
+                            <div class="mbti-dimension">
+                                <label>精力来源：</label>
+                                <select id="mbti1">
+                                    <option value="E">外倾 (E) - 外向交际</option>
+                                    <option value="I" selected>内倾 (I) - 内向思考</option>
+                                </select>
+                            </div>
+                            <div class="mbti-dimension">
+                                <label>信息获取：</label>
+                                <select id="mbti2">
+                                    <option value="S" selected>感觉 (S) - 关注细节</option>
+                                    <option value="N">直觉 (N) - 关注概念</option>
+                                </select>
+                            </div>
+                            <div class="mbti-dimension">
+                                <label>决策方式：</label>
+                                <select id="mbti3">
+                                    <option value="T" selected>思考 (T) - 逻辑分析</option>
+                                    <option value="F">情感 (F) - 价值关怀</option>
+                                </select>
+                            </div>
+                            <div class="mbti-dimension">
+                                <label>生活方式：</label>
+                                <select id="mbti4">
+                                    <option value="J" selected>判断 (J) - 有计划</option>
+                                    <option value="P">感知 (P) - 灵活开放</option>
+                                </select>
+                            </div>
+                            <div class="mbti-preview">
+                                预览：<span id="mbtiPreview">ISTJ</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 能力分值设置 -->
+                    <div class="form-section">
+                        <h3>个人能力评分 (1-5分)</h3>
+                        <div class="ability-sliders">
+                            <div class="ability-item">
+                                <label>逻辑思维能力：</label>
+                                <input type="range" id="ability1" min="1" max="5" value="4" step="1">
+                                <span class="score-display">4</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>创新思维能力：</label>
+                                <input type="range" id="ability2" min="1" max="5" value="3" step="1">
+                                <span class="score-display">3</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>数据分析能力：</label>
+                                <input type="range" id="ability3" min="1" max="5" value="4" step="1">
+                                <span class="score-display">4</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>组织协调能力：</label>
+                                <input type="range" id="ability4" min="1" max="5" value="3" step="1">
+                                <span class="score-display">3</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>沟通表达能力：</label>
+                                <input type="range" id="ability5" min="1" max="5" value="3" step="1">
+                                <span class="score-display">3</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>动手实践能力：</label>
+                                <input type="range" id="ability6" min="1" max="5" value="4" step="1">
+                                <span class="score-display">4</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>共情与同理心：</label>
+                                <input type="range" id="ability7" min="1" max="5" value="3" step="1">
+                                <span class="score-display">3</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>艺术审美能力：</label>
+                                <input type="range" id="ability8" min="1" max="5" value="2" step="1">
+                                <span class="score-display">2</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>耐心与专注力：</label>
+                                <input type="range" id="ability9" min="1" max="5" value="4" step="1">
+                                <span class="score-display">4</span>
+                            </div>
+                            <div class="ability-item">
+                                <label>空间想象能力：</label>
+                                <input type="range" id="ability10" min="1" max="5" value="3" step="1">
+                                <span class="score-display">3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 预设方案 -->
+                    <div class="form-section">
+                        <h3>快速预设</h3>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="applyPreset('engineering')">工科生 (RIC + 高逻辑)</button>
+                            <button class="preset-btn" onclick="applyPreset('business')">商科生 (ECS + 高沟通)</button>
+                            <button class="preset-btn" onclick="applyPreset('liberal')">文科生 (SAI + 高情感)</button>
+                            <button class="preset-btn" onclick="applyPreset('research')">研究型 (IAE + 高创新)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="generate-result-btn" onclick="generateQuickTestResult()">生成测评结果</button>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                /* 快速测试模式样式 */
+                .test-mode-panel {
+                    text-align: center;
+                    margin: 20px 0;
+                    padding: 15px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 10px;
+                    color: white;
+                }
+                
+                .quick-test-btn {
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    padding: 12px 24px;
+                    border-radius: 25px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .quick-test-btn:hover {
+                    background: rgba(255,255,255,0.3);
+                    border-color: rgba(255,255,255,0.5);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                }
+                
+                .test-mode-hint {
+                    display: block;
+                    margin-top: 8px;
+                    font-size: 12px;
+                    opacity: 0.8;
+                }
+                
+                .quick-test-panel {
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                
+                .panel-header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    padding: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 12px;
+                    color: white;
+                }
+                
+                .panel-header h2 {
+                    margin: 0 0 10px 0;
+                    font-size: 28px;
+                }
+                
+                .panel-header p {
+                    margin: 0 0 15px 0;
+                    opacity: 0.9;
+                }
+                
+                .back-to-normal {
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    border: 1px solid rgba(255,255,255,0.3);
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .test-form {
+                    display: grid;
+                    gap: 25px;
+                }
+                
+                .form-section {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                
+                .form-section h3 {
+                    margin: 0 0 20px 0;
+                    color: #333;
+                    font-size: 20px;
+                    border-bottom: 2px solid #e0e0e0;
+                    padding-bottom: 10px;
+                }
+                
+                .holland-selector, .mbti-selector {
+                    display: grid;
+                    gap: 15px;
+                }
+                
+                .code-builder, .mbti-dimension {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .code-builder label, .mbti-dimension label {
+                    min-width: 120px;
+                    font-weight: 600;
+                    color: #555;
+                }
+                
+                .code-builder select, .mbti-dimension select {
+                    flex: 1;
+                    padding: 8px 12px;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    transition: border-color 0.3s ease;
+                }
+                
+                .code-preview, .mbti-preview {
+                    text-align: center;
+                    margin-top: 15px;
+                    padding: 12px;
+                    background: #f0f8ff;
+                    border-radius: 8px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2196f3;
+                }
+                
+                .ability-sliders {
+                    display: grid;
+                    gap: 15px;
+                }
+                
+                .ability-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    padding: 12px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                }
+                
+                .ability-item label {
+                    min-width: 140px;
+                    font-weight: 600;
+                    color: #555;
+                }
+                
+                .ability-item input[type="range"] {
+                    flex: 1;
+                    height: 6px;
+                    background: #ddd;
+                    border-radius: 3px;
+                    outline: none;
+                }
+                
+                .score-display {
+                    min-width: 30px;
+                    text-align: center;
+                    font-weight: bold;
+                    color: #667eea;
+                    background: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    border: 1px solid #e0e0e0;
+                }
+                
+                .preset-buttons {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;
+                }
+                
+                .preset-btn {
+                    padding: 12px 16px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .preset-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                }
+                
+                .form-actions {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+                
+                .generate-result-btn {
+                    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                    color: white;
+                    border: none;
+                    padding: 15px 40px;
+                    border-radius: 25px;
+                    font-size: 18px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                }
+                
+                .generate-result-btn:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+                }
+            </style>
+        `;
+        
+        // 绑定事件
+        bindQuickTestEvents();
+    };
+    
+    // 其他全局快速测试函数
+    window.bindQuickTestEvents = function() {
+        const updateHollandPreview = () => {
+            const h1 = document.getElementById('holland1').value;
+            const h2 = document.getElementById('holland2').value;
+            const h3 = document.getElementById('holland3').value;
+            document.getElementById('hollandPreview').textContent = h1 + h2 + h3;
+        };
+        
+        document.getElementById('holland1').addEventListener('change', updateHollandPreview);
+        document.getElementById('holland2').addEventListener('change', updateHollandPreview);
+        document.getElementById('holland3').addEventListener('change', updateHollandPreview);
+        
+        const updateMBTIPreview = () => {
+            const m1 = document.getElementById('mbti1').value;
+            const m2 = document.getElementById('mbti2').value;
+            const m3 = document.getElementById('mbti3').value;
+            const m4 = document.getElementById('mbti4').value;
+            document.getElementById('mbtiPreview').textContent = m1 + m2 + m3 + m4;
+        };
+        
+        document.getElementById('mbti1').addEventListener('change', updateMBTIPreview);
+        document.getElementById('mbti2').addEventListener('change', updateMBTIPreview);
+        document.getElementById('mbti3').addEventListener('change', updateMBTIPreview);
+        document.getElementById('mbti4').addEventListener('change', updateMBTIPreview);
+        
+        // 能力滑块更新
+        for (let i = 1; i <= 10; i++) {
+            const slider = document.getElementById(`ability${i}`);
+            if (slider) {
+                const display = slider.nextElementSibling;
+                slider.addEventListener('input', function() {
+                    display.textContent = this.value;
+                });
+            }
+        }
+    };
+    
+    window.applyPreset = function(type) {
+        const presets = {
+            'engineering': {
+                holland: ['R', 'I', 'C'],
+                mbti: ['I', 'S', 'T', 'J'],
+                abilities: [5, 4, 5, 3, 3, 5, 2, 2, 4, 4]
+            },
+            'business': {
+                holland: ['E', 'C', 'S'],
+                mbti: ['E', 'S', 'T', 'J'],
+                abilities: [4, 4, 4, 5, 5, 3, 4, 3, 4, 3]
+            },
+            'liberal': {
+                holland: ['S', 'A', 'I'],
+                mbti: ['I', 'N', 'F', 'P'],
+                abilities: [3, 5, 3, 4, 5, 2, 5, 5, 4, 3]
+            },
+            'research': {
+                holland: ['I', 'A', 'E'],
+                mbti: ['I', 'N', 'T', 'P'],
+                abilities: [5, 5, 5, 3, 3, 3, 3, 4, 5, 4]
+            }
+        };
+        
+        const preset = presets[type];
+        if (!preset) return;
+        
+        // 设置霍兰德代码
+        document.getElementById('holland1').value = preset.holland[0];
+        document.getElementById('holland2').value = preset.holland[1];
+        document.getElementById('holland3').value = preset.holland[2];
+        
+        // 设置MBTI类型
+        document.getElementById('mbti1').value = preset.mbti[0];
+        document.getElementById('mbti2').value = preset.mbti[1];
+        document.getElementById('mbti3').value = preset.mbti[2];
+        document.getElementById('mbti4').value = preset.mbti[3];
+        
+        // 设置能力分值
+        preset.abilities.forEach((score, index) => {
+            const slider = document.getElementById(`ability${index + 1}`);
+            const display = slider.nextElementSibling;
+            slider.value = score;
+            display.textContent = score;
+        });
+        
+        // 更新预览
+        document.getElementById('hollandPreview').textContent = preset.holland.join('');
+        document.getElementById('mbtiPreview').textContent = preset.mbti.join('');
+    };
+    
+    window.generateQuickTestResult = async function() {
+        try {
+            const hollandCode = document.getElementById('hollandPreview').textContent;
+            const mbtiType = document.getElementById('mbtiPreview').textContent;
+            
+            // 收集能力分值
+            const abilities = [];
+            for (let i = 1; i <= 10; i++) {
+                const slider = document.getElementById(`ability${i}`);
+                abilities.push(parseInt(slider.value));
+            }
+            
+            console.log('🛠️ 快速测试模式 - 生成结果:', { 
+                hollandCode, 
+                mbtiType, 
+                abilities 
+            });
+            
+            // 构造虚拟的测评结果数据
+            const mockResult = {
+                hollandCode: hollandCode,
+                mbtiType: mbtiType,
+                hollandScores: {},
+                mbtiScores: {
+                    'EI': { [mbtiType[0]]: 60, [mbtiType[0] === 'E' ? 'I' : 'E']: 40 },
+                    'SN': { [mbtiType[1]]: 60, [mbtiType[1] === 'S' ? 'N' : 'S']: 40 },
+                    'TF': { [mbtiType[2]]: 60, [mbtiType[2] === 'T' ? 'F' : 'T']: 40 },
+                    'JP': { [mbtiType[3]]: 60, [mbtiType[3] === 'J' ? 'P' : 'J']: 40 }
+                },
+                abilityScores: {
+                    '逻辑思维能力': abilities[0],
+                    '创新思维能力': abilities[1], 
+                    '数据分析能力': abilities[2],
+                    '组织协调能力': abilities[3],
+                    '沟通表达能力': abilities[4],
+                    '动手实践能力': abilities[5],
+                    '共情与同理心': abilities[6],
+                    '艺术审美能力': abilities[7],
+                    '耐心与专注力': abilities[8],
+                    '空间想象能力': abilities[9]
+                }
+            };
+            
+            // 设置霍兰德分数 (将代码转换为分数)
+            hollandCode.split('').forEach((letter, index) => {
+                mockResult.hollandScores[letter] = (3 - index) * 20 + 40; // 第一位60分，第二位40分，第三位20分
+            });
+            
+            // 补充其他字母的分数
+            ['R', 'I', 'A', 'S', 'E', 'C'].forEach(letter => {
+                if (!mockResult.hollandScores[letter]) {
+                    mockResult.hollandScores[letter] = Math.floor(Math.random() * 20) + 10; // 10-30分
+                }
+            });
+            
+            console.log('🛠️ 构造的虚拟结果:', mockResult);
+            
+            // 使用现有的推荐系统计算专业推荐
+            const majors = await generateRecommendedMajors(mockResult.hollandCode, mockResult.mbtiType);
+            
+            // 设置全局结果对象
+            window.assessmentResult = {
+                ...mockResult,
+                recommendedMajors: majors,
+                isQuickTest: true // 标记这是快速测试结果
+            };
+            
+            // 切换到结果页面
+            currentStep = 'result';
+            await renderPage();
+            
+        } catch (error) {
+            console.error('快速测试错误:', error);
+            alert('生成测试结果失败，请检查设置参数');
+        }
+    };
     
     // 添加全局变量初始化，确保assessmentResult存在
     if (!window.assessmentResult) {
