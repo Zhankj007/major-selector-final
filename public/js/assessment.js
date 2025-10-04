@@ -93,6 +93,9 @@
                         <button id="start-assessment-btn" class="primary-button">
                             开始测评 (约10-15分钟)
                         </button>
+                        <button id="test-connection-btn" class="secondary-button">
+                            测试数据库连接
+                        </button>
                         <p class="test-note">
                             <strong>温馨提示：</strong>请根据您的真实想法回答，没有标准答案，只有最适合您的选择。
                         </p>
@@ -103,6 +106,46 @@
 
         // 添加开始测评按钮事件
         document.getElementById('start-assessment-btn').addEventListener('click', startAssessment);
+        
+        // 添加测试连接按钮事件
+        document.getElementById('test-connection-btn').addEventListener('click', testDatabaseConnection);
+    }
+
+    // 测试数据库连接
+    async function testDatabaseConnection() {
+        const testBtn = document.getElementById('test-connection-btn');
+        const originalText = testBtn.textContent;
+        
+        try {
+            testBtn.textContent = '测试中...';
+            testBtn.disabled = true;
+            
+            console.log('开始测试数据库连接...');
+            
+            if (!window.supabaseClient) {
+                throw new Error('Supabase客户端未初始化');
+            }
+            
+            // 简单的连接测试
+            const { data, error } = await window.supabaseClient
+                .from('questions')
+                .select('count')
+                .limit(1);
+            
+            if (error) {
+                throw error;
+            }
+            
+            alert('✅ 数据库连接正常！\n\n可以开始测评了。');
+            console.log('数据库连接测试成功');
+            
+        } catch (error) {
+            console.error('数据库连接测试失败:', error);
+            alert(`❌ 数据库连接失败\n\n错误信息：${error.message}\n\n请联系管理员检查配置。`);
+        } finally {
+            testBtn.textContent = originalText;
+            testBtn.disabled = false;
+        }
     }
 
     // 开始测评
@@ -156,11 +199,26 @@
     // 加载题目
     async function loadQuestions() {
         try {
-            if (!supabaseClient) {
-                throw new Error('数据库连接未初始化');
+            console.log('开始加载题目...');
+            console.log('Supabase客户端状态:', !!window.supabaseClient);
+            
+            if (!window.supabaseClient) {
+                console.error('数据库客户端未找到');
+                throw new Error('数据库连接未初始化，请刷新页面重试');
+            }
+            
+            const supabaseClient = window.supabaseClient;
+            console.log('使用Supabase客户端:', supabaseClient);
+            
+            // 检查Supabase配置
+            console.log('检查Supabase配置...');
+            if (!supabaseClient.supabaseUrl || supabaseClient.supabaseUrl.includes('__')) {
+                console.error('Supabase URL未正确配置');
+                throw new Error('数据库配置错误，请联系管理员检查环境配置');
             }
 
             // 获取所有题目和选项
+            console.log('开始查询题目数据...');
             const { data: questions, error: questionsError } = await supabaseClient
                 .from('questions')
                 .select(`
@@ -176,12 +234,16 @@
                 `)
                 .order('id');
 
+            console.log('数据库查询结果:', { questions, questionsError });
+
             if (questionsError) {
-                throw new Error('获取题目失败: ' + questionsError.message);
+                console.error('数据库查询错误:', questionsError);
+                throw new Error('获取题目失败: ' + questionsError.message + '。请检查数据库连接或联系管理员。');
             }
 
             if (!questions || questions.length === 0) {
-                throw new Error('未找到测评题目');
+                console.warn('未找到任何题目数据');
+                throw new Error('数据库中未找到测评题目，请联系管理员添加题目数据。');
             }
 
             // 按类型分组题目
@@ -582,12 +644,24 @@
 
     // 显示错误页面
     function showErrorPage(error) {
+        console.error('显示错误页面:', error);
         assessmentTab.innerHTML = `
             <div class="error-container">
                 <div class="error-icon">⚠️</div>
                 <h3>出现了问题</h3>
-                <p>${error.message}</p>
-                <button onclick="restartAssessment()" class="primary-button">重新开始</button>
+                <p class="error-message"><strong>错误信息：</strong>${error.message}</p>
+                <div class="error-details">
+                    <p><strong>可能的解决方案：</strong></p>
+                    <ul>
+                        <li>检查网络连接是否正常</li>
+                        <li>刷新页面重新尝试</li>
+                        <li>确认数据库服务是否可用</li>
+                    </ul>
+                </div>
+                <div class="error-actions">
+                    <button onclick="location.reload()" class="secondary-button">刷新页面</button>
+                    <button onclick="restartAssessment()" class="primary-button">重新开始</button>
+                </div>
             </div>
         `;
     }
@@ -609,11 +683,19 @@
         const style = document.createElement('style');
         style.id = 'assessment-styles';
         style.textContent = `
+            /* 确保assessment-tab可以正常滚动 */
+            #assessment-tab {
+                overflow-y: auto;
+                max-height: calc(100vh - 200px);
+                padding: 20px;
+            }
+            
             .welcome-container {
-                max-width: 800px;
+                max-width: 1000px;
                 margin: 0 auto;
-                padding: 40px 20px;
+                padding: 20px;
                 text-align: center;
+                min-height: 600px;
             }
 
             .welcome-header h2 {
@@ -932,22 +1014,64 @@
 
             .error-container {
                 text-align: center;
-                padding: 50px;
+                padding: 40px;
                 background: white;
                 border-radius: 12px;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 margin: 40px auto;
-                max-width: 500px;
+                max-width: 600px;
             }
 
             .error-icon {
                 font-size: 4em;
                 margin-bottom: 20px;
             }
+            
+            .error-message {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 20px 0;
+                color: #856404;
+                text-align: left;
+            }
+            
+            .error-details {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+                text-align: left;
+            }
+            
+            .error-details ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            
+            .error-actions {
+                margin-top: 30px;
+            }
+            
+            .error-actions button {
+                margin: 0 10px;
+            }
 
             @media (max-width: 768px) {
+                #assessment-tab {
+                    padding: 10px;
+                    max-height: calc(100vh - 150px);
+                }
+                
+                .welcome-container {
+                    padding: 10px;
+                    min-height: auto;
+                }
+                
                 .info-grid {
                     grid-template-columns: 1fr;
+                    gap: 15px;
                 }
                 
                 .result-summary {
@@ -961,6 +1085,19 @@
                 
                 .major-scores {
                     justify-content: center;
+                }
+                
+                .welcome-header h2 {
+                    font-size: 1.8em;
+                }
+                
+                .info-item {
+                    padding: 20px;
+                }
+                
+                .primary-button {
+                    width: 100%;
+                    margin: 10px 0;
                 }
             }
         `;
