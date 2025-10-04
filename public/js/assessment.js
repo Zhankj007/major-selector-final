@@ -1004,8 +1004,16 @@ window.initializeAssessmentTab = function() {
                 }, 1500);
                 
             } catch (error) {
-                console.error('快速测试错误:', error);
-                alert('生成测试结果失败，请检查设置参数');
+                console.error('快速测试错误详情:', error);
+                console.error('错误堆栈:', error.stack);
+                console.error('当前状态:', { 
+                    isQuickTestMode, 
+                    quickTestData, 
+                    hollandScores, 
+                    mbtiScores, 
+                    abilityScores 
+                });
+                alert(`生成测试结果失败: ${error.message}\n\n请打开浏览器开发者工具查看详细错误信息`);
             }
         }    // ========== 已移除的冗余专业详情函数 - 使用数据库查询版本替代 ==========
     /*
@@ -1305,11 +1313,149 @@ window.initializeAssessmentTab = function() {
         });
         } catch (error) {
             console.error('渲染结果页面时出错:', error);
+            console.error('错误堆栈:', error.stack);
+            console.error('当前模式状态:', { 
+                isQuickTestMode, 
+                quickTestData, 
+                currentStep,
+                hollandScores, 
+                mbtiScores, 
+                abilityScores 
+            });
+            
             // 显示错误信息，包含具体的错误消息
             const errorMessage = error.message || '抱歉，生成您的专属报告时遇到了问题。请稍后再试。';
+            const isConnectionError = errorMessage.includes('数据库服务') || errorMessage.includes('连接');
+            
             assessmentTab.innerHTML = `
                 <div class="error-container">
-                    <h2>生成报告失败</h2>
+                    <div class="error-icon">⚠️</div>
+                    <h2>${isConnectionError ? '数据库连接失败' : '生成报告失败'}</h2>
+                    <div class="error-message">
+                        <p><strong>错误详情：</strong></p>
+                        <p>${errorMessage}</p>
+                    </div>
+                    
+                    ${isConnectionError ? `
+                    <div class="connection-help">
+                        <h3>可能的解决方案：</h3>
+                        <ul>
+                            <li>检查网络连接是否正常</li>
+                            <li>确认数据库服务是否可用</li>
+                            <li>刷新页面重新尝试</li>
+                            <li>如果问题持续，请联系系统管理员</li>
+                        </ul>
+                        <p><strong>重要说明：</strong>本系统的所有专业推荐都基于真实的数据库数据进行精确匹配，不提供模拟或预设推荐。</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="error-actions">
+                        <button id="back-to-welcome-btn" class="primary-button">返回首页</button>
+                        ${isConnectionError ? '<button id="retry-connection-btn" class="secondary-button">重试连接</button>' : ''}
+                    </div>
+                    
+                    <details class="debug-details">
+                        <summary>调试信息 (开发者)</summary>
+                        <pre>请打开浏览器开发者工具(F12)查看控制台获取详细技术信息</pre>
+                    </details>
+                </div>
+                
+                <style>
+                .error-container {
+                    max-width: 600px;
+                    margin: 40px auto;
+                    padding: 30px;
+                    text-align: center;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .error-icon {
+                    font-size: 48px;
+                    margin-bottom: 20px;
+                }
+                .error-message {
+                    background: #fff3cd;
+                    border: 1px solid #ffeaa7;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin: 20px 0;
+                    text-align: left;
+                }
+                .connection-help {
+                    background: #e3f2fd;
+                    border: 1px solid #bbdefb;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin: 20px 0;
+                    text-align: left;
+                }
+                .connection-help ul {
+                    margin: 10px 0;
+                    padding-left: 20px;
+                }
+                .error-actions {
+                    margin: 20px 0;
+                }
+                .error-actions button {
+                    margin: 0 10px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                }
+                .primary-button {
+                    background: #007bff;
+                    color: white;
+                }
+                .secondary-button {
+                    background: #6c757d;
+                    color: white;
+                }
+                .debug-details {
+                    margin-top: 20px;
+                    text-align: left;
+                }
+                .debug-details summary {
+                    cursor: pointer;
+                    color: #666;
+                    font-size: 12px;
+                }
+                .debug-details pre {
+                    background: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    overflow-x: auto;
+                }
+                </style>
+            `;
+            
+            // 添加返回按钮事件
+            document.getElementById('back-to-welcome-btn').addEventListener('click', () => {
+                currentStep = 'welcome';
+                isQuickTestMode = false;
+                quickTestData = {};
+                renderPage();
+            });
+            
+            // 如果是连接错误，添加重试按钮事件
+            if (isConnectionError) {
+                const retryBtn = document.getElementById('retry-connection-btn');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', async () => {
+                        retryBtn.textContent = '重试中...';
+                        retryBtn.disabled = true;
+                        try {
+                            await renderResultPage();
+                        } catch (retryError) {
+                            retryBtn.textContent = '重试连接';
+                            retryBtn.disabled = false;
+                        }
+                    });
+                }
+            }
                     <p>${errorMessage}</p>
                     <button id="retry-btn" class="primary-button">重试</button>
                 </div>
@@ -1611,7 +1757,7 @@ window.initializeAssessmentTab = function() {
             // 检查是否有Supabase客户端实例
             if (!window.supabaseClient) {
                 console.error('未找到数据库连接实例');
-                throw new Error('系统错误：无法连接到数据库服务，请稍后再试');
+                throw new Error('系统错误：无法连接到数据库服务，请检查网络连接或稍后再试。所有专业推荐必须基于真实数据库数据进行匹配。');
             }
             
             // 第一阶段：初步筛选 (硬匹配)
