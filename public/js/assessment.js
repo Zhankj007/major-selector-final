@@ -815,7 +815,13 @@ window.initializeAssessmentTab = function() {
                                                 <h4 class="major-name">${major.name || '未定义'}</h4>
                                                 <div class="major-meta">
                                                     <span class="major-code">代码：${major.code || '未定义'}</span>
-                                                    <span class="match-score">匹配度：${major.matchScore || 0}%</span>
+                                                    <span class="match-score comprehensive">综合匹配：${major.matchScore || 0}%</span>
+                                                </div>
+                                                <div class="detailed-scores">
+                                                    <span class="score-item holland">兴趣: ${major.hollandScore || 0}%</span>
+                                                    <span class="score-item mbti">性格: ${major.mbtiScore || 0}%</span>
+                                                    <span class="score-item ability">能力: ${major.abilityScore || 0}%</span>
+                                                    ${major.matchedAbilitiesCount !== undefined ? `<span class="ability-match">(${major.matchedAbilitiesCount}/${major.totalAbilitiesCount}项匹配)</span>` : ''}
                                                 </div>
                                             </div>
                                             <button class="view-major-details" data-major-code="${major.code || ''}">查看详情</button>
@@ -909,6 +915,141 @@ window.initializeAssessmentTab = function() {
         return mbti;
     }
 
+    // ========== 改进的匹配度计算算法 ==========
+    
+    // 计算霍兰德代码相似度
+    function calculateHollandSimilarity(userCode, majorCodes) {
+        if (!majorCodes || majorCodes.length === 0) return 0;
+        
+        // 处理多个匹配代码的情况
+        let maxSimilarity = 0;
+        const codes = Array.isArray(majorCodes) ? majorCodes : [majorCodes];
+        
+        codes.forEach(majorCode => {
+            if (!majorCode || typeof majorCode !== 'string') return;
+            
+            // 位置权重：第一位权重最高
+            const positionWeights = [0.5, 0.3, 0.2];
+            let similarity = 0;
+            
+            for (let i = 0; i < Math.min(3, userCode.length, majorCode.length); i++) {
+                if (userCode[i] === majorCode[i]) {
+                    // 位置完全匹配
+                    similarity += positionWeights[i];
+                } else if (majorCode.includes(userCode[i])) {
+                    // 包含但位置不同
+                    similarity += positionWeights[i] * 0.5;
+                }
+            }
+            
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+        });
+        
+        return maxSimilarity;
+    }
+    
+    // 计算MBTI类型相似度
+    function calculateMBTISimilarity(userType, majorTypes) {
+        if (!majorTypes || majorTypes.length === 0) return 0;
+        
+        let maxSimilarity = 0;
+        const types = Array.isArray(majorTypes) ? majorTypes : [majorTypes];
+        
+        types.forEach(majorType => {
+            if (!majorType || typeof majorType !== 'string') return;
+            
+            let similarity = 0;
+            // MBTI每个维度权重相等
+            for (let i = 0; i < Math.min(4, userType.length, majorType.length); i++) {
+                if (userType[i] === majorType[i]) {
+                    similarity += 0.25; // 每个维度25%
+                }
+            }
+            
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+        });
+        
+        return maxSimilarity;
+    }
+    
+    // 能力重要性权重配置
+    const abilityWeights = {
+        '逻辑思维能力': 1.2,
+        '创新思维能力': 1.1,
+        '数据分析能力': 1.1,
+        '组织协调能力': 1.0,
+        '沟通表达能力': 1.0,
+        '动手实践能力': 0.9,
+        '共情与同理心': 0.9,
+        '艺术审美能力': 0.8,
+        '耐心与专注力': 0.8,
+        '空间想象能力': 0.8
+    };
+    
+    // 综合匹配度权重配置
+    const matchWeights = {
+        holland: 0.4,  // 霍兰德兴趣权重40%
+        mbti: 0.3,     // MBTI性格权重30%
+        ability: 0.3   // 能力权重30%
+    };
+
+    // ========== 改进的匹配度计算算法 ==========
+    
+    // 计算霍兰德代码相似度
+    function calculateHollandSimilarity(userCode, majorCodes) {
+        if (!majorCodes || majorCodes.length === 0) return 0;
+        
+        // 处理多个匹配代码的情况
+        let maxSimilarity = 0;
+        const codes = Array.isArray(majorCodes) ? majorCodes : [majorCodes];
+        
+        codes.forEach(majorCode => {
+            if (!majorCode || typeof majorCode !== 'string') return;
+            
+            // 位置权重：第一位权重最高
+            const positionWeights = [0.5, 0.3, 0.2];
+            let similarity = 0;
+            
+            for (let i = 0; i < Math.min(3, userCode.length, majorCode.length); i++) {
+                if (userCode[i] === majorCode[i]) {
+                    // 位置完全匹配
+                    similarity += positionWeights[i];
+                } else if (majorCode.includes(userCode[i])) {
+                    // 包含但位置不同
+                    similarity += positionWeights[i] * 0.5;
+                }
+            }
+            
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+        });
+        
+        return maxSimilarity;
+    }
+    
+    // 计算MBTI类型相似度
+    function calculateMBTISimilarity(userType, majorTypes) {
+        if (!majorTypes || majorTypes.length === 0) return 0;
+        
+        let maxSimilarity = 0;
+        const types = Array.isArray(majorTypes) ? majorTypes : [majorTypes];
+        
+        types.forEach(majorType => {
+            if (!majorType || typeof majorType !== 'string') return;
+            
+            let similarity = 0;
+            // MBTI每个维度权重相等
+            for (let i = 0; i < Math.min(4, userType.length, majorType.length); i++) {
+                if (userType[i] === majorType[i]) {
+                    similarity += 0.25; // 每个维度25%
+                }
+            }
+            
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+        });
+        
+        return maxSimilarity;
+    }
+
     // 实现两阶段专业匹配算法
     async function generateRecommendedMajors(hollandCode, mbtiType) {
         try {
@@ -992,49 +1133,75 @@ window.initializeAssessmentTab = function() {
         }
     }
     
-    // 处理专业数据并计算匹配得分
+    // 处理专业数据并计算综合匹配得分
     function processMajorsWithScores(majorRules, hollandCode, mbtiType) {
-        // 第二阶段：权重排序 (软匹配)
-        // 遍历筛选出的每一个专业，计算能力匹配度得分
+        console.log('开始计算综合匹配度，用户信息:', { hollandCode, mbtiType });
+        
+        // 第二阶段：综合权重排序 (软匹配)
+        // 遍历筛选出的每一个专业，计算综合匹配度得分
         const majorsWithScores = majorRules.map(majorRule => {
+            // 1. 计算霍兰德匹配度
+            let hollandMatchScore = 0;
+            try {
+                const majorHollandCodes = majorRule['匹配的霍兰德代码组合'];
+                if (majorHollandCodes) {
+                    let codes = [];
+                    if (typeof majorHollandCodes === 'string') {
+                        // 处理字符串格式
+                        codes = majorHollandCodes.split(',').map(c => c.trim()).filter(c => c.length > 0);
+                    } else if (Array.isArray(majorHollandCodes)) {
+                        codes = majorHollandCodes;
+                    }
+                    hollandMatchScore = calculateHollandSimilarity(hollandCode, codes) * 100;
+                }
+            } catch (e) {
+                console.warn('处理霍兰德代码时出错:', e);
+                hollandMatchScore = 0;
+            }
+            
+            // 2. 计算MBTI匹配度
+            let mbtiMatchScore = 0;
+            try {
+                const majorMbtiTypes = majorRule['匹配的MBTI类型'];
+                if (majorMbtiTypes) {
+                    let types = [];
+                    if (typeof majorMbtiTypes === 'string') {
+                        // 处理字符串格式
+                        types = majorMbtiTypes.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                    } else if (Array.isArray(majorMbtiTypes)) {
+                        types = majorMbtiTypes;
+                    }
+                    mbtiMatchScore = calculateMBTISimilarity(mbtiType, types) * 100;
+                }
+            } catch (e) {
+                console.warn('处理MBTI类型时出错:', e);
+                mbtiMatchScore = 0;
+            }
+            
+            // 3. 计算能力匹配度（改进版）
+            let abilityMatchScore = 0;
+            let totalAbilityWeight = 0;
+            let matchedAbilities = 0;
+            
             // 获取该专业所需的核心能力
             let requiredAbilities = [];
             try {
-                // 确保requiredAbilities是数组格式
+                // 确保 requiredAbilities 是数组格式
                 if (Array.isArray(majorRule['所需核心能力'])) {
                     requiredAbilities = majorRule['所需核心能力'];
                 } else if (typeof majorRule['所需核心能力'] === 'string') {
-                    // 尝试解析字符串格式的数组
-                    try {
-                        // 处理不同格式的核心能力字符串
-                        let abilityStr = majorRule['所需核心能力'].trim();
-                        
-                        // 处理 {内容1,内容2} 格式
-                        if (abilityStr.startsWith('{') && abilityStr.endsWith('}')) {
-                            // 移除大括号
-                            abilityStr = abilityStr.substring(1, abilityStr.length - 1);
-                            // 分割并清理每一项
-                            requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
-                        }
-                        // 处理 [内容1,内容2] 格式
-                        else if (abilityStr.startsWith('[') && abilityStr.endsWith(']')) {
-                            requiredAbilities = JSON.parse(abilityStr);
-                        }
-                        // 处理内容1,内容2 格式
-                        else if (abilityStr.includes(',')) {
-                            requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
-                        }
-                        // 单个能力
-                        else if (abilityStr.length > 0) {
-                            requiredAbilities = [abilityStr];
-                        }
-                        
-                        if (!Array.isArray(requiredAbilities)) {
-                            requiredAbilities = [];
-                        }
-                    } catch (e) {
-                        console.warn(`无法解析核心能力字符串: ${majorRule['所需核心能力']}，错误: ${e.message}`);
-                        requiredAbilities = [];
+                    // 处理不同格式的核心能力字符串
+                    let abilityStr = majorRule['所需核心能力'].trim();
+                    
+                    if (abilityStr.startsWith('{') && abilityStr.endsWith('}')) {
+                        abilityStr = abilityStr.substring(1, abilityStr.length - 1);
+                        requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
+                    } else if (abilityStr.startsWith('[') && abilityStr.endsWith(']')) {
+                        requiredAbilities = JSON.parse(abilityStr);
+                    } else if (abilityStr.includes(',')) {
+                        requiredAbilities = abilityStr.split(',').map(ability => ability.trim()).filter(ability => ability.length > 0);
+                    } else if (abilityStr.length > 0) {
+                        requiredAbilities = [abilityStr];
                     }
                 }
             } catch (e) {
@@ -1042,34 +1209,47 @@ window.initializeAssessmentTab = function() {
                 requiredAbilities = [];
             }
             
-            // 计算能力匹配度得分
-            let abilityMatchScore = 0;
-            let abilityCount = 0;
-            
             if (requiredAbilities.length > 0) {
                 requiredAbilities.forEach(ability => {
+                    const weight = abilityWeights[ability] || 1.0; // 默认权重1.0
+                    totalAbilityWeight += weight;
+                    
                     if (abilityScores[ability] && abilityScores[ability].count > 0) {
                         // 计算该能力的平均分（1-5分）
                         const avgScore = abilityScores[ability].sum / abilityScores[ability].count;
-                        // 转换为百分比（1分=20%，5分=100%）
-                        abilityMatchScore += avgScore * 20;
-                        abilityCount++;
+                        // 转换为百分比并应用权重
+                        abilityMatchScore += (avgScore * 20) * weight;
+                        matchedAbilities++;
+                    } else {
+                        // 未测评的能力给予中等分数
+                        abilityMatchScore += 60 * weight;
                     }
                 });
                 
-                // 计算平均能力匹配度得分
-                if (abilityCount > 0) {
-                    abilityMatchScore = Math.round(abilityMatchScore / abilityCount);
+                // 计算加权平均能力匹配度得分
+                if (totalAbilityWeight > 0) {
+                    abilityMatchScore = Math.round(abilityMatchScore / totalAbilityWeight);
                 } else {
-                    // 如果没有匹配的能力项，给予一个基础分
-                    abilityMatchScore = 60;
+                    abilityMatchScore = 65; // 无能力要求的基础分
                 }
             } else {
-                // 如果专业没有指定所需能力，给予一个基础分
-                abilityMatchScore = 70;
+                // 如果专业没有指定所需能力，给予较高的基础分
+                abilityMatchScore = 75;
             }
             
-            // 返回带匹配度得分的专业数据，包含所有主要字段
+            // 4. 计算综合匹配度
+            const comprehensiveScore = Math.round(
+                hollandMatchScore * matchWeights.holland +
+                mbtiMatchScore * matchWeights.mbti +
+                abilityMatchScore * matchWeights.ability
+            );
+            
+            // 调试信息
+            if (majorRule['专业名']) {
+                console.log(`专业: ${majorRule['专业名']}, 霍兰德: ${hollandMatchScore.toFixed(1)}, MBTI: ${mbtiMatchScore.toFixed(1)}, 能力: ${abilityMatchScore}, 综合: ${comprehensiveScore}`);
+            }
+            
+            // 返回带综合匹配度得分的专业数据
             return {
                 code: majorRule['专业码'],
                 name: majorRule['专业名'],
@@ -1083,15 +1263,26 @@ window.initializeAssessmentTab = function() {
                 objectives: majorRule['培养目标'],
                 courses: majorRule['专业课程'],
                 careerPaths: majorRule['就业方向'],
-                matchScore: abilityMatchScore,
-                reason: majorRule['推荐理由'] || '该专业与您的个人特质和能力相匹配。'
+                matchScore: comprehensiveScore,
+                hollandScore: Math.round(hollandMatchScore),
+                mbtiScore: Math.round(mbtiMatchScore),
+                abilityScore: abilityMatchScore,
+                matchedAbilitiesCount: matchedAbilities,
+                totalAbilitiesCount: requiredAbilities.length,
+                reason: majorRule['推荐理由'] || `该专业与您的个人特质和能力相匹配。综合匹配度: ${comprehensiveScore}%`
             };
         });
         
-        // 根据能力匹配度得分进行降序排序
+        // 根据综合匹配度得分进行降序排序
         majorsWithScores.sort((a, b) => b.matchScore - a.matchScore);
         
-        console.log('专业排序结果:', majorsWithScores.map(m => ({name: m.name, score: m.matchScore})));
+        console.log('专业排序结果:', majorsWithScores.slice(0, 5).map(m => ({
+            name: m.name, 
+            total: m.matchScore,
+            holland: m.hollandScore,
+            mbti: m.mbtiScore, 
+            ability: m.abilityScore
+        })));
         
         // 返回排序后的前10个专业
         return majorsWithScores.slice(0, 10);
@@ -2132,14 +2323,56 @@ window.initializeAssessmentTab = function() {
                 color: #666;
             }
             
-            .major-code, .match-score {
+            .major-code {
                 margin: 0;
                 line-height: 1.2;
             }
             
             .match-score {
+                margin: 0;
+                line-height: 1.2;
+            }
+            
+            .match-score.comprehensive {
                 color: #28a745;
+                font-weight: 600;
+            }
+            
+            /* 详细分数显示 */
+            .detailed-scores {
+                display: flex;
+                gap: 12px;
+                margin-top: 8px;
+                font-size: 12px;
+                flex-wrap: wrap;
+            }
+            
+            .score-item {
+                padding: 2px 6px;
+                border-radius: 3px;
                 font-weight: 500;
+                white-space: nowrap;
+            }
+            
+            .score-item.holland {
+                background-color: #e3f2fd;
+                color: #1976d2;
+            }
+            
+            .score-item.mbti {
+                background-color: #f3e5f5;
+                color: #7b1fa2;
+            }
+            
+            .score-item.ability {
+                background-color: #e8f5e9;
+                color: #388e3c;
+            }
+            
+            .ability-match {
+                color: #666;
+                font-size: 11px;
+                font-style: italic;
             }
             
             /* 推荐理由样式 - 紧凑显示 */
