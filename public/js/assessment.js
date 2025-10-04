@@ -638,13 +638,13 @@ window.initializeAssessmentTab = function() {
             // 渲染结果页面
             async function renderResultPage() {
                 try {
-                    const hollandCode = generateHollandCode();
-                    const mbtiType = generateMBTIType();
-                    
-                    // 使用异步专业匹配算法获取推荐专业
-            recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType);
+            const hollandCode = generateHollandCode();
+            const mbtiType = generateMBTIType();
+            const hollandAnalysis = generateHollandAnalysis();
+            const mbtiAnalysis = generateMBTIAnalysis();
             
-            // 确保recommendedMajors是全局变量
+            // 使用异步专业匹配算法获取推荐专业
+            recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType);            // 确保recommendedMajors是全局变量
             window.recommendedMajors = recommendedMajors;
             
             // 设置全局assessmentResult对象，保存完整的测评结果
@@ -679,12 +679,23 @@ window.initializeAssessmentTab = function() {
                             <div class="result-section">
                                 <h3>霍兰德职业兴趣代码分析</h3>
                                 <div class="holland-result">
-                                    <div class="holland-code">
-                                        <span class="code-label">您的霍兰德代码：</span>
+                                    <div class="code-display">
+                                        <span class="code-label">您的兴趣代码：</span>
                                         <span class="code-value">${hollandCode}</span>
                                     </div>
-                                    <div class="holland-description">
-                                        <p>${getHollandDescription(hollandCode)}</p>
+                                    <div class="detailed-analysis">
+                                        <h4>详细分析</h4>
+                                        ${hollandAnalysis.map(item => `
+                                            <div class="analysis-item ${item.isMainType ? 'main-type' : 'sub-type'}">
+                                                <div class="type-header">
+                                                    <span class="type-code">${item.code}</span>
+                                                    <span class="type-name">${item.name}</span>
+                                                    <span class="type-percentage">${item.percentage}%</span>
+                                                </div>
+                                                <div class="type-description">${item.description}</div>
+                                                <div class="score-info">得分: ${item.score}分 (排名: 第${item.rank}位)</div>
+                                            </div>
+                                        `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -692,12 +703,35 @@ window.initializeAssessmentTab = function() {
                             <div class="result-section">
                                 <h3>MBTI性格类型分析</h3>
                                 <div class="mbti-result">
-                                    <div class="mbti-type">
-                                        <span class="type-label">您的MBTI类型：</span>
-                                        <span class="type-value">${mbtiType}</span>
+                                    <div class="code-display">
+                                        <span class="code-label">您的MBTI类型：</span>
+                                        <span class="code-value">${mbtiType}</span>
                                     </div>
-                                    <div class="mbti-description">
-                                        <p>${getMBTIDescription(mbtiType)}</p>
+                                    <div class="detailed-analysis">
+                                        <h4>各维度详细分析</h4>
+                                        ${mbtiAnalysis.map(dim => {
+                                            const winnerKey = dim.result;
+                                            const loserKey = Object.keys(dim.scores).find(k => k !== winnerKey);
+                                            return `
+                                                <div class="mbti-dimension">
+                                                    <div class="dimension-header">
+                                                        <span class="dimension-name">${dim.dimension}维度结果</span>
+                                                        <span class="dimension-result">${dim.result} - ${dim.resultName}</span>
+                                                    </div>
+                                                    <div class="dimension-scores">
+                                                        <div class="score-bar">
+                                                            <div class="score-item winner">
+                                                                <span>${winnerKey}: ${dim.scores[winnerKey]}分 (${dim.percentages[winnerKey]}%)</span>
+                                                            </div>
+                                                            <div class="score-item">
+                                                                <span>${loserKey}: ${dim.scores[loserKey]}分 (${dim.percentages[loserKey]}%)</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="dimension-description">${dim.description}</div>
+                                                </div>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -885,15 +919,132 @@ window.initializeAssessmentTab = function() {
         }
     }
 
+    // 霍兰德类型详细信息
+    const hollandTypeInfo = {
+        'R': { name: '实用型', description: '喜欢动手操作，偏爱机械、工具、植物或动物，性格坚韧、实际' },
+        'I': { name: '研究型', description: '喜欢观察、学习、研究、分析、评估和解决问题，性格理性、精确' },
+        'A': { name: '艺术型', description: '喜欢艺术性、创造性的活动，富有想象力，情感丰富，直觉敏锐' },
+        'S': { name: '社会型', description: '喜欢帮助、教导、治疗他人，性格友善、合作、慷慨、耐心' },
+        'E': { name: '企业型', description: '喜欢领导、管理、说服他人，性格自信、有野心、精力充沛' },
+        'C': { name: '常规型', description: '喜欢有序、规则、明确的活动，性格谨慎、保守、实际、有条理' }
+    };
+    
+    // MBTI维度详细信息
+    const mbtiDimensionInfo = {
+        'E': { name: '外倾', description: '精力来源于外部世界，善于表达，喜欢与人交往' },
+        'I': { name: '内倾', description: '精力来源于内心世界，善于思考，喜欢独立工作' },
+        'S': { name: '感觉', description: '关注具体细节和事实，重视经验和实际应用' },
+        'N': { name: '直觉', description: '关注可能性和概念，重视创新和理论思考' },
+        'T': { name: '思考', description: '以逻辑和客观分析为决策基础，重视公正和效率' },
+        'F': { name: '情感', description: '以价值观和人际和谐为决策基础，重视关爱和支持' },
+        'J': { name: '判断', description: '喜欢有计划、有组织的生活方式，追求确定性' },
+        'P': { name: '感知', description: '喜欢灵活、开放的生活方式，适应性强' }
+    };
+
     // 生成霍兰德代码
     function generateHollandCode() {
-        // 对霍兰德分数进行排序
-        const sortedScores = Object.entries(hollandScores)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
+        // 将分数排序
+        const sortedScores = Object.entries(hollandScores).sort((a, b) => b[1] - a[1]);
         
         // 返回前三个字母作为代码
         return sortedScores.map(item => item[0]).join('');
+    }
+    
+    // 生成霍兰德详细分析
+    function generateHollandAnalysis() {
+        const sortedScores = Object.entries(hollandScores).sort((a, b) => b[1] - a[1]);
+        const totalScore = Object.values(hollandScores).reduce((sum, score) => sum + score, 0);
+        
+        return sortedScores.map((item, index) => {
+            const [code, score] = item;
+            const percentage = totalScore > 0 ? Math.round((score / totalScore) * 100) : 0;
+            const info = hollandTypeInfo[code];
+            
+            return {
+                code,
+                name: info.name,
+                description: info.description,
+                score,
+                percentage,
+                rank: index + 1,
+                isMainType: index < 3
+            };
+        });
+    }
+    
+    // 生成MBTI详细分析
+    function generateMBTIAnalysis() {
+        const analysis = [];
+        
+        // EI 维度
+        const eScore = mbtiScores['EI']['E'];
+        const iScore = mbtiScores['EI']['I'];
+        const eiTotal = eScore + iScore;
+        const eiResult = eScore > iScore ? 'E' : 'I';
+        analysis.push({
+            dimension: 'EI',
+            result: eiResult,
+            resultName: mbtiDimensionInfo[eiResult].name,
+            description: mbtiDimensionInfo[eiResult].description,
+            scores: { E: eScore, I: iScore },
+            percentages: eiTotal > 0 ? { 
+                E: Math.round((eScore / eiTotal) * 100), 
+                I: Math.round((iScore / eiTotal) * 100) 
+            } : { E: 50, I: 50 }
+        });
+        
+        // SN 维度
+        const sScore = mbtiScores['SN']['S'];
+        const nScore = mbtiScores['SN']['N'];
+        const snTotal = sScore + nScore;
+        const snResult = sScore > nScore ? 'S' : 'N';
+        analysis.push({
+            dimension: 'SN',
+            result: snResult,
+            resultName: mbtiDimensionInfo[snResult].name,
+            description: mbtiDimensionInfo[snResult].description,
+            scores: { S: sScore, N: nScore },
+            percentages: snTotal > 0 ? { 
+                S: Math.round((sScore / snTotal) * 100), 
+                N: Math.round((nScore / snTotal) * 100) 
+            } : { S: 50, N: 50 }
+        });
+        
+        // TF 维度
+        const tScore = mbtiScores['TF']['T'];
+        const fScore = mbtiScores['TF']['F'];
+        const tfTotal = tScore + fScore;
+        const tfResult = tScore > fScore ? 'T' : 'F';
+        analysis.push({
+            dimension: 'TF',
+            result: tfResult,
+            resultName: mbtiDimensionInfo[tfResult].name,
+            description: mbtiDimensionInfo[tfResult].description,
+            scores: { T: tScore, F: fScore },
+            percentages: tfTotal > 0 ? { 
+                T: Math.round((tScore / tfTotal) * 100), 
+                F: Math.round((fScore / tfTotal) * 100) 
+            } : { T: 50, F: 50 }
+        });
+        
+        // JP 维度
+        const jScore = mbtiScores['JP']['J'];
+        const pScore = mbtiScores['JP']['P'];
+        const jpTotal = jScore + pScore;
+        const jpResult = jScore > pScore ? 'J' : 'P';
+        analysis.push({
+            dimension: 'JP',
+            result: jpResult,
+            resultName: mbtiDimensionInfo[jpResult].name,
+            description: mbtiDimensionInfo[jpResult].description,
+            scores: { J: jScore, P: pScore },
+            percentages: jpTotal > 0 ? { 
+                J: Math.round((jScore / jpTotal) * 100), 
+                P: Math.round((pScore / jpTotal) * 100) 
+            } : { J: 50, P: 50 }
+        });
+        
+        return analysis;
     }
 
     // 生成MBTI类型
@@ -1136,6 +1287,7 @@ window.initializeAssessmentTab = function() {
     // 处理专业数据并计算综合匹配得分
     function processMajorsWithScores(majorRules, hollandCode, mbtiType) {
         console.log('开始计算综合匹配度，用户信息:', { hollandCode, mbtiType });
+        console.log('改进的霍兰德匹配算法：支持字母相同但顺序不同的情况 (如CRI vs RIC)');
         
         // 第二阶段：综合权重排序 (软匹配)
         // 遍历筛选出的每一个专业，计算综合匹配度得分
@@ -1246,7 +1398,12 @@ window.initializeAssessmentTab = function() {
             
             // 调试信息
             if (majorRule['专业名']) {
-                console.log(`专业: ${majorRule['专业名']}, 霍兰德: ${hollandMatchScore.toFixed(1)}, MBTI: ${mbtiMatchScore.toFixed(1)}, 能力: ${abilityMatchScore}, 综合: ${comprehensiveScore}`);
+                let debugMsg = `专业: ${majorRule['专业名']}, 霍兰德: ${hollandMatchScore.toFixed(1)}`;
+                if (majorRule['匹配的霍兰德代码组合']) {
+                    debugMsg += ` (${majorRule['匹配的霍兰德代码组合']} vs ${hollandCode})`;
+                }
+                debugMsg += `, MBTI: ${mbtiMatchScore.toFixed(1)}, 能力: ${abilityMatchScore}, 综合: ${comprehensiveScore}`;
+                console.log(debugMsg);
             }
             
             // 返回带综合匹配度得分的专业数据
@@ -2372,6 +2529,133 @@ window.initializeAssessmentTab = function() {
             .ability-match {
                 color: #666;
                 font-size: 11px;
+                font-style: italic;
+            }
+            
+            /* 详细分析样式 */
+            .detailed-analysis {
+                margin-top: 16px;
+            }
+            
+            .detailed-analysis h4 {
+                font-size: 16px;
+                color: #333;
+                margin: 0 0 12px 0;
+                padding-bottom: 6px;
+                border-bottom: 2px solid #e0e0e0;
+            }
+            
+            .analysis-item {
+                margin-bottom: 16px;
+                padding: 12px;
+                border-radius: 8px;
+                border-left: 4px solid #ddd;
+            }
+            
+            .analysis-item.main-type {
+                background-color: #f0f8ff;
+                border-left-color: #2196f3;
+            }
+            
+            .analysis-item.sub-type {
+                background-color: #f8f8f8;
+                border-left-color: #999;
+            }
+            
+            .type-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .type-code {
+                font-size: 18px;
+                font-weight: bold;
+                color: #2196f3;
+                width: 30px;
+                text-align: center;
+            }
+            
+            .type-name {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+            }
+            
+            .type-percentage {
+                font-size: 14px;
+                color: #666;
+                background-color: #e3f2fd;
+                padding: 2px 8px;
+                border-radius: 12px;
+                margin-left: auto;
+            }
+            
+            .type-description {
+                font-size: 14px;
+                color: #555;
+                line-height: 1.5;
+                margin-bottom: 6px;
+            }
+            
+            .score-info {
+                font-size: 12px;
+                color: #777;
+                font-style: italic;
+            }
+            
+            /* MBTI维度分析样式 */
+            .mbti-dimension {
+                margin-bottom: 16px;
+                padding: 12px;
+                border-radius: 8px;
+                background-color: #fafafa;
+                border: 1px solid #e0e0e0;
+            }
+            
+            .dimension-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            
+            .dimension-name {
+                font-size: 14px;
+                font-weight: 600;
+                color: #333;
+            }
+            
+            .dimension-result {
+                font-size: 16px;
+                font-weight: bold;
+                color: #7b1fa2;
+            }
+            
+            .dimension-scores {
+                margin-bottom: 8px;
+            }
+            
+            .score-bar {
+                display: flex;
+                gap: 16px;
+            }
+            
+            .score-item {
+                font-size: 13px;
+                color: #666;
+            }
+            
+            .score-item.winner {
+                color: #2e7d32;
+                font-weight: 600;
+            }
+            
+            .dimension-description {
+                font-size: 13px;
+                color: #555;
+                line-height: 1.4;
                 font-style: italic;
             }
             
