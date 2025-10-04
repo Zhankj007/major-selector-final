@@ -222,6 +222,66 @@ window.initializeAssessmentTab = function() {
                         </div>
                     </div>
                     
+                    <!-- 十项能力评估 -->
+                    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <h3 style="margin: 0 0 20px 0; color: #333; font-size: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">十项能力自评</h3>
+                        <div style="display: grid; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">逻辑思维能力：</label>
+                                <input type="range" id="ability1" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue1')">
+                                <span id="abilityValue1" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">动手实践能力：</label>
+                                <input type="range" id="ability2" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue2')">
+                                <span id="abilityValue2" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">沟通表达能力：</label>
+                                <input type="range" id="ability3" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue3')">
+                                <span id="abilityValue3" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">创新思维能力：</label>
+                                <input type="range" id="ability4" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue4')">
+                                <span id="abilityValue4" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">组织协调能力：</label>
+                                <input type="range" id="ability5" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue5')">
+                                <span id="abilityValue5" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">共情与同理心：</label>
+                                <input type="range" id="ability6" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue6')">
+                                <span id="abilityValue6" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">艺术审美能力：</label>
+                                <input type="range" id="ability7" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue7')">
+                                <span id="abilityValue7" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">数据分析能力：</label>
+                                <input type="range" id="ability8" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue8')">
+                                <span id="abilityValue8" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">耐心与专注力：</label>
+                                <input type="range" id="ability9" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue9')">
+                                <span id="abilityValue9" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <label style="min-width: 120px; font-weight: 600; color: #555;">空间想象能力：</label>
+                                <input type="range" id="ability10" min="1" max="5" value="3" style="flex: 1;" oninput="updateAbilityDisplay(this, 'abilityValue10')">
+                                <span id="abilityValue10" style="min-width: 40px; text-align: center; font-weight: bold; color: #007bff;">3</span>
+                            </div>
+                            <div style="text-align: center; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; color: #666; font-size: 14px;">
+                                💡 拖动滑块调整能力评分（1-差，2-一般，3-中等，4-良好，5-优秀）
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 快速预设 -->
                     <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <h3 style="margin: 0 0 20px 0; color: #333; font-size: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">快速预设</h3>
@@ -281,13 +341,34 @@ window.initializeAssessmentTab = function() {
         document.getElementById('mbti4').addEventListener('change', updateMBTIPreview);
     }
     
+    // 更新能力值显示
+    window.updateAbilityDisplay = function(slider, displayId) {
+        document.getElementById(displayId).textContent = slider.value;
+    };
+    
     // 应用预设
     window.applyPreset = function(type) {
         const presets = {
-            'engineering': { holland: ['R', 'I', 'C'], mbti: ['I', 'S', 'T', 'J'] },
-            'business': { holland: ['E', 'C', 'S'], mbti: ['E', 'S', 'T', 'J'] },
-            'liberal': { holland: ['S', 'A', 'I'], mbti: ['I', 'N', 'F', 'P'] },
-            'research': { holland: ['I', 'A', 'E'], mbti: ['I', 'N', 'T', 'P'] }
+            'engineering': { 
+                holland: ['R', 'I', 'C'], 
+                mbti: ['I', 'S', 'T', 'J'],
+                abilities: [5, 4, 3, 4, 3, 3, 2, 5, 4, 4] // 逻辑思维5, 动手实践4, 沟通表达3, 创新思维4, 组织协调3, 共情同理3, 艺术审美2, 数据分析5, 耐心专注4, 空间想象4
+            },
+            'business': { 
+                holland: ['E', 'C', 'S'], 
+                mbti: ['E', 'S', 'T', 'J'],
+                abilities: [4, 3, 5, 4, 5, 4, 3, 4, 4, 3] // 逻辑思维4, 动手实践3, 沟通表达5, 创新思维4, 组织协调5, 共情同理4, 艺术审美3, 数据分析4, 耐心专注4, 空间想象3
+            },
+            'liberal': { 
+                holland: ['S', 'A', 'I'], 
+                mbti: ['I', 'N', 'F', 'P'],
+                abilities: [3, 2, 5, 5, 4, 5, 5, 3, 4, 3] // 逻辑思维3, 动手实践2, 沟通表达5, 创新思维5, 组织协调4, 共情同理5, 艺术审美5, 数据分析3, 耐心专注4, 空间想象3
+            },
+            'research': { 
+                holland: ['I', 'A', 'E'], 
+                mbti: ['I', 'N', 'T', 'P'],
+                abilities: [5, 3, 3, 5, 3, 3, 4, 5, 5, 4] // 逻辑思维5, 动手实践3, 沟通表达3, 创新思维5, 组织协调3, 共情同理3, 艺术审美4, 数据分析5, 耐心专注5, 空间想象4
+            }
         };
         
         const preset = presets[type];
@@ -302,6 +383,16 @@ window.initializeAssessmentTab = function() {
         document.getElementById('mbti3').value = preset.mbti[2];
         document.getElementById('mbti4').value = preset.mbti[3];
         
+        // 设置能力值
+        for (let i = 1; i <= 10; i++) {
+            const slider = document.getElementById(`ability${i}`);
+            const display = document.getElementById(`abilityValue${i}`);
+            if (slider && display) {
+                slider.value = preset.abilities[i-1];
+                display.textContent = preset.abilities[i-1];
+            }
+        }
+        
         document.getElementById('hollandPreview').textContent = preset.holland.join('');
         document.getElementById('mbtiPreview').textContent = preset.mbti.join('');
     };
@@ -311,8 +402,15 @@ window.initializeAssessmentTab = function() {
         const hollandCode = document.getElementById('hollandPreview').textContent;
         const mbtiType = document.getElementById('mbtiPreview').textContent;
         
+        // 收集能力值
+        const abilities = [];
+        for (let i = 1; i <= 10; i++) {
+            const slider = document.getElementById(`ability${i}`);
+            abilities.push(slider ? parseInt(slider.value) : 3);
+        }
+        
         // 设置全局结果数据
-        window.testResult = { hollandCode, mbtiType };
+        window.testResult = { hollandCode, mbtiType, abilities };
         
         currentStep = 'result';
         renderPage();
@@ -320,7 +418,11 @@ window.initializeAssessmentTab = function() {
     
     // 渲染结果页面
     function renderResultPage() {
-        const result = window.testResult || { hollandCode: 'CRI', mbtiType: 'ISTJ' };
+        const result = window.testResult || { 
+            hollandCode: 'CRI', 
+            mbtiType: 'ISTJ',
+            abilities: [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        };
         
         // 模拟专业推荐
         const majorRecommendations = getMockRecommendations(result.hollandCode);
@@ -336,7 +438,7 @@ window.initializeAssessmentTab = function() {
                     <!-- 测评结果概览 -->
                     <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <h3 style="margin: 0 0 20px 0; color: #333;">测评结果概览</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                             <div style="text-align: center; padding: 20px; background: #f0f8ff; border-radius: 8px;">
                                 <h4 style="margin: 0 0 10px 0; color: #007bff;">霍兰德兴趣代码</h4>
                                 <div style="font-size: 24px; font-weight: bold; color: #007bff;">${result.hollandCode}</div>
@@ -347,26 +449,41 @@ window.initializeAssessmentTab = function() {
                                 <div style="font-size: 24px; font-weight: bold; color: #28a745;">${result.mbtiType}</div>
                                 <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">${getMBTIDescription(result.mbtiType)}</p>
                             </div>
+                            <div style="text-align: center; padding: 20px; background: #fff0f5; border-radius: 8px;">
+                                <h4 style="margin: 0 0 10px 0; color: #dc3545;">能力均值</h4>
+                                <div style="font-size: 24px; font-weight: bold; color: #dc3545;">${(result.abilities.reduce((a, b) => a + b, 0) / 10).toFixed(1)}</div>
+                                <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">十项能力平均分</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 能力雷达图 -->
+                    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <h3 style="margin: 0 0 20px 0; color: #333;">能力分析</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            ${getAbilityBars(result.abilities)}
                         </div>
                     </div>
                     
                     <!-- 专业推荐 -->
                     <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <h3 style="margin: 0 0 20px 0; color: #333;">推荐专业</h3>
-                        <div style="display: grid; gap: 15px;">
-                            ${majorRecommendations.map((major, index) => `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
-                                    <div>
-                                        <div style="font-weight: bold; color: #333; margin-bottom: 5px;">${index + 1}. ${major.name}</div>
-                                        <div style="color: #666; font-size: 14px;">学科门类: ${major.category}</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: bold;">
-                                            ${major.match}% 匹配
+                        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px;">
+                            <div style="display: grid; gap: 15px;">
+                                ${majorRecommendations.map((major, index) => `
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+                                        <div>
+                                            <div style="font-weight: bold; color: #333; margin-bottom: 5px;">${index + 1}. ${major.name}</div>
+                                            <div style="color: #666; font-size: 14px;">学科门类: ${major.category}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: bold;">
+                                                ${major.match}% 匹配
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
                         
                         <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
@@ -414,37 +531,86 @@ window.initializeAssessmentTab = function() {
             'R': [
                 { name: '机械工程', category: '工学', match: 95 },
                 { name: '土木工程', category: '工学', match: 92 },
-                { name: '电气工程及其自动化', category: '工学', match: 90 }
+                { name: '电气工程及其自动化', category: '工学', match: 90 },
+                { name: '建筑学', category: '工学', match: 88 },
+                { name: '材料科学与工程', category: '工学', match: 85 },
+                { name: '车辆工程', category: '工学', match: 83 },
+                { name: '测控技术与仪器', category: '工学', match: 80 }
             ],
             'I': [
                 { name: '数学与应用数学', category: '理学', match: 95 },
                 { name: '物理学', category: '理学', match: 92 },
-                { name: '计算机科学与技术', category: '工学', match: 90 }
+                { name: '计算机科学与技术', category: '工学', match: 90 },
+                { name: '生物科学', category: '理学', match: 88 },
+                { name: '化学', category: '理学', match: 85 },
+                { name: '统计学', category: '理学', match: 83 },
+                { name: '天文学', category: '理学', match: 80 }
             ],
             'A': [
                 { name: '视觉传达设计', category: '艺术学', match: 95 },
                 { name: '音乐学', category: '艺术学', match: 92 },
-                { name: '美术学', category: '艺术学', match: 90 }
+                { name: '美术学', category: '艺术学', match: 90 },
+                { name: '动画', category: '艺术学', match: 88 },
+                { name: '广播电视编导', category: '艺术学', match: 85 },
+                { name: '戏剧影视文学', category: '艺术学', match: 83 },
+                { name: '产品设计', category: '艺术学', match: 80 }
             ],
             'S': [
                 { name: '心理学', category: '理学', match: 95 },
                 { name: '社会工作', category: '法学', match: 92 },
-                { name: '学前教育', category: '教育学', match: 90 }
+                { name: '学前教育', category: '教育学', match: 90 },
+                { name: '护理学', category: '医学', match: 88 },
+                { name: '汉语言文学', category: '文学', match: 85 },
+                { name: '思想政治教育', category: '法学', match: 83 },
+                { name: '社会学', category: '法学', match: 80 }
             ],
             'E': [
                 { name: '工商管理', category: '管理学', match: 95 },
                 { name: '市场营销', category: '管理学', match: 92 },
-                { name: '人力资源管理', category: '管理学', match: 90 }
+                { name: '人力资源管理', category: '管理学', match: 90 },
+                { name: '国际经济与贸易', category: '经济学', match: 88 },
+                { name: '法学', category: '法学', match: 85 },
+                { name: '公共事业管理', category: '管理学', match: 83 },
+                { name: '经济学', category: '经济学', match: 80 }
             ],
             'C': [
                 { name: '会计学', category: '管理学', match: 95 },
                 { name: '财务管理', category: '管理学', match: 92 },
-                { name: '审计学', category: '管理学', match: 90 }
+                { name: '审计学', category: '管理学', match: 90 },
+                { name: '信息管理与信息系统', category: '管理学', match: 88 },
+                { name: '图书馆学', category: '管理学', match: 85 },
+                { name: '档案学', category: '管理学', match: 83 },
+                { name: '保险学', category: '经济学', match: 80 }
             ]
         };
         
         const primaryType = hollandCode[0];
         return majorDatabase[primaryType] || majorDatabase['I'];
+    }
+    
+    // 生成能力条形图
+    function getAbilityBars(abilities) {
+        const abilityNames = [
+            '逻辑思维能力', '动手实践能力', '沟通表达能力', '创新思维能力', '组织协调能力',
+            '共情与同理心', '艺术审美能力', '数据分析能力', '耐心与专注力', '空间想象能力'
+        ];
+        
+        return abilities.map((score, index) => {
+            const percentage = (score / 5) * 100;
+            const color = score >= 4 ? '#28a745' : score >= 3 ? '#ffc107' : '#dc3545';
+            
+            return `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #333; font-size: 14px;">${abilityNames[index]}</span>
+                        <span style="font-weight: bold; color: ${color};">${score}</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${percentage}%; height: 100%; background: ${color}; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
     
     // 获取霍兰德描述
