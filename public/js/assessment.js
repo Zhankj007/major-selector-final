@@ -126,11 +126,26 @@
                 throw new Error('Supabase客户端未初始化');
             }
             
-            // 简单的连接测试
-            const { data, error } = await window.supabaseClient
+            // 简单的连接测试 - 检查三个主要表
+            const { data: questionsData, error: questionsError } = await window.supabaseClient
                 .from('questions')
-                .select('count')
+                .select('id')
                 .limit(1);
+                
+            const { data: choicesData, error: choicesError } = await window.supabaseClient
+                .from('choices')
+                .select('id')
+                .limit(1);
+                
+            const { data: majorRulesData, error: majorRulesError } = await window.supabaseClient
+                .from('major_rules')
+                .select('专业码')
+                .limit(1);
+                
+            if (questionsError || choicesError || majorRulesError) {
+                throw new Error('数据库表访问失败: ' + 
+                    (questionsError?.message || choicesError?.message || majorRulesError?.message));
+            }
             
             if (error) {
                 throw error;
@@ -225,14 +240,16 @@
                     id,
                     question_text,
                     question_type,
+                    dimension,
                     choices (
                         id,
                         choice_text,
                         score_type,
-                        score_value
+                        score_value,
+                        question_type
                     )
                 `)
-                .order('id');
+                .order('question_type', { ascending: true });
 
             console.log('数据库查询结果:', { questions, questionsError });
 
@@ -246,7 +263,7 @@
                 throw new Error('数据库中未找到测评题目，请联系管理员添加题目数据。');
             }
 
-            // 按类型分组题目
+            // 按类型和维度分组题目
             const hollandQuestions = questions.filter(q => q.question_type === 'holland');
             const mbtiQuestions = questions.filter(q => q.question_type === 'mbti');
             const abilityQuestions = questions.filter(q => q.question_type === 'ability');
@@ -258,13 +275,64 @@
                 能力: abilityQuestions.length
             });
 
-            // 随机打乱题目顺序
-            const shuffledHolland = shuffleArray([...hollandQuestions]);
-            const shuffledMbti = shuffleArray([...mbtiQuestions]);
-            const shuffledAbility = shuffleArray([...abilityQuestions]);
+            // 霍兰德题目：按dimension分组，每组随机抽取7题
+            const hollandByDimension = {};
+            hollandQuestions.forEach(q => {
+                if (!hollandByDimension[q.dimension]) {
+                    hollandByDimension[q.dimension] = [];
+                }
+                hollandByDimension[q.dimension].push(q);
+            });
+            
+            const selectedHollandQuestions = [];
+            Object.keys(hollandByDimension).forEach(dimension => {
+                const dimensionQuestions = shuffleArray(hollandByDimension[dimension]);
+                selectedHollandQuestions.push(...dimensionQuestions.slice(0, 7));
+            });
 
-            // 合并所有题目
-            allQuestions = [...shuffledHolland, ...shuffledMbti, ...shuffledAbility];
+            // MBTI题目：按dimension分组，每组随机抽取7题
+            const mbtiByDimension = {};
+            mbtiQuestions.forEach(q => {
+                if (!mbtiByDimension[q.dimension]) {
+                    mbtiByDimension[q.dimension] = [];
+                }
+                mbtiByDimension[q.dimension].push(q);
+            });
+            
+            const selectedMbtiQuestions = [];
+            Object.keys(mbtiByDimension).forEach(dimension => {
+                const dimensionQuestions = shuffleArray(mbtiByDimension[dimension]);
+                selectedMbtiQuestions.push(...dimensionQuestions.slice(0, 7));
+            });
+
+            // 能力题目：按dimension分组，每组随机抽取3题
+            const abilityByDimension = {};
+            abilityQuestions.forEach(q => {
+                if (!abilityByDimension[q.dimension]) {
+                    abilityByDimension[q.dimension] = [];
+                }
+                abilityByDimension[q.dimension].push(q);
+            });
+            
+            const selectedAbilityQuestions = [];
+            Object.keys(abilityByDimension).forEach(dimension => {
+                const dimensionQuestions = shuffleArray(abilityByDimension[dimension]);
+                selectedAbilityQuestions.push(...dimensionQuestions.slice(0, 3));
+            });
+
+            // 合并所有选中的题目
+            allQuestions = [
+                ...shuffleArray(selectedHollandQuestions),
+                ...shuffleArray(selectedMbtiQuestions), 
+                ...shuffleArray(selectedAbilityQuestions)
+            ];
+            
+            console.log('抽取结果:', {
+                霍兰德抽取: selectedHollandQuestions.length,
+                MBTI抽取: selectedMbtiQuestions.length,
+                能力抽取: selectedAbilityQuestions.length,
+                总抽取: allQuestions.length
+            });
 
             console.log('加载完成，总题目数:', allQuestions.length);
 
@@ -449,7 +517,7 @@
             console.log('生成结果:', { hollandCode, mbtiType });
 
             // 获取推荐专业
-            recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType);
+            recommendedMajors = await generateRecommendedMajors(hollandCode, mbtiType, abilityScores);
 
             assessmentTab.innerHTML = `
                 <div class="result-container">
@@ -569,48 +637,78 @@
     }
 
     // 生成推荐专业
-    async function generateRecommendedMajors(hollandCode, mbtiType) {
+    async function generateRecommendedMajors(hollandCode, mbtiType, abilityScores) {
         try {
             if (!supabaseClient) {
                 throw new Error('数据库连接失败');
             }
 
-            // 从数据库获取匹配的专业
+            // 获取所有专业规则
             const { data: majorRules, error } = await supabaseClient
                 .from('major_rules')
-                .select('*')
-                .or(`匹配的霍兰德代码组合.eq.${hollandCode},匹配的MBTI类型.eq.${mbtiType}`)
-                .limit(10);
-
+                .select('*');
+                
             if (error) {
                 console.error('查询专业失败:', error);
                 return [];
             }
 
             if (!majorRules || majorRules.length === 0) {
-                console.warn('未找到匹配的专业');
+                console.warn('未找到专业数据');
                 return [];
             }
 
-            // 计算匹配度并排序
+            console.log(`获取到${majorRules.length}个专业数据`);
+
+            // 计算每个专业的综合评分
             const majorsWithScores = majorRules.map(major => {
-                const hollandScore = calculateHollandSimilarity(hollandCode, major['匹配的霍兰德代码组合']) * 100;
-                const mbtiScore = calculateMBTISimilarity(mbtiType, major['匹配的MBTI类型']) * 100;
-                const abilityScore = 75; // 简化的能力分数
-                const matchScore = Math.round(hollandScore * 0.4 + mbtiScore * 0.3 + abilityScore * 0.3);
+                // 霍兰德兴趣匹配评分
+                const hollandScore = calculateHollandSimilarity(hollandCode, major['匹配的霍兰德代码组合']);
+                
+                // MBTI性格类型匹配评分
+                const mbtiScore = calculateMBTISimilarity(mbtiType, major['匹配的MBTI类型']);
+                
+                // 能力匹配评分
+                const abilityScore = calculateAbilitySimilarity(abilityScores, major['所需核心能力']);
+                
+                // 计算综合匹配度（加权平均）
+                const hollandWeight = 0.4; // 霍兰德权重40%
+                const mbtiWeight = 0.3;     // MBTI权重30%
+                const abilityWeight = 0.3;  // 能力权重30%
+                
+                const compositeScore = (hollandScore * hollandWeight + mbtiScore * mbtiWeight + abilityScore * abilityWeight);
+                const matchScore = Math.round(compositeScore * 100);
+
+                console.log(`专业 ${major['专业名']}: 霍兰德=${Math.round(hollandScore*100)}%, MBTI=${Math.round(mbtiScore*100)}%, 能力=${Math.round(abilityScore*100)}%, 综合=${matchScore}%`);
 
                 return {
                     code: major['专业码'],
                     name: major['专业名'],
+                    category: major['门类'],
+                    subCategory: major['专业类'],
+                    degree: major['学位'],
+                    duration: major['学制'],
+                    objectives: major['培养目标'],
+                    courses: major['专业课程'],
+                    careerPaths: major['就业方向'],
+                    requiredAbilities: major['所需核心能力'],
                     matchScore,
-                    hollandScore: Math.round(hollandScore),
-                    mbtiScore: Math.round(mbtiScore),
-                    abilityScore,
-                    reason: major['推荐理由'] || `该专业与您的兴趣和性格特征相匹配，综合匹配度${matchScore}%`
+                    hollandScore: Math.round(hollandScore * 100),
+                    mbtiScore: Math.round(mbtiScore * 100),
+                    abilityScore: Math.round(abilityScore * 100),
+                    reason: major['推荐理由'] || `该专业与您的兴趣、性格和能力特征相匹配，综合匹配度${matchScore}%`
                 };
             });
 
-            return majorsWithScores.sort((a, b) => b.matchScore - a.matchScore);
+            // 按综合匹配度排序，只返回匹配度大于30%的专业
+            const filteredMajors = majorsWithScores
+                .filter(major => major.matchScore >= 30)
+                .sort((a, b) => b.matchScore - a.matchScore);
+
+            console.log(`筛选出${filteredMajors.length}个匹配专业（匹配度≥30%）`);
+            
+            // 返回前20个推荐专业
+            return filteredMajors.slice(0, 20);
 
         } catch (error) {
             console.error('生成推荐专业失败:', error);
@@ -620,26 +718,124 @@
 
     // 计算霍兰德相似度
     function calculateHollandSimilarity(userCode, majorCode) {
-        if (!majorCode) return 0;
-        let similarity = 0;
-        for (let i = 0; i < userCode.length && i < majorCode.length; i++) {
-            if (userCode[i] === majorCode[i]) {
-                similarity += (3 - i) * 0.2; // 位置权重
-            }
+        if (!majorCode || typeof majorCode !== 'string') return 0;
+        
+        // 处理可能的格式：{IAS,ISA,AIS} 或 IAS 或 IAS,ISA,AIS
+        let codes = [];
+        if (majorCode.includes('{') && majorCode.includes('}')) {
+            // 处理 {IAS,ISA,AIS} 格式
+            const codeContent = majorCode.replace(/[{}]/g, '');
+            codes = codeContent.split(',').map(c => c.trim()).filter(c => c.length > 0);
+        } else if (majorCode.includes(',')) {
+            // 处理 IAS,ISA,AIS 格式
+            codes = majorCode.split(',').map(c => c.trim()).filter(c => c.length > 0);
+        } else {
+            // 单个代码
+            codes = [majorCode.trim()];
         }
-        return Math.min(similarity, 1);
+        
+        let maxSimilarity = 0;
+        codes.forEach(code => {
+            let similarity = 0;
+            for (let i = 0; i < Math.min(userCode.length, code.length); i++) {
+                if (userCode[i] === code[i]) {
+                    similarity += (3 - i) * 0.2; // 位置权重：第一位0.6，第二位0.4，第三位0.2
+                }
+            }
+            maxSimilarity = Math.max(maxSimilarity, similarity);
+        });
+        
+        return Math.min(maxSimilarity, 1);
     }
 
     // 计算MBTI相似度
     function calculateMBTISimilarity(userType, majorType) {
-        if (!majorType) return 0;
-        let matches = 0;
-        for (let i = 0; i < 4; i++) {
-            if (userType[i] === majorType[i]) {
-                matches++;
-            }
+        if (!majorType || typeof majorType !== 'string') return 0;
+        
+        // 处理可能的格式：{INTP,INFJ,ENTP,ENFJ} 或 INTP 或 INTP,INFJ,ENTP,ENFJ
+        let types = [];
+        if (majorType.includes('{') && majorType.includes('}')) {
+            // 处理 {INTP,INFJ,ENTP,ENFJ} 格式
+            const typeContent = majorType.replace(/[{}]/g, '');
+            types = typeContent.split(',').map(t => t.trim()).filter(t => t.length === 4);
+        } else if (majorType.includes(',')) {
+            // 处理 INTP,INFJ,ENTP,ENFJ 格式
+            types = majorType.split(',').map(t => t.trim()).filter(t => t.length === 4);
+        } else {
+            // 单个类型
+            types = [majorType.trim()];
         }
-        return matches / 4;
+        
+        let maxSimilarity = 0;
+        types.forEach(type => {
+            let matches = 0;
+            for (let i = 0; i < 4; i++) {
+                if (userType[i] === type[i]) {
+                    matches++;
+                }
+            }
+            maxSimilarity = Math.max(maxSimilarity, matches / 4);
+        });
+        
+        return maxSimilarity;
+    }
+
+    // 计算能力相似度
+    function calculateAbilitySimilarity(userAbilityScores, majorRequiredAbilities) {
+        if (!userAbilityScores || !majorRequiredAbilities) {
+            return 0;
+        }
+        
+        // 能力维度映射
+        const abilityMapping = {
+            '语言文字': ['语言表达', '文字理解', '语言能力', '写作能力', '表达能力'],
+            '数理分析': ['数学分析', '逻辑推理', '计算能力', '数理统计', '数据分析'],
+            '空间想象': ['空间想象', '图形理解', '视觉空间', '空间认知', '几何理解'],
+            '音乐': ['音乐感知', '节奏感', '音调辨别', '音乐创作', '音乐表演'],
+            '身体运动': ['体育运动', '身体协调', '运动技能', '体能', '动作协调'],
+            '人际交往': ['沟通能力', '团队合作', '人际关系', '社交能力', '领导能力'],
+            '自我认知': ['自我反思', '情绪管理', '自我控制', '自我认识', '心理调节'],
+            '自然观察': ['观察能力', '自然认知', '环境感知', '生物理解', '自然探索'],
+            '创造力': ['创新思维', '创意能力', '想象力', '原创性', '发明创造'],
+            '实际操作': ['动手能力', '操作技能', '实践能力', '技术应用', '工艺制作']
+        };
+        
+        // 如果专业要求能力为空或无效，返回中等分数
+        if (typeof majorRequiredAbilities !== 'string' || majorRequiredAbilities.trim() === '') {
+            return 0.5;
+        }
+        
+        let totalScore = 0;
+        let matchCount = 0;
+        
+        // 分析专业要求的能力
+        const requiredText = majorRequiredAbilities.toLowerCase();
+        
+        Object.keys(abilityMapping).forEach(abilityKey => {
+            const userScore = userAbilityScores[abilityKey] || 0;
+            
+            // 检查专业要求中是否包含该能力相关的关键词
+            const keywords = abilityMapping[abilityKey];
+            const isRequired = keywords.some(keyword => 
+                requiredText.includes(keyword) || 
+                requiredText.includes(keyword.toLowerCase()) ||
+                requiredText.includes(abilityKey)
+            );
+            
+            if (isRequired) {
+                // 如果专业要求该能力，用户得分越高越匹配
+                totalScore += userScore / 100; // 标准化到0-1范围
+                matchCount++;
+            }
+        });
+        
+        // 如果没有找到任何匹配的能力要求，返回用户所有能力的平均值
+        if (matchCount === 0) {
+            const avgScore = Object.values(userAbilityScores).reduce((sum, score) => sum + score, 0) / Object.keys(userAbilityScores).length;
+            return Math.min(avgScore / 100, 1); // 标准化到0-1范围
+        }
+        
+        return Math.min(totalScore / matchCount, 1); // 返回0-1范围的相似度
     }
 
     // 显示错误页面
@@ -667,8 +863,121 @@
     }
 
     // 查看专业详情
-    function viewMajorDetails(majorCode) {
-        alert(`查看专业详情功能开发中，专业代码：${majorCode}`);
+    async function viewMajorDetails(majorCode) {
+        if (!majorCode) {
+            alert('专业代码缺失');
+            return;
+        }
+        
+        try {
+            // 从数据库获取专业详细信息
+            const { data: majorData, error } = await window.supabaseClient
+                .from('major_rules')
+                .select('*')
+                .eq('专业码', majorCode)
+                .single();
+            
+            if (error) {
+                console.error('获取专业详情失败:', error);
+                alert('获取专业详情失败，请稍后再试');
+                return;
+            }
+            
+            if (!majorData) {
+                alert('未找到该专业的详细信息');
+                return;
+            }
+            
+            // 显示专业详情弹窗
+            const modal = document.createElement('div');
+            modal.className = 'major-details-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${majorData['专业名'] || '未知专业'}</h2>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="detail-section">
+                            <h3>基本信息</h3>
+                            <p><strong>专业代码：</strong>${majorData['专业码'] || '未知'}</p>
+                            <p><strong>门类：</strong>${majorData['门类'] || '未知'}</p>
+                            <p><strong>专业类：</strong>${majorData['专业类'] || '未知'}</p>
+                            <p><strong>学位：</strong>${majorData['学位'] || '未知'}</p>
+                            <p><strong>学制：</strong>${majorData['学制'] || '未知'}</p>
+                            ${majorData['设立年份'] ? `<p><strong>设立年份：</strong>${majorData['设立年份']}</p>` : ''}
+                        </div>
+                        
+                        ${majorData['培养目标'] ? `
+                        <div class="detail-section">
+                            <h3>培养目标</h3>
+                            <p>${majorData['培养目标']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['专业课程'] ? `
+                        <div class="detail-section">
+                            <h3>主要课程</h3>
+                            <p>${majorData['专业课程']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['就业方向'] ? `
+                        <div class="detail-section">
+                            <h3>就业方向</h3>
+                            <p>${majorData['就业方向']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['所需核心能力'] ? `
+                        <div class="detail-section">
+                            <h3>所需核心能力</h3>
+                            <p>${majorData['所需核心能力']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['指引必选科目'] ? `
+                        <div class="detail-section">
+                            <h3>指引必选科目</h3>
+                            <p>${majorData['指引必选科目']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['体检限制'] ? `
+                        <div class="detail-section">
+                            <h3>体检限制</h3>
+                            <p>${majorData['体检限制']}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${majorData['匹配的霍兰德代码组合'] || majorData['匹配的MBTI类型'] ? `
+                        <div class="detail-section">
+                            <h3>适合的人群特征</h3>
+                            ${majorData['匹配的霍兰德代码组合'] ? `<p><strong>霍兰德兴趣类型：</strong>${majorData['匹配的霍兰德代码组合']}</p>` : ''}
+                            ${majorData['匹配的MBTI类型'] ? `<p><strong>MBTI性格类型：</strong>${majorData['匹配的MBTI类型']}</p>` : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 添加关闭事件
+            modal.querySelector('.close-modal').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+        } catch (error) {
+            console.error('查看专业详情时出错:', error);
+            alert('系统错误，请稍后再试');
+        }
     }
 
     // 保存报告
