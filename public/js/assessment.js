@@ -3589,7 +3589,7 @@ window.initializeAssessmentTab = function() {
     window.showQuickTestPanel = function() {
         const assessmentTab = document.getElementById('assessment-tab');
         assessmentTab.innerHTML = `
-            <div class="quick-test-panel">
+            <div class="quick-test-panel" style="max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
                 <div class="panel-header">
                     <h2>🛠️ 快速测试模式</h2>
                     <p>跳过100道题，直接设置测评参数进行算法测试</p>
@@ -3746,7 +3746,7 @@ window.initializeAssessmentTab = function() {
                         </div>
                     </div>
                     
-                    <div class="form-actions">
+                    <div class="form-actions" style="margin-bottom: 50px;">
                         <button class="generate-result-btn" onclick="generateQuickTestResult()">生成测评结果</button>
                     </div>
                 </div>
@@ -3793,6 +3793,9 @@ window.initializeAssessmentTab = function() {
                     max-width: 900px;
                     margin: 0 auto;
                     padding: 20px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    overflow-x: hidden;
                 }
                 
                 .panel-header {
@@ -3827,6 +3830,8 @@ window.initializeAssessmentTab = function() {
                 .test-form {
                     display: grid;
                     gap: 25px;
+                    max-height: none;
+                    padding-bottom: 40px;
                 }
                 
                 .form-section {
@@ -3964,6 +3969,25 @@ window.initializeAssessmentTab = function() {
                 .generate-result-btn:hover {
                     transform: translateY(-3px);
                     box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+                }
+                
+                /* 滚动条美化 */
+                .quick-test-panel::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                .quick-test-panel::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 4px;
+                }
+                
+                .quick-test-panel::-webkit-scrollbar-thumb {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 4px;
+                }
+                
+                .quick-test-panel::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
                 }
             </style>
         `;
