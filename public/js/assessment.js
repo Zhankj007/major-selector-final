@@ -147,10 +147,6 @@
                     (questionsError?.message || choicesError?.message || majorRulesError?.message));
             }
             
-            if (error) {
-                throw error;
-            }
-            
             alert('✅ 数据库连接正常！\n\n可以开始测评了。');
             console.log('数据库连接测试成功');
             
