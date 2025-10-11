@@ -404,62 +404,72 @@
         // 下一题按钮
         nextBtn.addEventListener('click', () => {
             const selectedChoice = document.querySelector('input[name="choice"]:checked');
-            if (!selectedChoice) {
-                alert('请选择一个答案');
-                return;
+            try {
+                console.log('开始加载题目...');
+                if (!window.supabaseClient) throw new Error('数据库连接未初始化');
+                const supabaseClient = window.supabaseClient;
+
+                // 查询所有题目
+                const { data: questions, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select('*');
+                if (questionsError) throw questionsError;
+
+                // 查询所有选项
+                const { data: allChoices, error: choicesError } = await supabaseClient
+                    .from('choices')
+                    .select('*');
+                if (choicesError) throw choicesError;
+
+                // 预处理统一选项组
+                const hollandChoices = allChoices.filter(c => c.question_type === 'holland');
+                const abilityChoices = allChoices.filter(c => c.question_type === 'ability');
+
+                // 组装题目和选项
+                const questionsWithChoices = questions.map(q => {
+                    let choices = [];
+                    if (q.question_type === 'holland') {
+                        choices = hollandChoices;
+                    } else if (q.question_type === 'ability') {
+                        choices = abilityChoices;
+                    } else if (q.question_type === 'mbti') {
+                        choices = allChoices.filter(c => c.question_id === q.id);
+                    }
+                    return {
+                        ...q,
+                        choices
+                    };
+                });
+
+                // 分组抽题
+                const hollandQuestions = questionsWithChoices.filter(q => q.question_type === 'holland');
+                const mbtiQuestions = questionsWithChoices.filter(q => q.question_type === 'mbti');
+                const abilityQuestions = questionsWithChoices.filter(q => q.question_type === 'ability');
+
+                // 按dimension分组抽题
+                function groupAndSample(arr, perGroup) {
+                    const byDim = {};
+                    arr.forEach(q => {
+                        if (!byDim[q.dimension]) byDim[q.dimension] = [];
+                        byDim[q.dimension].push(q);
+                    });
+                    let result = [];
+                    Object.values(byDim).forEach(group => {
+                        result = result.concat(shuffleArray(group).slice(0, perGroup));
+                    });
+                    return result;
+                }
+
+                const selectedHolland = groupAndSample(hollandQuestions, 7);
+                const selectedMbti = groupAndSample(mbtiQuestions, 7);
+                const selectedAbility = groupAndSample(abilityQuestions, 3);
+
+                allQuestions = shuffleArray([...selectedHolland, ...selectedMbti, ...selectedAbility]);
+                console.log('抽题完成，总题数:', allQuestions.length);
+            } catch (error) {
+                console.error('加载题目失败:', error);
+                throw error;
             }
-
-            // 记录答案
-            const choiceId = selectedChoice.value;
-            const choice = question.choices.find(c => c.id == choiceId);
-            
-            userAnswers.push({
-                question_id: question.id,
-                choice_id: choiceId,
-                score_type: choice.score_type,
-                score_value: choice.score_value
-            });
-
-            // 计算分数
-            calculateScores(choice);
-
-            // 检查是否完成
-            if (currentQuestionIndex === allQuestions.length - 1) {
-                finishAssessment();
-            } else {
-                currentQuestionIndex++;
-                renderPage();
-            }
-        });
-    }
-
-    // 获取题目类型标签
-    function getQuestionTypeLabel(type) {
-        const labels = {
-            'holland': '职业兴趣',
-            'mbti': '性格倾向',
-            'ability': '能力自评'
-        };
-        return labels[type] || '测评题目';
-    }
-
-    // 计算分数
-    function calculateScores(choice) {
-        const { score_type, score_value } = choice;
-        
-        if (['R', 'I', 'A', 'S', 'E', 'C'].includes(score_type)) {
-            // 霍兰德分数
-            hollandScores[score_type] += score_value;
-        } else if (['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'].includes(score_type)) {
-            // MBTI分数
-            if (['E', 'I'].includes(score_type)) {
-                mbtiScores['EI'][score_type] += score_value;
-            } else if (['S', 'N'].includes(score_type)) {
-                mbtiScores['SN'][score_type] += score_value;
-            } else if (['T', 'F'].includes(score_type)) {
-                mbtiScores['TF'][score_type] += score_value;
-            } else if (['J', 'P'].includes(score_type)) {
-                mbtiScores['JP'][score_type] += score_value;
             }
         } else {
             // 能力分数
