@@ -245,42 +245,27 @@
                         question_type
                     )
                 `)
-                .order('question_type', { ascending: true });
-
-            console.log('数据库查询结果:', { questions, questionsError });
-
-            if (questionsError) {
-                console.error('数据库查询错误:', questionsError);
-                throw new Error('获取题目失败: ' + questionsError.message + '。请检查数据库连接或联系管理员。');
-            }
-
-            if (!questions || questions.length === 0) {
-                console.warn('未找到任何题目数据');
-                throw new Error('数据库中未找到测评题目，请联系管理员添加题目数据。');
-            }
-
-            // 按类型和维度分组题目
-            const hollandQuestions = questions.filter(q => q.question_type === 'holland');
-            const mbtiQuestions = questions.filter(q => q.question_type === 'mbti');
-            const abilityQuestions = questions.filter(q => q.question_type === 'ability');
-
-            console.log('题目统计:', {
-                总数: questions.length,
-                霍兰德: hollandQuestions.length,
-                MBTI: mbtiQuestions.length,
-                能力: abilityQuestions.length
-            });
-
-            // 霍兰德题目：按dimension分组，每组随机抽取7题
-            const hollandByDimension = {};
-            hollandQuestions.forEach(q => {
-                if (!hollandByDimension[q.dimension]) {
-                    hollandByDimension[q.dimension] = [];
-                }
-                hollandByDimension[q.dimension].push(q);
-            });
-            
-            const selectedHollandQuestions = [];
+                const { data: questions, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select(`
+                        id,
+                        question_text,
+                const { data: questions, error: questionsError } = await supabaseClient
+                    .from('questions')
+                    .select(`
+                        id,
+                        question_text,
+                        question_type,
+                        dimension,
+                        choices (
+                            id,
+                            choice_text,
+                            score_type,
+                            score_value,
+                            question_type
+                        )
+                    `)
+                    .order('question_type', { ascending: true });
             Object.keys(hollandByDimension).forEach(dimension => {
                 const dimensionQuestions = shuffleArray(hollandByDimension[dimension]);
                 selectedHollandQuestions.push(...dimensionQuestions.slice(0, 7));
@@ -661,37 +646,7 @@
                 // 霍兰德兴趣匹配评分
                 const hollandScore = calculateHollandSimilarity(hollandCode, major['匹配的霍兰德代码组合']);
                 
-                // MBTI性格类型匹配评分
-                const mbtiScore = calculateMBTISimilarity(mbtiType, major['匹配的MBTI类型']);
-                
-                // 能力匹配评分
-                const abilityScore = calculateAbilitySimilarity(abilityScores, major['所需核心能力']);
-                
-                // 计算综合匹配度（加权平均）
-                const hollandWeight = 0.4; // 霍兰德权重40%
-                const mbtiWeight = 0.3;     // MBTI权重30%
-                const abilityWeight = 0.3;  // 能力权重30%
-                
-                const compositeScore = (hollandScore * hollandWeight + mbtiScore * mbtiWeight + abilityScore * abilityWeight);
-                const matchScore = Math.round(compositeScore * 100);
-
-                console.log(`专业 ${major['专业名']}: 霍兰德=${Math.round(hollandScore*100)}%, MBTI=${Math.round(mbtiScore*100)}%, 能力=${Math.round(abilityScore*100)}%, 综合=${matchScore}%`);
-
-                return {
-                    code: major['专业码'],
-                    name: major['专业名'],
-                    category: major['门类'],
-                    subCategory: major['专业类'],
-                    degree: major['学位'],
-                    duration: major['学制'],
-                    objectives: major['培养目标'],
-                    courses: major['专业课程'],
-                    careerPaths: major['就业方向'],
-                    requiredAbilities: major['所需核心能力'],
-                    matchScore,
-                    hollandScore: Math.round(hollandScore * 100),
-                    mbtiScore: Math.round(mbtiScore * 100),
-                    abilityScore: Math.round(abilityScore * 100),
+                // 已在上方声明并查询，无需重复
                     reason: major['推荐理由'] || `该专业与您的兴趣、性格和能力特征相匹配，综合匹配度${matchScore}%`
                 };
             });
