@@ -4,10 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "VERSION=$(date +%Y%m%d) && sed -i \"s/__VERSION__/v$VERSION/g\" public/index.html"
+    "build": "node build.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.44.4",
-    "papaparse": "^5.4.1"
+    "papaparse": "^5.4.1",
+    "xlsx": "^0.18.5"
   }
 }

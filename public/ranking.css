@@ -1,0 +1,39 @@
+
+/* ========== 投档线排行榜模块样式 ========== */
+.ranking-container { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
+.ranking-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; padding: 0 5px; }
+.ranking-header h2 { font-size: 18px; margin: 0; color: #1e3a8a; }
+.ranking-stats { font-size: 13px; color: #64748b; }
+.ranking-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; padding: 10px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; align-items: flex-end; flex-shrink: 0; }
+.ranking-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.ranking-filter-group label { font-size: 14px; font-weight: 600; color: #475569; }
+.ranking-filter-group input[type="text"], .ranking-filter-group select { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; min-width: 140px; }
+.ranking-filter-group input[type="checkbox"] { margin-right: 4px; vertical-align: middle; }
+.ranking-sort-group { display: flex; gap: 6px; }
+.ranking-btn-sort { background: white; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+.ranking-btn-sort:hover { border-color: #007bff; color: #007bff; }
+.ranking-btn-sort.active { background: #007bff; color: white; border-color: #007bff; }
+.ranking-table-wrapper { overflow: auto; flex-grow: 1; min-height: 0; border: 1px solid #e2e8f0; border-radius: 8px; }
+.ranking-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.ranking-table thead th { position: sticky; top: 0; background: #f8fafc; padding: 10px 12px; font-weight: 600; border-bottom: 2px solid #e2e8f0; z-index: 5; white-space: nowrap; }
+.ranking-table tbody td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.ranking-table tbody tr:hover { background-color: #f1f7ff; }
+.ranking-rank-label { font-family: Consolas, "Courier New", monospace; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
+.ranking-rank-sci { background: #dcfce7; color: #166534; }
+.ranking-rank-art { background: #fef3c7; color: #92400e; }
+.ranking-rank-total { background: #dbeafe; color: #1e40af; }
+.ranking-sub-info { font-size: 12px; color: #64748b; display: block; margin-top: 2px; }
+.ranking-score { font-weight: 600; font-size: 15px; }
+.ranking-delta { display: inline-block; font-size: 11px; padding: 1px 5px; border-radius: 3px; margin-top: 3px; font-weight: 500; }
+.ranking-delta-up { background: #dcfce7; color: #15803d; }
+.ranking-delta-down { background: #fee2e2; color: #dc2626; }
+.ranking-delta-same { background: #f1f5f9; color: #64748b; }
+#ranking-tab { flex-direction: column; }
+#ranking-tab.active { display: flex; }
+@media (max-width: 768px) {
+    .ranking-toolbar { flex-direction: column; gap: 8px; }
+    .ranking-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+    .ranking-header h2 { font-size: 15px; }
+    .ranking-filter-group input[type="text"], .ranking-filter-group select { min-width: 100%; }
+    .ranking-sort-group { flex-wrap: wrap; }
+}

@@ -36,3 +36,10 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# 排行榜数据（只上传转换后的 JSON，不上传 Excel 源文件和转换工具）
+_data/ranking/*.xlsx
+_data/ranking/convert.mjs
+
+# 旧的独立排行榜静态页面（已集成到主站标签页）
+public/ranking/

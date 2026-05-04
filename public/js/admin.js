@@ -145,7 +145,10 @@ function initializeAdminTab() {
             return;
         }
         
-        const availableTabs = { plans: `${window.PLAN_YEAR || '2025'}浙江高考招生计划` };
+        const availableTabs = { 
+            plans: `${window.PLAN_YEAR || '2025'}浙江高考招生计划`,
+            ranking: `投档线排行榜`
+        };
         let permissionsHTML = '';
 
         for (const tabKey in availableTabs) {
@@ -264,7 +267,8 @@ function initializeAdminTab() {
         const availableTabs = [
             { id: 'universities', name: '高校库' },
             { id: 'majors', name: '专业目录' },
-            { id: 'plans', name: '2025浙江高考招生计划' }
+            { id: 'plans', name: '2025浙江高考招生计划' },
+            { id: 'ranking', name: '投档线排行榜' }
         ];
         
         try {

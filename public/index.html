@@ -15,6 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
     
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="ranking.css">
 <style>
     /* 登录/注册按钮默认显示规则 */
     #login-register-button { display: none; }
@@ -171,6 +172,10 @@
         <div class="title-version">
             <h1 style="margin-left: 20px;">詹老师的高考志愿工具箱</h1>
             <span id="version-info">__VERSION__</span>
+            <script>
+                // 本地开发时占位符未被替换，显示友好文本
+                (function(){var el=document.getElementById('version-info');if(el&&el.textContent==='__VERSION__')el.textContent='本地测试版';})();
+            </script>
             <div class="header-controls" style="font-size: 16px; margin-top: 5px; color: #666;">
                 <span id="user-nickname"></span>
                 <span id="visitor-info" style="margin-right: 15px;"></span>
@@ -243,6 +248,7 @@
         <button class="tab-button active" data-tab="universities">高校库</button>
         <button class="tab-button" data-tab="majors">专业目录</button>
         <button class="tab-button" data-tab="plans" id="plans-tab-button">招生计划</button>
+        <button class="tab-button" data-tab="ranking">投档线排行榜</button>
         <button class="tab-button" id="admin-tab-button" data-tab="admin" style="display: none;">后台管理</button>
     </nav>
     
@@ -250,6 +256,7 @@
         <div id="universities-tab" class="tab-panel active"></div>
         <div id="majors-tab" class="tab-panel"></div>
         <div id="plans-tab" class="tab-panel"></div>
+        <div id="ranking-tab" class="tab-panel"></div>
         <div id="admin-tab" class="tab-panel"></div>
     </main>
 </div>
@@ -257,6 +264,7 @@
 <script src="/js/universities.js"></script>
 <script src="/js/majors.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/ranking.js"></script>
 <script src="/js/admin.js"></script>
 <script src="/js/main.js"></script>
 </body>
