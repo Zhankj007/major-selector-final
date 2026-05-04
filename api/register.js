@@ -1,10 +1,11 @@
 // api/register.js
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const getSupabaseConfig = () => {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  return { supabaseUrl, supabaseAnonKey };
+};
 
 export default async function handler(request, response) {
   // --- CORS and Method Pre-checks ---
@@ -37,6 +38,9 @@ export default async function handler(request, response) {
   }
 
   try {
+    const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     // --- Step 1: Create the user in Supabase Auth ---
     // 这会触发我们在第一阶段设置的第一个触发器，自动在 profiles 表中创建一条空记录
     const { data: authData, error: signUpError } = await supabase.auth.signUp({

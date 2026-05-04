@@ -1,8 +1,5 @@
-// 合并两个DOMContentLoaded事件监听器
 // 全局变量定义
-const SUPABASE_URL = '__SUPABASE_URL__';
-const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 window.supabaseClient = supabaseClient; // 【新增】将客户端实例挂载到全局
 
 // 页面加载完成后执行初始化
@@ -22,6 +19,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanels = document.querySelectorAll('.tab-panel');
     const loginModal = document.getElementById('login-modal');
     const closeModal = document.querySelector('.close-modal');
+    const versionElement = document.getElementById('version-info');
+
+    // --- 初始化版本号 ---
+    if (versionElement && window.APP_VERSION) {
+        versionElement.textContent = 'v' + window.APP_VERSION;
+    }
+
+    // --- 初始化招生计划标签页标题 ---
+    const plansTabButton = document.getElementById('plans-tab-button');
+    if (plansTabButton && window.PLAN_YEAR) {
+        plansTabButton.textContent = `${window.PLAN_YEAR}浙江高考招生计划`;
+    }
 
     // --- 模态框控制逻辑 ---
     // 显示模态框
@@ -56,29 +65,72 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 核心认证状态管理 ---
     supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session && session.user) {
-            document.body.classList.remove('logged-out');
-            loadUserPermissions(session.user.id);
-            displayUserProfile(session.user.id);
-            hideModal(); // 登录成功后隐藏模态框
-        } else {
-            document.body.classList.add('logged-out');
-            if (userNicknameElement) userNicknameElement.textContent = '';
-            // 默认显示前两个标签页（高校库和专业目录）
-            tabButtons.forEach(btn => {
-                if (btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors') {
-                    btn.style.display = '';
-                } else {
-                    btn.style.display = 'none';
-                }
-            });
-            // 确保未登录状态下第一个标签页被激活并初始化
-            const firstVisibleTab = document.querySelector('.tab-button:not([style*="display: none"])');
-            if (firstVisibleTab) {
-                firstVisibleTab.click();
+        console.log('🔐 onAuthStateChange 触发:', event);
+        // 使用 setTimeout 脱离 Supabase 内部锁
+        setTimeout(async () => {
+            if (session && session.user) {
+                document.body.classList.remove('logged-out');
+                hideModal();
+                try { await updateTabVisibility(session.user.id); } catch (e) { console.error('更新标签页失败:', e); }
+                try { await displayUserProfile(session.user.id); } catch (e) { console.error('显示用户信息失败:', e); }
+            } else {
+                document.body.classList.add('logged-out');
+                if (userNicknameElement) userNicknameElement.textContent = '';
+                try { await updateTabVisibility(null); } catch (e) { console.error('重置标签页失败:', e); }
             }
-        }
+        }, 0);
     });
+
+    // 【关键补充】页面加载时主动检查是否存在已保存的会话，并处理加载动画
+    (async () => {
+        const startTime = Date.now(); // 记录开始加载的时间
+        console.log('🚀 正在尝试恢复已有会话并验证安全环境...');
+        try {
+            // 先尝试获取 session
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (error) {
+                console.error('📋 会话获取失败:', error.message);
+                await updateTabVisibility(null); // Fallback 给未登录状态
+                return;
+            }
+
+            console.log('📋 页面加载会话检查:', session ? `已登录 (${session.user.email})` : '未登录');
+            
+            if (session && session.user) {
+                document.body.classList.remove('logged-out');
+                // 恢复时也执行一次 hideModal 以防万一
+                hideModal();
+                
+                // 必须 await 等待权限和 UI 更新完毕
+                await Promise.all([
+                    updateTabVisibility(session.user.id).catch(e => console.error('恢复标签页失败:', e)),
+                    displayUserProfile(session.user.id).catch(e => console.error('恢复用户信息失败:', e))
+                ]);
+            } else {
+                // 如果未登录，也要执行 updateTabVisibility 来获取全局公开的标签页
+                await updateTabVisibility(null).catch(e => console.error('获取全局标签页失败:', e));
+            }
+        } catch (e) {
+            console.error('会话恢复流程异常:', e);
+            await updateTabVisibility(null); // Fallback
+        } finally {
+            const elapsed = Date.now() - startTime;
+            const minLoadingTime = 2000; // 最少展示 2 秒 (2000 毫秒)
+            const remainingTime = Math.max(0, minLoadingTime - elapsed);
+
+            setTimeout(() => {
+                const loader = document.getElementById('global-loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500); // 等待淡出动画结束
+                }
+            }, remainingTime);
+        }
+    })();
+
     
     // --- 登录/注册表单切换 ---
     showRegisterLink.addEventListener('click', (e) => {
@@ -109,25 +161,42 @@ document.addEventListener('DOMContentLoaded', function () {
             loginButton.disabled = true;
             loginButton.textContent = '登录中...';
             loginButton.style.backgroundColor = '#ccc'; // 设置为灰色
-            
-            // 显示登录状态提示
             loginError.textContent = '正在登录中，请稍候……';
     
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
     
-            const response = await fetch('/api/login', {
+            // 前端直接发起登录
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                let friendlyMessage = '登录失败，请检查您的邮箱和密码。';
+                if (error.message.includes('Invalid login credentials')) {
+                    friendlyMessage = '邮箱或密码错误，请重试。';
+                }
+                throw new Error(friendlyMessage);
+            }
+
+            // ★★★ 登录成功！立即更新 UI，不等待 onAuthStateChange ★★★
+            console.log('✅ 登录成功:', data.user.email);
+            loginError.textContent = ''; // 清掉 "正在登录中" 提示
+            document.body.classList.remove('logged-out');
+            hideModal();
+
+            // 异步加载权限和用户信息（不阻塞）
+            updateTabVisibility(data.user.id).catch(e => console.error('标签页更新失败:', e));
+            displayUserProfile(data.user.id).catch(e => console.error('用户信息加载失败:', e));
+
+            // 异步通知后台记录登录日志（完全不阻塞）
+            fetch('/api/record_login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-            const data = await response.json();
-            if (!response.ok) { throw new Error(data.error || '登录失败，请检查您的邮箱和密码。'); }
-    
-            const { error: sessionError } = await supabaseClient.auth.setSession(data.session);
-            if (sessionError) throw sessionError;
-            // 登录成功后，onAuthStateChange 会自动处理UI更新，我们无需额外操作
-    
+                body: JSON.stringify({ userId: data.user.id, email: data.user.email })
+            }).catch(e => console.error('日志记录失败', e));
+
         } catch (error) {
             loginError.textContent = error.message;
         } finally {
@@ -173,108 +242,128 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- 其他功能函数 ---
-    logoutButton.addEventListener('click', () => supabaseClient.auth.signOut());
+    logoutButton.addEventListener('click', async () => {
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) throw error;
+        } catch (error) {
+            console.error('正常退出失败，强制清理本地会话:', error);
+            // 强制清理以 "sb-" 开头的 Supabase localStorage 键
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sb-')) {
+                    localStorage.removeItem(key);
+                }
+            }
+            window.location.reload(); // 强退后刷新页面
+        }
+    });
 
     async function displayUserProfile(userId) {
         const nicknameElement = document.getElementById('user-nickname');
-        const adminTabButton = document.getElementById('admin-tab-button'); // 获取后台管理按钮
+        const adminTabButton = document.getElementById('admin-tab-button');
     
-        if (!nicknameElement || !adminTabButton) return;
+        console.log(`👤 正在加载用户资料 (ID: ${userId})...`);
+        if (!nicknameElement || !adminTabButton) {
+            console.warn('⚠️ 找不到 nicknameElement 或 adminTabButton DOM 节点！');
+            return;
+        }
         try {
-            // 【已修正】同时查询 username 和 role 字段
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
                 .select('username, role') 
                 .eq('id', userId)
-                .single();
+                .maybeSingle(); 
             
-            if (error) throw error;
+            if (error) {
+                console.warn('⚠️ 查询 profiles 表返回错误:', error.message);
+                throw error;
+            }
     
             if (profile) {
+                console.log('✅ 成功获取用户资料:', profile);
                 nicknameElement.textContent = profile.username ? `欢迎您, ${profile.username}` : '欢迎您';
                 
-                // 检查角色，如果是 admin，就显示后台管理标签页
                 if (profile.role === 'admin') {
+                    console.log('👑 检测到管理员身份，显示后台管理标签页');
                     adminTabButton.style.display = '';
                 } else {
+                    console.log('👤 普通用户，隐藏后台管理标签页');
                     adminTabButton.style.display = 'none';
                 }
             } else {
-                 nicknameElement.textContent = '欢迎您';
-                 adminTabButton.style.display = 'none';
+                console.warn('⚠️ 找不到用户 profiles 记录');
+                nicknameElement.textContent = '欢迎您';
+                adminTabButton.style.display = 'none';
             }
         } catch (error) {
-            console.error('获取用户信息失败:', error);
+            console.error('❌ displayUserProfile 抛出错误:', error);
             nicknameElement.textContent = '欢迎您';
             adminTabButton.style.display = 'none';
         }
     }
 
-    async function loadUserPermissions(userId) {
-        // 默认显示前两个标签页（高校库和专业目录）
-        let visibleTabs = [];
+    async function updateTabVisibility(userId = null) {
+        let visibleTabNames = new Set();
+        
+        // 1. 获取全局公开权限
+        const { data: globalPerms, error: globalError } = await supabaseClient
+            .from('global_permissions')
+            .select('tab_name, is_public');
+            
+        if (!globalError && globalPerms) {
+            globalPerms.filter(p => p.is_public).forEach(p => visibleTabNames.add(p.tab_name));
+        } else {
+            // Fallback: 默认公开基本功能
+            ['universities', 'majors'].forEach(t => visibleTabNames.add(t));
+        }
+
+        // 2. 如果用户已登录，叠加个人特权
+        if (userId) {
+            const { data: permissions } = await supabaseClient
+                .from('user_permissions')
+                .select('tab_name, expires_at')
+                .eq('user_id', userId);
+            
+            if (permissions) {
+                const now = new Date();
+                permissions.forEach(perm => {
+                    const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
+                    if (!isExpired) {
+                        visibleTabNames.add(perm.tab_name); // 加入并集
+                    }
+                });
+            }
+
+            // 3. 管理员特殊处理：拥有所有标签页权限
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .maybeSingle();
+
+            if (profile && profile.role === 'admin') {
+                tabButtons.forEach(btn => visibleTabNames.add(btn.dataset.tab));
+            }
+        }
+
+        // 4. 根据并集结果更新 DOM
+        let firstVisibleTab = null;
         tabButtons.forEach(btn => {
-            if (btn.dataset.tab === 'universities' || btn.dataset.tab === 'majors') {
+            const tabName = btn.dataset.tab;
+            if (visibleTabNames.has(tabName)) {
                 btn.style.display = '';
-                visibleTabs.push(btn); // 将默认显示的标签页添加到visibleTabs数组
+                if (!firstVisibleTab) firstVisibleTab = btn;
             } else {
                 btn.style.display = 'none';
             }
         });
-        const { data: permissions, error } = await supabaseClient
-            .from('user_permissions')
-            .select('tab_name, expires_at')
-            .eq('user_id', userId);
-    
-        if (error) {
-            console.error('获取用户权限失败:', error);
-            return;
-        }
-        const now = new Date();
-        permissions.forEach(perm => {
-            const isExpired = perm.expires_at && new Date(perm.expires_at) < now;
-            if (!isExpired) {
-                const tabButton = document.querySelector(`.tab-button[data-tab="${perm.tab_name}"]`);
-                if (tabButton) {
-                    tabButton.style.display = ''; // 恢复显示
-                    // 确保不重复添加到visibleTabs
-                    if (!visibleTabs.includes(tabButton)) {
-                        visibleTabs.push(tabButton);
-                    }
-                }
-            }
-        });
-    
-        // 显示管理员标签页（如果用户是管理员）
-        const { data: profile, error: profileError } = await supabaseClient
-            .from('profiles')
-            .select('role')
-            .eq('id', userId)
-            .single();
-    
-        if (profileError) {
-            console.error('获取用户角色失败:', profileError);
-        } else if (profile && profile.role === 'admin') {
-            const adminTabButton = document.getElementById('admin-tab-button');
-            if (adminTabButton) {
-                adminTabButton.style.display = '';
-                visibleTabs.push(adminTabButton);
-            }
-        }
-    
-        // --- 【关键修正点】 ---
-        // 在设置默认标签页之前，先检查当前是否已经有一个被激活的标签页
+
+        // 5. 确保有一个激活的标签页
         const currentlyActiveTab = document.querySelector('.tab-button.active');
-        
-        // 判断当前激活的标签页是否在本次权限检查后依然可见
-        const isActiveTabStillVisible = currentlyActiveTab && visibleTabs.includes(currentlyActiveTab);
-    
-        if (visibleTabs.length > 0 && !isActiveTabStillVisible) {
-            // 只有在“没有任何标签页被激活”或“当前激活的标签页已不再可见”时，才默认点击第一个
-            visibleTabs[0].click();
+        if (currentlyActiveTab && currentlyActiveTab.style.display === 'none' && firstVisibleTab) {
+            firstVisibleTab.click();
         }
-        // 移除了visibleTabs.length === 0的检查，因为高校库和专业目录始终可见
-        // 确保visibleTabs数组中至少包含默认的两个标签页
     }
 
     tabButtons.forEach(tab => {

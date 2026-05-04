@@ -1,13 +1,15 @@
 // api/counter.js
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+const getSupabaseClient = () => {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  return createClient(url, key);
+};
 
 export default async function handler(request, response) {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase.rpc('increment_counter');
 
     if (error) {

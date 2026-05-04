@@ -67,6 +67,26 @@ function buildHierarchy(data, type) {
     return hierarchy;
 }
 
+// --- 添加带超时和重试机制的 fetch 函数 ---
+async function fetchWithRetry(url, retries = 3, timeoutMs = 5000) {
+    for (let i = 0; i < retries; i++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`HTTP 错误: ${response.status}`);
+            return await response.text();
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.warn(`⚠️ Google Docs 请求第 ${i + 1} 次失败: ${error.message}`);
+            if (i === retries - 1) throw new Error(`请求 Google Docs 失败，已重试 ${retries} 次。原文错误: ${error.message}`);
+            // 等待 1 秒后重试
+            await new Promise(res => setTimeout(res, 1000));
+        }
+    }
+}
+
 // The main handler function remains the same.
 export default async function handler(request, response) {
     const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
@@ -81,14 +101,16 @@ export default async function handler(request, response) {
     }
 
     try {
-        const fetchResponse = await fetch(targetUrl);
-        if (!fetchResponse.ok) throw new Error(`Failed to fetch from Google Sheets: ${fetchResponse.statusText}`);
-        const csvText = await fetchResponse.text();
+        // 使用带重试和超时机制的 fetch
+        const csvText = await fetchWithRetry(targetUrl, 3, 6000); // 最多重试3次，每次超时6秒
+        
         const flatData = parseCSV(csvText);
         const structuredData = buildHierarchy(flatData, type);
+        
         response.status(200)
             .setHeader('Content-Type', 'application/json')
-            .setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate')
+            // 让 Vercel CDN 缓存 2 小时，期间所有用户访问都是秒开
+            .setHeader('Cache-Control', 's-maxage=7200, stale-while-revalidate')
             .json(structuredData);
     } catch (error) {
         console.error("API Error:", error);

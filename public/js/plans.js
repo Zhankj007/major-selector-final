@@ -94,6 +94,17 @@ window.initializePlansTab = function() {
     let selectedPlans = new Map();
     let activeCharts = [];
 
+    // --- 年份动态配置 ---
+    const Y = parseInt(window.PLAN_YEAR || '2025', 10);
+    const Y0 = `${Y}`;
+    const Y1 = `${Y - 1}`;
+    const Y2 = `${Y - 2}`;
+    const Y3 = `${Y - 3}`;
+    const shortY0 = `${Y % 100}`;
+    const shortY1 = `${(Y - 1) % 100}`;
+    const shortY2 = `${(Y - 2) % 100}`;
+    const shortY3 = `${(Y - 3) % 100}`;
+
 
     // --- populateFilters and other functions (no changes here) ---
     async function populateFilters() {
@@ -222,9 +233,9 @@ window.initializePlansTab = function() {
                 hierarchy[province][uniName].forEach(plan => {
                     const id = `${plan.院校代码}-${plan.专业代码}`;
                     const fee = plan.学费 ? `${plan.学费}元` : 'N/A';
-                    const score = plan['25年分数线'] ? `${plan['25年分数线']}分` : 'N/A';
-                    const rank = plan['25年位次号'] ? `${plan['25年位次号']}位` : 'N/A';
-                    const details = `【${fee}|${plan['25年选科要求'] || 'N/A'}|${score}|${rank}】`;
+                    const score = plan['当年分数线'] ? `${plan['当年分数线']}分` : 'N/A';
+                    const rank = plan['当年位次号'] ? `${plan['当年位次号']}位` : 'N/A';
+                    const details = `【${fee}|${plan['当年选科要求'] || 'N/A'}|${score}|${rank}】`;
                     const planData = btoa(encodeURIComponent(JSON.stringify(plan)));
                     html += `<li data-plan="${planData}"><input type="checkbox" value="${id}" ${selectedPlans.has(id) ? 'checked' : ''}><span class="major-label">${plan.专业} ${details}</span></li>`;
                 });
@@ -238,7 +249,7 @@ window.initializePlansTab = function() {
 
     function renderListView(data) {
         if (!data || data.length === 0) { resultsContainer.innerHTML = '<p>没有找到符合条件的记录。</p>'; return; }
-        const sortedData = [...data].sort((a, b) => (parseInt(a['25年位次号'], 10) || 0) - (parseInt(b['25年位次号'], 10) || 0));
+        const sortedData = [...data].sort((a, b) => (parseInt(a['当年位次号'], 10) || 0) - (parseInt(b['当年位次号'], 10) || 0));
         let html = '<div class="plan-list-view">';
         html += `<div class="list-header"><div class="list-row">
             <div class="list-cell col-select">选择</div><div class="list-cell col-uni-major">院校专业</div>
@@ -255,8 +266,8 @@ window.initializePlansTab = function() {
                 <div class="list-cell col-select"><input type="checkbox" value="${id}" ${selectedPlans.has(id) ? 'checked' : ''}></div>
                 <div class="list-cell col-uni-major major-label">${plan.院校 || ''}#${plan.专业 || ''}</div>
                 <div class="list-cell">${plan.省份 || ''}</div><div class="list-cell">${plan.城市 || ''}</div>
-                <div class="list-cell">${plan.学费 || ''}</div><div class="list-cell">${plan['25年选科要求'] || ''}</div>
-                <div class="list-cell">${plan['25年分数线'] || ''}</div><div class="list-cell">${plan['25年位次号'] || ''}</div>
+                <div class="list-cell">${plan.学费 || ''}</div><div class="list-cell">${plan['当年选科要求'] || ''}</div>
+                <div class="list-cell">${plan['当年分数线'] || ''}</div><div class="list-cell">${plan['当年位次号'] || ''}</div>
                 <div class="list-cell col-notes">${plan.专业简注 || ''}</div>
             </div>`;
         });
@@ -308,11 +319,11 @@ function showPlanDetails(plan) {
     const masterInfo = (plan.硕士点 || plan.硕士专业) ? `<strong>硕</strong>:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
     const doctorInfo = (plan.博士点 || plan.博士专业) ? `<strong>博</strong>:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
     const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
-    // 2. 【已修正】按"**年份**-X%"格式处理推免率
+    // 2. 按"**年份**-X%"格式处理推免率（动态年份）
     const tuitionRates = [
-        plan['25年推免率'] ? `<strong>25年</strong>-${plan['25年推免率']}` : null,
-        plan['24年推免率'] ? `<strong>24年</strong>-${plan['24年推免率']}` : null,
-        plan['23年推免率'] ? `<strong>23年</strong>-${plan['23年推免率']}` : null
+        plan['当年推免率'] ? `<strong>${shortY0}年</strong>-${plan['当年推免率']}` : null,
+        plan['前1年推免率'] ? `<strong>${shortY1}年</strong>-${plan['前1年推免率']}` : null,
+        plan['前2年推免率'] ? `<strong>${shortY2}年</strong>-${plan['前2年推免率']}` : null
     ].filter(Boolean).join(' | ');
 
     const promotionRate = [
@@ -338,8 +349,8 @@ function showPlanDetails(plan) {
         ${renderRow(
             renderItem('学制/学费', studyFee),
             renderItem('本/专科', plan.本专科),
-            renderItem('25年新招', plan['25年新招']),
-            renderItem('选科要求', plan['25年选科要求'])
+            renderItem(`${shortY0}年新招`, plan['当年新招']),
+            renderItem('选科要求', plan['当年选科要求'])
         )}
         ${renderRow(renderItem('院校水平', plan.院校水平或来历))}
         ${renderRow(
@@ -354,7 +365,7 @@ function showPlanDetails(plan) {
         )}
         ${renderRow(
             renderItem('升学率', promotionRate),
-            renderItem('23年专升本率', plan['23年专升本比率']),
+            renderItem(`${shortY2}年专升本率`, plan['前2年专升本比率']),
             renderItem('专业排名', plan['专业排名/总数']),
             renderItem('软科专业排名', plan.软科专业排名)
         )}
@@ -379,17 +390,22 @@ function showPlanDetails(plan) {
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
 
-        const years = [25, 24, 23, 22];
-        const historicalData = years.map(year => {
-            const score = plan[`${year}年分数线`];
-            const rank = plan[`${year}年位次号`];
-            const count = plan[`${year}年计划数`];
-            const avgScore = plan[`${year}年平均分`];
+        const yearSlots = [
+            { key: '当年', label: `${shortY0}年` },
+            { key: '前1年', label: `${shortY1}年` },
+            { key: '前2年', label: `${shortY2}年` },
+            { key: '前3年', label: `${shortY3}年` }
+        ];
+        const historicalData = yearSlots.map(slot => {
+            const score = plan[`${slot.key}分数线`];
+            const rank = plan[`${slot.key}位次号`];
+            const count = plan[`${slot.key}计划数`];
+            const avgScore = plan[`${slot.key}平均分`];
             if (score || rank || count || avgScore) {
-                return { year: `${year}年`, score, rank, count, avgScore };
+                return { year: slot.label, score, rank, count, avgScore };
             }
             return null;
-        }).filter(Boolean).reverse();
+        }).filter(Boolean);
 
         if (historicalData.length === 0) {
             chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该专业暂无历年投档数据可供展示。</p></div>';
@@ -561,26 +577,26 @@ function showPlanDetails(plan) {
         activeCharts.forEach(chart => chart.destroy());
         activeCharts = [];
 
-        const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['25年分数线']);
+        const relevantPlans = lastQueryData.filter(p => p.院校 === uniName && p['当年分数线']);
 
         if (relevantPlans.length === 0) {
-            chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>该院校符合条件的专业暂无25年分数线数据可供展示。</p></div>';
+            chartArea.innerHTML = `<h3>图表展示</h3><div class="content-placeholder"><p>该院校符合条件的专业暂无${shortY0}年分数线数据可供展示。</p></div>`;
             return;
         }
 
         const uniStats = relevantPlans[0];
         const statsHtml = `
             <div style="display: flex; justify-content: space-around; padding: 5px; margin-bottom: 8px; background-color: #f8f9fa; border-radius: 5px; font-size: 13px;">
-                <div style="text-align: center;"><strong>校最低专业分数:</strong> ${uniStats['25年校最低专业分数'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>校最低专业位次:</strong> ${uniStats['25年校最低专业位次'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>校专业平均分:</strong> ${uniStats['25年校所有专业平均分'] || 'N/A'}</div>
-                <div style="text-align: center;"><strong>校专业平均位次:</strong> ${uniStats['25年校所有专业平均位次'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校最低专业分数:</strong> ${uniStats['当年校最低专业分数'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校最低专业位次:</strong> ${uniStats['当年校最低专业位次'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校专业平均分:</strong> ${uniStats['当年校所有专业平均分'] || 'N/A'}</div>
+                <div style="text-align: center;"><strong>校专业平均位次:</strong> ${uniStats['当年校所有专业平均位次'] || 'N/A'}</div>
             </div>
         `;
 
-        const sortedPlans = [...relevantPlans].sort((a, b) => b['25年分数线'] - a['25年分数线']);
+        const sortedPlans = [...relevantPlans].sort((a, b) => b['当年分数线'] - a['当年分数线']);
         const labels = sortedPlans.map(p => p.专业);
-        const scores = sortedPlans.map(p => p['25年分数线']);
+        const scores = sortedPlans.map(p => p['当年分数线']);
 
         // 动态计算图表高度
         const calculateChartHeight = () => {
@@ -596,14 +612,14 @@ function showPlanDetails(plan) {
         };
 
         const chartHeight = calculateChartHeight();
-        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px;">${uniName} 2025年各专业投档线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px;">${uniName} ${Y0}年各专业投档线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
 
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: '25年分数线',
+                    label: `${shortY0}年分数线`,
                     data: scores,
                     backgroundColor: 'rgba(239, 108, 108, 0.7)',
                     borderColor: 'rgba(239, 108, 108, 1)',
@@ -620,8 +636,8 @@ function showPlanDetails(plan) {
                             footer: function(tooltipItems) {
                                 const plan = sortedPlans[tooltipItems[0].dataIndex];
                                 if (!plan) return '';
-                                const rankInfo = plan['25年位次号'] ? `位次: ${plan['25年位次号']}` : '';
-                                const countInfo = plan['25年计划数'] ? `计划数: ${plan['25年计划数']}` : '';
+                                const rankInfo = plan['当年位次号'] ? `位次: ${plan['当年位次号']}` : '';
+                                const countInfo = plan['当年计划数'] ? `计划数: ${plan['当年计划数']}` : '';
                                 return [rankInfo, countInfo].filter(Boolean).join(' | ');
                             }
                         }
@@ -630,7 +646,7 @@ function showPlanDetails(plan) {
                 scales: {
                     y: {
                         beginAtZero: false,
-                        suggestedMin: Math.floor((uniStats['25年校最低专业分数'] || 500) / 10) * 10 - 20,
+                        suggestedMin: Math.floor((uniStats['当年校最低专业分数'] || 500) / 10) * 10 - 20,
                         // 恢复为Chart.js默认的横向标题
                         title: {
                             display: true,
@@ -704,9 +720,9 @@ function showPlanDetails(plan) {
     function updatePlanOutputUI() {
         const text = Array.from(selectedPlans.values()).map(plan => {
             const fee = plan.学费 ? `${plan.学费}元` : 'N/A';
-            const score = plan['25年分数线'] ? `${plan['25年分数线']}分` : 'N/A';
-            const rank = plan['25年位次号'] ? `${plan['25年位次号']}位` : 'N/A';
-            const details = `【${fee}|${plan['25年选科要求'] || 'N/A'}|${score}|${rank}】`;
+            const score = plan['当年分数线'] ? `${plan['当年分数线']}分` : 'N/A';
+            const rank = plan['当年位次号'] ? `${plan['当年位次号']}位` : 'N/A';
+            const details = `【${fee}|${plan['当年选科要求'] || 'N/A'}|${score}|${rank}】`;
             return `${plan.院校} ${plan.专业} ${details}`;
         }).join('\n');
         planOutputTextarea.value = text;

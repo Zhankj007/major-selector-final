@@ -1,34 +1,38 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# 环境变量文件（核心敏感信息，严禁上传）
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
 
-node_modules
-dist
-dist-ssr
+# 依赖与编译输出
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
-.vscode/*
+# 数据库过程性脚本（修复与迁移脚本）
+*.sql
+
+# 系统与编辑器文件
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# 环境变量文件（包含核心 API Key，务必隐藏）
-.env
-.env.production
-.env.development
-.env.local
-.env.*.local
+# Vercel 配置
+.vercel/
 
-.vercel
-.env*.local
+# 日志文件
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*

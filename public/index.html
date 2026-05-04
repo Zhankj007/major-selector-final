@@ -6,6 +6,7 @@
 <title>詹老师的高考志愿工具箱</title>
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
  
+<script src="/api/config"></script>
 <script src="/js/libs/chart.js"></script>
 <script src="/js/libs/supabase-js@2"></script>
     
@@ -38,10 +39,8 @@
         padding-bottom: 5px;
     }
     
-    /* 当用户未登录时，隐藏招生计划和后台管理标签页 */
-    body.logged-out .tab-button[data-tab="plans"],
+    /* 当用户未登录时，强制隐藏后台管理标签页（其他标签页由全局权限决定） */
     body.logged-out .tab-button[data-tab="admin"],
-    body.logged-out #plans-tab,
     body.logged-out #admin-tab {
         display: none !important;
     }
@@ -129,9 +128,43 @@
         cursor: not-allowed;
         filter: none;
     }
+
+    /* 页面加载动画 */
+    #global-loader {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #f4f6f8;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+    }
+    #global-loader h2 {
+        color: #007bff;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    .loader-spinner {
+        border: 4px solid rgba(0, 123, 255, 0.2);
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body class="logged-out">
+
+<!-- 全局加载覆盖层 -->
+<div id="global-loader">
+    <div class="loader-spinner"></div>
+    <h2 style="margin-top: 20px;">欢迎体验詹老师的高考志愿工具箱</h2>
+    <p style="color: #666;">正在验证安全环境并加载资源...</p>
+</div>
 
 <div class="toolbox-container">
     <header class="toolbox-header">
@@ -209,7 +242,7 @@
     <nav class="tab-navigation">
         <button class="tab-button active" data-tab="universities">高校库</button>
         <button class="tab-button" data-tab="majors">专业目录</button>
-        <button class="tab-button" data-tab="plans">2025浙江高考招生计划</button>
+        <button class="tab-button" data-tab="plans" id="plans-tab-button">招生计划</button>
         <button class="tab-button" id="admin-tab-button" data-tab="admin" style="display: none;">后台管理</button>
     </nav>
     

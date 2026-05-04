@@ -4,13 +4,13 @@ const getArray = (param) => param ? param.split(',') : null;
 
 export default async function handler(request, response) {
     try {
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+        const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const { searchParams } = new URL(request.url, `http://${request.headers.host}`);
         
-        let query = supabase.from('2025gkplans').select('*', { count: 'exact' });
+        let query = supabase.from('gkplans').select('*', { count: 'exact' });
 
         // --- 常规筛选 (保持不变) ---
         const uniKeyword = searchParams.get('uniKeyword'); if (uniKeyword) query = query.ilike('院校名称', `%${uniKeyword}%`);
@@ -19,10 +19,10 @@ export default async function handler(request, response) {
         const ownerships = getArray(searchParams.get('ownerships')); if (ownerships) query = query.in('办学性质', ownerships);
         const eduLevels = getArray(searchParams.get('eduLevels')); if (eduLevels) query = query.in('本专科', eduLevels);
 
-        const scoreLow = searchParams.get('scoreLow'); if (scoreLow) query = query.gte('25年分数线', parseInt(scoreLow, 10));
-        const scoreHigh = searchParams.get('scoreHigh'); if (scoreHigh) query = query.lte('25年分数线', parseInt(scoreHigh, 10));
-        const rankLow = searchParams.get('rankLow'); if (rankLow) query = query.gte('25年位次号', parseInt(rankLow, 10));
-        const rankHigh = searchParams.get('rankHigh'); if (rankHigh) query = query.lte('25年位次号', parseInt(rankHigh, 10));
+        const scoreLow = searchParams.get('scoreLow'); if (scoreLow) query = query.gte('当年分数线', parseInt(scoreLow, 10));
+        const scoreHigh = searchParams.get('scoreHigh'); if (scoreHigh) query = query.lte('当年分数线', parseInt(scoreHigh, 10));
+        const rankLow = searchParams.get('rankLow'); if (rankLow) query = query.gte('当年位次号', parseInt(rankLow, 10));
+        const rankHigh = searchParams.get('rankHigh'); if (rankHigh) query = query.lte('当年位次号', parseInt(rankHigh, 10));
         
         const majorKeywords = getArray(searchParams.get('majorKeywords'));
         if (majorKeywords && majorKeywords.length > 0) {
@@ -33,7 +33,7 @@ export default async function handler(request, response) {
         const subjectReqs = getArray(searchParams.get('subjectReqs'));
         if (subjectReqs && subjectReqs.length > 0) {
             // 原来是 .or( ... .ilike ... )，现在改为 .in()，实现精确匹配
-            query = query.in('25年选科要求', subjectReqs);
+            query = query.in('当年选科要求', subjectReqs);
         }
 
         // --- “水平”(uniLevels)筛选逻辑 (保持不变) ---

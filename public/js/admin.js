@@ -6,6 +6,15 @@ function initializeAdminTab() {
     // 1. 在HTML骨架中，搜索框旁边增加一个“刷新列表”按钮
     adminPanel.innerHTML = `
         <div class="admin-container" style="padding: 20px;">
+            <!-- 全局权限设置区 -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 10px;">全局功能页公开设置 <span style="font-size: 12px; font-weight: normal; color: #666;">（设置哪些功能对未登录的游客及所有用户默认开放）</span></h3>
+                <div id="global-permissions-container" style="display: flex; gap: 20px; align-items: center;">
+                    <span style="color: #666;">正在加载全局设置...</span>
+                </div>
+            </div>
+
+            <!-- 用户管理区 -->
             <div class="admin-toolbar" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                 <input type="search" id="user-search-input" placeholder="查询邮箱、昵称、单位等..." style="padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px;">
                 <button id="refresh-users-btn" style="padding: 8px 15px; cursor: pointer;">刷新列表</button>
@@ -136,7 +145,7 @@ function initializeAdminTab() {
             return;
         }
         
-        const availableTabs = { plans: '2025浙江高考招生计划' };
+        const availableTabs = { plans: `${window.PLAN_YEAR || '2025'}浙江高考招生计划` };
         let permissionsHTML = '';
 
         for (const tabKey in availableTabs) {
@@ -249,6 +258,66 @@ function initializeAdminTab() {
         }
     }
     
-    // 9. 初始加载数据
+    // 9. 加载和保存全局权限设置
+    async function loadGlobalPermissions() {
+        const container = document.getElementById('global-permissions-container');
+        const availableTabs = [
+            { id: 'universities', name: '高校库' },
+            { id: 'majors', name: '专业目录' },
+            { id: 'plans', name: '2025浙江高考招生计划' }
+        ];
+        
+        try {
+            const { data, error } = await window.supabaseClient.from('global_permissions').select('*');
+            if (error) throw error;
+            
+            const permsMap = {};
+            if (data) {
+                data.forEach(p => permsMap[p.tab_name] = p.is_public);
+            }
+
+            let html = '';
+            availableTabs.forEach(tab => {
+                // 默认如果没有记录，高校库和专业库为 true，计划为 false
+                let isChecked = false;
+                if (permsMap.hasOwnProperty(tab.id)) {
+                    isChecked = permsMap[tab.id] === true;
+                } else {
+                    isChecked = (tab.id === 'universities' || tab.id === 'majors');
+                }
+
+                html += `
+                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" class="global-perm-checkbox" data-tab="${tab.id}" ${isChecked ? 'checked' : ''}>
+                        ${tab.name}
+                    </label>
+                `;
+            });
+            html += `<button id="save-global-perms-btn" class="query-button" style="padding: 5px 15px; margin-left: auto;">保存全局设置</button>`;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('save-global-perms-btn').addEventListener('click', async () => {
+                const checkboxes = document.querySelectorAll('.global-perm-checkbox');
+                const updates = Array.from(checkboxes).map(cb => ({
+                    tab_name: cb.dataset.tab,
+                    is_public: cb.checked
+                }));
+                
+                try {
+                    const { error: upsertError } = await window.supabaseClient.from('global_permissions').upsert(updates);
+                    if (upsertError) throw upsertError;
+                    alert('全局设置保存成功！为了体验最新权限，建议刷新页面。');
+                } catch (err) {
+                    alert('保存失败: ' + err.message);
+                }
+            });
+        } catch (error) {
+            container.innerHTML = `<span style="color: red;">加载全局设置失败: ${error.message}</span>`;
+        }
+    }
+
+    // 10. 初始加载数据
+    loadGlobalPermissions();
     fetchData();
 }

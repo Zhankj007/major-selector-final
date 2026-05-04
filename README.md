@@ -17,7 +17,7 @@
 ### 备注
 1.系统不提供邮箱验证、找回密码、修改密码的功能，请在注册时牢记密码。<br>
 2.文件夹 PATH 列表<br>
-major-selector-final/<br>
+Gaokao-Tools/<br>
 |&nbsp;&nbsp;&nbsp; package.json<br>
 |&nbsp;&nbsp;&nbsp; README.md<br>
 |<br>

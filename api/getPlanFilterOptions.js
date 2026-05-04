@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 export default async function handler(request, response) {
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+        const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         
         const { data, error } = await supabase.rpc('get_distinct_plan_options');

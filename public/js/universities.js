@@ -268,10 +268,18 @@ window.initializeUniversitiesTab = function() {
             if (d['校硕点']) 硕博点_parts.push(`${d['校硕点']}硕士点`);
             if (d['校博点']) 硕博点_parts.push(`${d['校博点']}博士点`);
             
-            const rates_parts = ['25年', '24年', '23年', '22年', '21年', '20年'].map(year => {
-                const rateKey = `${year}推免率`;
-                return d[rateKey] ? `${year} ${d[rateKey]}` : null;
-            }).filter(Boolean);
+            // 动态获取所有格式为 "XX年推免率" 的字段，并按年份降序排列
+            const rates_parts = Object.keys(d)
+                .filter(key => /^\d{2}年推免率$/.test(key) && d[key])
+                .sort((a, b) => {
+                    const yearA = parseInt(a.match(/^(\d{2})年/)[1], 10);
+                    const yearB = parseInt(b.match(/^(\d{2})年/)[1], 10);
+                    return yearB - yearA; // 降序排列 (如 26年在前, 25年在后)
+                })
+                .map(key => {
+                    const year = key.match(/^(\d{2})年/)[1];
+                    return `${year}年 ${d[key]}`;
+                });
 
             const 升学比例_parts = [];
             // **最终修复：使用您提供的正确字段名**

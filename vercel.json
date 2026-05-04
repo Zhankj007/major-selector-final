@@ -1,0 +1,3 @@
+{
+  "buildCommand": "echo 'Build command overridden. Configuration is now dynamic via /api/config'"
+}

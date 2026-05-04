@@ -1,16 +1,12 @@
 // api/delete-user.js
 import { createClient } from '@supabase/supabase-js';
 
-// --- 从Vercel环境变量中获取所有需要的密钥 ---
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-
-// --- 初始化两个客户端 ---
-// 1. 普通客户端：用于验证前端传来的用户凭证
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-// 2. 管理员客户端：拥有超级权限，用于执行删除等敏感操作
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+const getSupabaseConfig = () => {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+  return { supabaseUrl, supabaseAnonKey, supabaseServiceKey };
+};
 
 export default async function handler(request, response) {
   // --- CORS 和方法检查 (保持不变) ---
@@ -25,6 +21,10 @@ export default async function handler(request, response) {
   }
 
   try {
+    const { supabaseUrl, supabaseAnonKey, supabaseServiceKey } = getSupabaseConfig();
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
     // --- 1. 验证发起请求的用户的凭证是否有效 ---
     const authHeader = request.headers['authorization'];
     const jwt = authHeader?.split('Bearer ')[1];
