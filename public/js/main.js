@@ -21,10 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeModal = document.querySelector('.close-modal');
     const versionElement = document.getElementById('version-info');
 
-    // --- 初始化版本号 ---
-    if (versionElement && window.APP_VERSION) {
-        versionElement.textContent = 'v' + window.APP_VERSION;
-    }
+    // 版本号已在构建时由 package.json 直接注入 index.html，无需在此执行覆盖操作。
 
     // --- 初始化招生计划标签页标题 ---
     const plansTabButton = document.getElementById('plans-tab-button');
