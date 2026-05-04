@@ -1,3 +1,0 @@
-{
-  "buildCommand": "VERSION=$(date +%Y%m%d) && sed -i \"s/__VERSION__/v$VERSION/g\" public/index.html"
-}

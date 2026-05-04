@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "scripts": {
+    "build": "VERSION=$(date +%Y%m%d) && sed -i \"s/__VERSION__/v$VERSION/g\" public/index.html"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.44.4",
     "papaparse": "^5.4.1"
