@@ -43,3 +43,6 @@ _data/ranking/convert.mjs
 
 # 旧的独立排行榜静态页面（已集成到主站标签页）
 public/ranking/
+
+# 自动生成的构建文件
+public/version.js

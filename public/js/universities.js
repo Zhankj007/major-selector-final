@@ -65,12 +65,20 @@ window.initializeUniversitiesTab = function() {
     let selectedUniversities = new Map();
     const UNI_NAME_KEY = '院校名';
     const UNI_CODE_KEY = '院校编码';
+    let citiesOrderData = { provOrder: [], cityTree: {} };
     async function fetchData() {
         try {
             treeContainer.innerHTML="<p>正在加载高校数据...</p>";
-            const response = await fetch('/api/getUniversities');
-            if (!response.ok) throw new Error(`网络错误: ${response.statusText}`);
-            allUniversities = await response.json();
+            const [uniRes, orderRes] = await Promise.all([
+                fetch('/api/getUniversities'),
+                fetch('/data/citiesOrder.json').catch(() => null)
+            ]);
+            if (!uniRes.ok) throw new Error(`网络错误: ${uniRes.statusText}`);
+            
+            allUniversities = await uniRes.json();
+            if (orderRes && orderRes.ok) {
+                citiesOrderData = await orderRes.json();
+            }
             if (!allUniversities || !allUniversities.length) throw new Error("获取的高校数据为空或格式错误。");
             generateFilterOptions();
             runQuery();
@@ -171,7 +179,7 @@ window.initializeUniversitiesTab = function() {
         if (!list.length) html += '<li>没有找到匹配的院校。</li>';
         else {
             // 获取并排序第一层键名（省份或主管部门）
-            const provOrder = ['北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江', '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南', '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州', '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆', '台湾', '香港', '澳门'];
+            const provOrder = citiesOrderData.provOrder && citiesOrderData.provOrder.length ? citiesOrderData.provOrder : ['北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江', '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南', '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州', '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆', '台湾', '香港', '澳门'];
             const sortedL1Keys = Object.keys(hierarchy).sort((a, b) => {
                 if (groupBy === 'region') {
                     const idxA = provOrder.indexOf(a);
@@ -186,8 +194,16 @@ window.initializeUniversitiesTab = function() {
             for (const l1Key of sortedL1Keys) {
                 html += `<li class="level-1-li"><input type="checkbox"> <span class="caret tree-label">${l1Key}</span><ul class="nested">`;
                 if(groupBy === 'region') {
-                    // 城市按拼音排序
-                    const sortedCities = Object.keys(hierarchy[l1Key]).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+                    // 城市按官方排序
+                    const cityOrder = citiesOrderData.cityTree[l1Key] || [];
+                    const sortedCities = Object.keys(hierarchy[l1Key]).sort((a, b) => {
+                        const idxA = cityOrder.indexOf(a);
+                        const idxB = cityOrder.indexOf(b);
+                        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                        if (idxA !== -1) return -1;
+                        if (idxB !== -1) return 1;
+                        return a.localeCompare(b, 'zh-Hans-CN');
+                    });
                     for(const l2Key of sortedCities) {
                         html += `<li class="level-2-li"><input type="checkbox"> <span class="caret tree-label">${l2Key}</span><ul class="nested">`;
                         hierarchy[l1Key][l2Key].forEach(uni => html += renderUniLi(uni));

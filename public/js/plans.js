@@ -30,6 +30,7 @@ window.initializePlansTab = function() {
                             <input type="number" id="range-high" placeholder="高分" style="width: 80px;" maxlength="6">
                         </div>
                     </div></details>
+                    <button id="plan-clear-all-filters-button" class="query-button disabled" style="margin-left: 10px; align-self: center; padding: 4px 10px; height: 32px; font-size: 13px;" disabled>清空筛选</button>
                 </div>
                 <div class="plan-interactive-controls">
                     <div class="input-column">
@@ -88,6 +89,7 @@ window.initializePlansTab = function() {
     const rangeLowInput = plansTab.querySelector('#range-low');
     const rangeHighInput = plansTab.querySelector('#range-high');
     const rangeFilterGroup = plansTab.querySelector('#filter-range');
+    const clearAllFiltersBtn = plansTab.querySelector('#plan-clear-all-filters-button');
     
     let allFilterOptions = {};
     let lastQueryData = [];
@@ -109,7 +111,7 @@ window.initializePlansTab = function() {
     // --- populateFilters and other functions (no changes here) ---
     async function populateFilters() {
         try {
-            const response = await fetch('/api/getPlanFilterOptions');
+            const response = await fetch('/data/planFilterOptions.json');
             if (!response.ok) { throw new Error(`网络错误: ${response.status} ${response.statusText}`); }
             allFilterOptions = await response.json();
             if (allFilterOptions.error) { throw new Error(allFilterOptions.error); }
@@ -142,9 +144,113 @@ window.initializePlansTab = function() {
                 details.addEventListener('mouseenter', () => { details.open = true; });
                 details.addEventListener('mouseleave', () => { details.open = false; });
             });
+            
+            // --- 绑定级联更新监听器 ---
+            filterContainer.addEventListener('change', (e) => {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                    updateDynamicFilters();
+                }
+            });
+
         } catch (error) {
             console.error("填充筛选器失败:", error);
             filterContainer.innerHTML = `<p style="color:red;">筛选器加载失败: ${error.message}</p>`;
+        }
+    }
+    
+    // --- 动态更新筛选器可用选项 ---
+    async function updateDynamicFilters() {
+        const params = new URLSearchParams();
+        const getCheckedValues = (name) => Array.from(plansTab.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+        
+        const planTypes = getCheckedValues('planType'); if (planTypes.length > 0) params.append('planTypes', planTypes.join(','));
+        const cities = getCheckedValues('city'); if (cities.length > 0) params.append('cities', cities.join(','));
+        const subjectReqs = getCheckedValues('subjectReq'); if (subjectReqs.length > 0) params.append('subjectReqs', subjectReqs.join(','));
+        const uniLevels = getCheckedValues('uniLevel'); if (uniLevels.length > 0) params.append('uniLevels', uniLevels.join(','));
+        const ownerships = getCheckedValues('ownership'); if (ownerships.length > 0) params.append('ownerships', ownerships.join(','));
+        const eduLevels = getCheckedValues('eduLevel'); if (eduLevels.length > 0) params.append('eduLevels', eduLevels.join(','));
+        
+        // 如果没有任何筛选条件，恢复所有选项
+        if (Array.from(params.keys()).length === 0) {
+            plansTab.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
+                cb.disabled = false;
+                if (cb.closest('li')) {
+                    cb.closest('li').style.display = '';
+                } else {
+                    cb.parentElement.style.display = '';
+                }
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/getDynamicPlanFilterOptions?${params.toString()}`);
+            if (!response.ok) return;
+            const validData = await response.json();
+            
+            const validPlanTypes = new Set(validData.planTypes || []);
+            const validCities = new Set(validData.cities || []);
+            const validOwnerships = new Set(validData.ownerships || []);
+            const validEduLevels = new Set(validData.eduLevels || []);
+            
+            // 这里我们需要模糊匹配，因为 subjectReqs 是逗号分隔的字符串
+            const validSubjectReqsString = (validData.subjectReqs || []).join(',');
+
+            // 更新 DOM 状态 (排除 uniLevel，因为它是复合生成的)
+            const updateOptions = (name, validSet, isSubject = false) => {
+                plansTab.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+                    // 如果已选中，强制保留可见（避免用户找不到已勾选项）
+                    if (cb.checked) {
+                        cb.disabled = false;
+                        if (cb.closest('li')) cb.closest('li').style.display = '';
+                        else cb.parentElement.style.display = '';
+                        return;
+                    }
+                    
+                    let isValid = false;
+                    if (isSubject) {
+                        isValid = validSet.length === 0 || validSet.includes(cb.value);
+                    } else {
+                        isValid = validSet.size === 0 || validSet.has(cb.value);
+                    }
+
+                    cb.disabled = !isValid;
+                    // 使用隐藏代替置灰
+                    if (cb.closest('li')) {
+                        cb.closest('li').style.display = isValid ? '' : 'none';
+                    } else {
+                        cb.parentElement.style.display = isValid ? '' : 'none';
+                    }
+                });
+            };
+
+            updateOptions('planType', validPlanTypes);
+            updateOptions('city', validCities);
+            updateOptions('ownership', validOwnerships);
+            updateOptions('eduLevel', validEduLevels);
+            updateOptions('subjectReq', validSubjectReqsString, true);
+
+            // 二次遍历：处理树状结构（城市、选科）的父级节点
+            plansTab.querySelectorAll('.filter-options .parent-checkbox').forEach(parentCb => {
+                const parentLi = parentCb.closest('li');
+                if (!parentLi) return;
+                const nestedUl = parentLi.querySelector('.nested');
+                if (!nestedUl) return;
+                
+                // 检查是否所有子 <li> 都被隐藏了
+                const childLis = Array.from(nestedUl.querySelectorAll('li'));
+                const hasVisibleChild = childLis.some(li => li.style.display !== 'none');
+                
+                // 如果没有可见的子元素，且父级本身没有被勾选，则隐藏整个父级（省份/大类）
+                if (!hasVisibleChild && !parentCb.checked) {
+                    parentLi.style.display = 'none';
+                } else {
+                    parentLi.style.display = '';
+                }
+            });
+
+        } catch (err) {
+            console.error("更新级联选项失败:", err);
         }
     }
     
@@ -741,7 +847,12 @@ function showPlanDetails(plan) {
         if (!cityFilterGroup) return;
         const placeholderText = '<p style="color: #888; padding: 5px; margin:0;">您勾选的城市将按顺序在此显示。</p>';
         const checkedCityCheckboxes = Array.from(cityFilterGroup.querySelectorAll('input[name="city"]:checked'));
-        const cityNames = checkedCityCheckboxes.map(cb => cb.value);
+        // 只显示没有被隐藏的 checkbox
+        const visibleCityCheckboxes = checkedCityCheckboxes.filter(cb => {
+            const li = cb.closest('li');
+            return li && li.style.display !== 'none';
+        });
+        const cityNames = visibleCityCheckboxes.map(cb => cb.value);
         if (cityNames.length > 0) {
             intendedCitiesList.innerHTML = cityNames.join(' ');
             clearCitiesButton.classList.remove('disabled');
@@ -877,8 +988,14 @@ function showPlanDetails(plan) {
         if (e.target.classList.contains('parent-checkbox')) {
             const isChecked = e.target.checked;
             e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
+                // 如果是勾选操作，跳过那些被隐藏的无效子项
+                if (isChecked && child.closest('li') && child.closest('li').style.display === 'none') {
+                    return; 
+                }
                 child.checked = isChecked;
-                handlePlanSelectionChange(child); // 联动勾选时也要更新
+                if (child.closest('[data-plan]')) {
+                    handlePlanSelectionChange(child); // 联动勾选时也要更新
+                }
             });
         }
         filterContainer.querySelectorAll('.filter-group').forEach(group => {
@@ -890,11 +1007,13 @@ function showPlanDetails(plan) {
         if (e.target.closest('#filter-city')) {
             updateIntendedCities();
         }
+        updateClearAllButtonState();
     });
 
     const updateRangeFilterColor = () => {
         const hasValue = !!(rangeLowInput.value || rangeHighInput.value);
         rangeFilterGroup.querySelector('summary').classList.toggle('filter-active', hasValue);
+        updateClearAllButtonState();
     };
     rangeLowInput.addEventListener('input', updateRangeFilterColor);
     rangeHighInput.addEventListener('input', updateRangeFilterColor);
@@ -917,8 +1036,72 @@ function showPlanDetails(plan) {
         cityFilterGroup.dispatchEvent(new Event('change', { bubbles: true }));
     });
     
+    if (clearAllFiltersBtn) {
+        clearAllFiltersBtn.addEventListener('click', () => {
+            if (window.resetPlansFilters) window.resetPlansFilters();
+            updateDynamicFilters();
+        });
+    }
+
+    function updateClearAllButtonState() {
+        if (!clearAllFiltersBtn) return;
+        const hasChecked = !!plansTab.querySelector('.plan-filters input[type="checkbox"]:checked');
+        const hasRange = !!(rangeLowInput.value || rangeHighInput.value);
+        if (hasChecked || hasRange) {
+            clearAllFiltersBtn.classList.remove('disabled');
+            clearAllFiltersBtn.disabled = false;
+        } else {
+            clearAllFiltersBtn.classList.add('disabled');
+            clearAllFiltersBtn.disabled = true;
+        }
+    }
+    
     populateFilters();
     updatePlanOutputUI();
     updateCopyMajorButtonState();
     updateIntendedCities();
+};
+
+window.resetPlansFilters = function() {
+    const plansTab = document.getElementById('plans-tab');
+    if (!plansTab) return;
+    
+    plansTab.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        cb.disabled = false;
+        if (cb.closest('li')) cb.closest('li').style.display = '';
+        else cb.parentElement.style.display = '';
+    });
+    
+    const rangeScore = plansTab.querySelector('#range-score');
+    if (rangeScore) rangeScore.checked = true;
+    const rangeLowInput = plansTab.querySelector('#range-low');
+    const rangeHighInput = plansTab.querySelector('#range-high');
+    if (rangeLowInput) { rangeLowInput.value = ''; rangeLowInput.placeholder = '低分'; }
+    if (rangeHighInput) { rangeHighInput.value = ''; rangeHighInput.placeholder = '高分'; }
+    
+    plansTab.querySelectorAll('.filter-group summary').forEach(summary => summary.classList.remove('filter-active'));
+    
+    const uniSearch = plansTab.querySelector('#plan-uni-search');
+    if (uniSearch) uniSearch.value = '';
+    const majorSearch = plansTab.querySelector('#plan-major-search');
+    if (majorSearch) majorSearch.value = '';
+    
+    const clearAllFiltersBtn = plansTab.querySelector('#plan-clear-all-filters-button');
+    if (clearAllFiltersBtn) {
+        clearAllFiltersBtn.classList.add('disabled');
+        clearAllFiltersBtn.disabled = true;
+    }
+    
+    const intendedCitiesList = plansTab.querySelector('#intended-cities-list');
+    if (intendedCitiesList) intendedCitiesList.innerHTML = '<p style="color: #888; padding: 5px; margin:0;">您勾选的城市将按顺序在此显示。</p>';
+    const clearCitiesBtn = plansTab.querySelector('#plan-clear-cities-button');
+    if (clearCitiesBtn) clearCitiesBtn.classList.add('disabled');
+
+    const resultsContainer = plansTab.querySelector('#plan-tree-container');
+    if (resultsContainer) resultsContainer.innerHTML = '<p>请设置筛选条件后, 点击“查询”。</p>';
+    const detailsContent = plansTab.querySelector('#plan-details-content');
+    if (detailsContent) detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
+    const chartArea = plansTab.querySelector('#plan-chart-area');
+    if (chartArea) chartArea.innerHTML = '<h3>图表展示</h3><div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div>';
 };

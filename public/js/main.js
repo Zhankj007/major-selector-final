@@ -74,6 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.classList.add('logged-out');
                 if (userNicknameElement) userNicknameElement.textContent = '';
                 try { await updateTabVisibility(null); } catch (e) { console.error('重置标签页失败:', e); }
+                // 重置所有表单状态
+                if (window.resetPlansFilters) {
+                    window.resetPlansFilters();
+                }
             }
         }, 0);
     });
@@ -95,6 +99,15 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('📋 页面加载会话检查:', session ? `已登录 (${session.user.email})` : '未登录');
             
             if (session && session.user) {
+                // 检查登录时间是否超过 24 小时
+                const loginTime = localStorage.getItem('userLoginTime');
+                const twentyFourHours = 24 * 60 * 60 * 1000;
+                if (loginTime && (Date.now() - parseInt(loginTime, 10) > twentyFourHours)) {
+                    console.log('⏳ 会话已超过 24 小时，自动退出...');
+                    await supabaseClient.auth.signOut();
+                    return; // 后续逻辑由 onAuthStateChange 接管
+                }
+
                 document.body.classList.remove('logged-out');
                 // 恢复时也执行一次 hideModal 以防万一
                 hideModal();
@@ -179,6 +192,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // ★★★ 登录成功！立即更新 UI，不等待 onAuthStateChange ★★★
             console.log('✅ 登录成功:', data.user.email);
+            // 记录登录时间，用于 24 小时强制退出机制
+            localStorage.setItem('userLoginTime', Date.now().toString());
+            
             loginError.textContent = ''; // 清掉 "正在登录中" 提示
             document.body.classList.remove('logged-out');
             hideModal();
@@ -252,7 +268,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     localStorage.removeItem(key);
                 }
             }
+            localStorage.removeItem('userLoginTime');
             window.location.reload(); // 强退后刷新页面
+        } finally {
+            localStorage.removeItem('userLoginTime');
         }
     });
 

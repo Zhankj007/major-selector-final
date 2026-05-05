@@ -125,7 +125,8 @@
     
     /* 当按钮被禁用时，显示为灰色且不可点击 */
     .query-button:disabled, .output-button:disabled, #logout-button:disabled, #refresh-users-btn:disabled {
-        background-color: #ccc !important; /* 使用 !important 确保覆盖行内样式 */
+        background-color: var(--button-disabled-bg) !important; /* 使用 !important 确保覆盖行内样式 */
+        color: var(--button-disabled-color) !important;
         cursor: not-allowed;
         filter: none;
     }
@@ -171,10 +172,12 @@
     <header class="toolbox-header">
         <div class="title-version">
             <h1 style="margin-left: 20px;">詹老师的高考志愿工具箱</h1>
-            <span id="version-info">__VERSION__</span>
+            <span id="version-info" style="font-family: monospace; font-size: 13px; color: #007bff; background: #e6f2ff; padding: 2px 6px; border-radius: 4px;">本地版</span>
+            <script src="/version.js"></script>
             <script>
-                // 本地开发时占位符未被替换，显示友好文本
-                (function(){var el=document.getElementById('version-info');if(el&&el.textContent==='__VERSION__')el.textContent='本地测试版';})();
+                if (window.APP_VERSION) {
+                    document.getElementById('version-info').textContent = window.APP_VERSION;
+                }
             </script>
             <div class="header-controls" style="font-size: 16px; margin-top: 5px; color: #666;">
                 <span id="user-nickname"></span>
