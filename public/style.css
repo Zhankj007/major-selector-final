@@ -363,10 +363,17 @@ body.logged-out .output-container {
 .filter-group summary::-webkit-details-marker { display: none; }
 .filter-group summary::after { content: ' ▼'; font-size: 0.8em; color: #666; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
 .filter-group[open] summary::after { content: ' ▲'; }
+.filter-group[open] { z-index: 100; } /* 确保展开的菜单能够遮挡后面的其它 filter-group */
 .filter-group .filter-options { position: absolute; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; padding: 10px; margin-top: 5px; z-index: 10; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
 .filter-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: normal; }
 .header-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
 .header-controls .search-container { display: flex; gap: 8px; flex-grow: 1; }
+
+/* 头部用户信息及按钮样式 */
+.top-user-bar { font-size: 16px; margin-top: 5px; color: #666; }
+.visitor-text { margin-right: 15px; }
+.auth-btn { margin-left: 20px; padding: 5px 10px; cursor: pointer; }
+
 .switcher { display: flex; border: 1px solid var(--primary-color); border-radius: 8px; overflow: hidden; }
 .switcher input[type="radio"] { display: none; }
 .switcher label { padding: 6px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
@@ -495,7 +502,11 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 
     .filter-controls { flex-wrap: wrap; gap: 6px; } 
     .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; } 
-    .header-controls { flex-wrap: wrap; align-items: center; gap: 8px; } 
+    .header-controls { flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; overflow: hidden; } 
+    .top-user-bar { font-size: 13px !important; margin-top: 2px; width: 100%; }
+    .welcome-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .visitor-text { margin-right: 5px !important; display: none; } /* 在手机端空间局促时隐藏访客数字 */
+    .auth-btn { margin-left: 4px !important; padding: 4px 8px !important; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
     .header-controls .search-container { flex-wrap: wrap; gap: 6px; } 
     .plan-interactive-controls { flex-wrap: wrap; gap: 6px; align-items: center; } 
     .button-column { flex-direction: row; flex-wrap: wrap; justify-content: center; } 

@@ -1,10 +1,10 @@
-window.initializePlansTab = function() {
+window.initializePlansTab = function () {
     // 确保 Chart.js 已经加载
     if (typeof Chart === 'undefined') {
         console.error('Chart.js is not loaded. Please include it in your HTML.');
         // 可以在这里向用户显示一个错误提示
         const chartArea = document.querySelector('#plan-chart-area');
-        if(chartArea) chartArea.innerHTML = '<h3>图表库加载失败</h3><p>请检查网络连接或联系管理员。</p>';
+        if (chartArea) chartArea.innerHTML = '<h3>图表库加载失败</h3><p>请检查网络连接或联系管理员。</p>';
         return;
     }
     const plansTab = document.getElementById('plans-tab');
@@ -20,14 +20,14 @@ window.initializePlansTab = function() {
                     <details class="filter-group" id="filter-uni-level"><summary>水平</summary><div class="filter-options"><p>...</p></div></details>
                     <details class="filter-group" id="filter-ownership"><summary>性质</summary><div class="filter-options"><p>加载中...</p></div></details>
                     <details class="filter-group" id="filter-edu-level"><summary>层次</summary><div class="filter-options"><p>加载中...</p></div></details>
-                    <details class="filter-group" id="filter-range" style="position: relative; z-index: 9999; direction: rtl;"><summary>范围</summary><div class="filter-options" style="direction: ltr; left: auto; right: 0;">
+                    <details class="filter-group" id="filter-range" style="position: relative; direction: rtl;"><summary>范围</summary><div class="filter-options" style="direction: ltr; left: auto; right: 0;">
                         <div class="switcher">
                             <input type="radio" name="range-type" value="score" id="range-score" checked><label for="range-score">成绩</label>
                             <input type="radio" name="range-type" value="rank" id="range-rank"><label for="range-rank">位次</label>
                         </div>
                         <div style="display: flex; gap: 5px; margin-top: 8px;">
-                            <input type="number" id="range-low" placeholder="低分" style="width: 80px;" maxlength="6">
-                            <input type="number" id="range-high" placeholder="高分" style="width: 80px;" maxlength="6">
+                            <input type="number" id="range-low" placeholder="低分" style="width: 55px;" maxlength="6">
+                            <input type="number" id="range-high" placeholder="高分" style="width: 55px;" maxlength="6">
                         </div>
                     </div></details>
                     <button id="plan-clear-all-filters-button" class="query-button disabled" style="margin-left: 10px; align-self: center; padding: 4px 10px; height: 32px; font-size: 13px;" disabled>清空筛选</button>
@@ -68,7 +68,7 @@ window.initializePlansTab = function() {
             </div>
         </div>
     `;
-    
+
     // --- DOM Element selections (no changes here) ---
     const uniSearchInput = plansTab.querySelector('#plan-uni-search');
     const majorSearchInput = plansTab.querySelector('#plan-major-search');
@@ -90,7 +90,7 @@ window.initializePlansTab = function() {
     const rangeHighInput = plansTab.querySelector('#range-high');
     const rangeFilterGroup = plansTab.querySelector('#filter-range');
     const clearAllFiltersBtn = plansTab.querySelector('#plan-clear-all-filters-button');
-    
+
     let allFilterOptions = {};
     let lastQueryData = [];
     let selectedPlans = new Map();
@@ -146,7 +146,7 @@ window.initializePlansTab = function() {
                 details.addEventListener('mouseenter', () => { details.open = true; });
                 details.addEventListener('mouseleave', () => { details.open = false; });
             });
-            
+
             // --- 绑定级联更新监听器 ---
             filterContainer.addEventListener('change', (e) => {
                 if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
@@ -159,19 +159,19 @@ window.initializePlansTab = function() {
             filterContainer.innerHTML = `<p style="color:red;">筛选器加载失败: ${error.message}</p>`;
         }
     }
-    
+
     // --- 动态更新筛选器可用选项 ---
     async function updateDynamicFilters() {
         const params = new URLSearchParams();
         const getCheckedValues = (name) => Array.from(plansTab.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
-        
+
         const planTypes = getCheckedValues('planType'); if (planTypes.length > 0) params.append('planTypes', planTypes.join(','));
         const cities = getCheckedValues('city'); if (cities.length > 0) params.append('cities', cities.join(','));
         const subjectReqs = getCheckedValues('subjectReq'); if (subjectReqs.length > 0) params.append('subjectReqs', subjectReqs.join(','));
         const uniLevels = getCheckedValues('uniLevel'); if (uniLevels.length > 0) params.append('uniLevels', uniLevels.join(','));
         const ownerships = getCheckedValues('ownership'); if (ownerships.length > 0) params.append('ownerships', ownerships.join(','));
         const eduLevels = getCheckedValues('eduLevel'); if (eduLevels.length > 0) params.append('eduLevels', eduLevels.join(','));
-        
+
         // 如果没有任何筛选条件，恢复所有选项
         if (Array.from(params.keys()).length === 0) {
             plansTab.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
@@ -189,12 +189,12 @@ window.initializePlansTab = function() {
             const response = await fetch(`/api/getDynamicPlanFilterOptions?${params.toString()}`);
             if (!response.ok) return;
             const validData = await response.json();
-            
+
             const validPlanTypes = new Set(validData.planTypes || []);
             const validCities = new Set(validData.cities || []);
             const validOwnerships = new Set(validData.ownerships || []);
             const validEduLevels = new Set(validData.eduLevels || []);
-            
+
             // 这里我们需要模糊匹配，因为 subjectReqs 是逗号分隔的字符串
             const validSubjectReqsString = (validData.subjectReqs || []).join(',');
 
@@ -208,7 +208,7 @@ window.initializePlansTab = function() {
                         else cb.parentElement.style.display = '';
                         return;
                     }
-                    
+
                     let isValid = false;
                     if (isSubject) {
                         isValid = validSet.length === 0 || validSet.includes(cb.value);
@@ -238,11 +238,11 @@ window.initializePlansTab = function() {
                 if (!parentLi) return;
                 const nestedUl = parentLi.querySelector('.nested');
                 if (!nestedUl) return;
-                
+
                 // 检查是否所有子 <li> 都被隐藏了
                 const childLis = Array.from(nestedUl.querySelectorAll('li'));
                 const hasVisibleChild = childLis.some(li => li.style.display !== 'none');
-                
+
                 // 如果没有可见的子元素，且父级本身没有被勾选，则隐藏整个父级（省份/大类）
                 if (!hasVisibleChild && !parentCb.checked) {
                     parentLi.style.display = 'none';
@@ -255,7 +255,7 @@ window.initializePlansTab = function() {
             console.error("更新级联选项失败:", err);
         }
     }
-    
+
     function populateCityFilter() {
         const container = plansTab.querySelector('#filter-city .filter-options');
         if (!allFilterOptions.provinceCityTree) { container.innerHTML = `<p style="color:red;">城市数据加载不完整。</p>`; return; }
@@ -383,64 +383,64 @@ window.initializePlansTab = function() {
         resultsContainer.innerHTML = html;
     }
 
-// =================================================================
-// 【核心修改】最终版的计划详情展示函数
-// =================================================================
-function showPlanDetails(plan) {
-    if (!plan) {
-        detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
-        return;
-    }
-    // --- 渲染助手函数 ---
-    const renderItem = (label, value) => {
-        if (value === null || value === undefined || String(value).trim() === '') return '';
-        return `<span class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></span>`;
-    };
-    
-    const renderRow = (...items) => {
-        const content = items.join('');
-        if (content.trim() === '') return '';
-        return `<div class="detail-row">${content}</div>`;
-    };
-
-    const renderSmartField = (label, value) => {
-        if (value === null || value === undefined || String(value).trim() === '') return '';
-
-        let contentHtml = value;
-        if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-            contentHtml = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+    // =================================================================
+    // 【核心修改】最终版的计划详情展示函数
+    // =================================================================
+    function showPlanDetails(plan) {
+        if (!plan) {
+            detailsContent.innerHTML = '<h3>计划详情</h3><div class="content-placeholder"><p>请在左侧查询并选择一个专业...</p></div>';
+            return;
         }
-        
-        return `<div class="detail-smart-row">
+        // --- 渲染助手函数 ---
+        const renderItem = (label, value) => {
+            if (value === null || value === undefined || String(value).trim() === '') return '';
+            return `<span class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></span>`;
+        };
+
+        const renderRow = (...items) => {
+            const content = items.join('');
+            if (content.trim() === '') return '';
+            return `<div class="detail-row">${content}</div>`;
+        };
+
+        const renderSmartField = (label, value) => {
+            if (value === null || value === undefined || String(value).trim() === '') return '';
+
+            let contentHtml = value;
+            if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                contentHtml = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+            }
+
+            return `<div class="detail-smart-row">
                     <strong class="detail-label">${label}:</strong> 
                     <span class="detail-value">${contentHtml}</span>
                 </div>`;
-    };
+        };
 
-    // --- 字段预处理 ---
-    // 1. 【已修正】标题直接使用<院校>#<专业>
-    const planTitle = `${plan.院校 || ''} # ${plan.专业 || ''}`;
-    const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
-    const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
-    const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
-    const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
-    const masterInfo = (plan.硕士点 || plan.硕士专业) ? `<strong>硕</strong>:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
-    const doctorInfo = (plan.博士点 || plan.博士专业) ? `<strong>博</strong>:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
-    const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
-    // 2. 按"**年份**-X%"格式处理推免率（动态年份）
-    const tuitionRates = [
-        plan['当年推免率'] ? `<strong>${shortY0}年</strong>-${plan['当年推免率']}` : null,
-        plan['前1年推免率'] ? `<strong>${shortY1}年</strong>-${plan['前1年推免率']}` : null,
-        plan['前2年推免率'] ? `<strong>${shortY2}年</strong>-${plan['前2年推免率']}` : null
-    ].filter(Boolean).join(' | ');
+        // --- 字段预处理 ---
+        // 1. 【已修正】标题直接使用<院校>#<专业>
+        const planTitle = `${plan.院校 || ''} # ${plan.专业 || ''}`;
+        const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
+        const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
+        const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
+        const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
+        const masterInfo = (plan.硕士点 || plan.硕士专业) ? `<strong>硕</strong>:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
+        const doctorInfo = (plan.博士点 || plan.博士专业) ? `<strong>博</strong>:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
+        const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
+        // 2. 按"**年份**-X%"格式处理推免率（动态年份）
+        const tuitionRates = [
+            plan['当年推免率'] ? `<strong>${shortY0}年</strong>-${plan['当年推免率']}` : null,
+            plan['前1年推免率'] ? `<strong>${shortY1}年</strong>-${plan['前1年推免率']}` : null,
+            plan['前2年推免率'] ? `<strong>${shortY2}年</strong>-${plan['前2年推免率']}` : null
+        ].filter(Boolean).join(' | ');
 
-    const promotionRate = [
-        plan.国内升学比率 ? `国内${plan.国内升学比率}` : null,
-        plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
-    ].filter(Boolean).join(' / ');
+        const promotionRate = [
+            plan.国内升学比率 ? `国内${plan.国内升学比率}` : null,
+            plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
+        ].filter(Boolean).join(' / ');
 
-    // --- 构建HTML  (采用混合渲染) ---
-    let html = `
+        // --- 构建HTML  (采用混合渲染) ---
+        let html = `
         <style>
             .plan-details-content .detail-row, .plan-details-content .detail-smart-row { margin-bottom: 8px; line-height: 1.6; }
             .plan-details-content .detail-item { margin-right: 20px; }
@@ -489,10 +489,10 @@ function showPlanDetails(plan) {
         ${renderSmartField('院校百科', plan.院校百科)}
         ${renderSmartField('就业质量', plan.就业质量)}
     `;
-    detailsContent.innerHTML = html;
+        detailsContent.innerHTML = html;
     }
 
-// --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
+    // --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
     function renderMajorCharts(plan) {
         const chartArea = plansTab.querySelector('#plan-chart-area');
         activeCharts.forEach(chart => chart.destroy());
@@ -523,7 +523,7 @@ function showPlanDetails(plan) {
         const labels = historicalData.map(d => d.year);
 
         const fullMajorName = `${plan.院校 || ''} # ${plan.专业 || ''}`;
-        
+
         // 计算图表容器的高度，基于图表展示区自身的可用空间
         const calculateChartHeight = () => {
             // 获取图表展示区的可用高度
@@ -575,14 +575,14 @@ function showPlanDetails(plan) {
 
                     meta.data.forEach((element, index) => {
                         const value = dataset.data[index];
-                        if(value === null || value === undefined) return;
+                        if (value === null || value === undefined) return;
 
                         ctx.fillStyle = dataset.borderColor || '#333';
                         let x, y;
                         if (config.options.indexAxis === 'y') {
                             x = element.x + 15; y = element.y;
                             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                        } else if(config.type === 'line') {
+                        } else if (config.type === 'line') {
                             x = element.x; y = element.y - 10;
                             ctx.textBaseline = 'bottom';
                         } else {
@@ -596,7 +596,7 @@ function showPlanDetails(plan) {
             }
         };
 
-        const allScores = [...historicalData.map(d=>d.score), ...historicalData.map(d=>d.avgScore)].filter(s => s != null);
+        const allScores = [...historicalData.map(d => d.score), ...historicalData.map(d => d.avgScore)].filter(s => s != null);
         const minScore = Math.min(...allScores);
 
         // 图表一: 投档线/平均分
@@ -616,11 +616,11 @@ function showPlanDetails(plan) {
                     y: {
                         beginAtZero: false,
                         suggestedMin: Math.floor(minScore / 10) * 10 - 15,
-                        grace: '15%' 
+                        grace: '15%'
                     }
                 },
-                plugins: { 
-                    title: { display: true, text: '投档线/平均分', font: { size: getAdaptiveFontSize(document.getElementById('scoreAvgChart').width) } }, 
+                plugins: {
+                    title: { display: true, text: '投档线/平均分', font: { size: getAdaptiveFontSize(document.getElementById('scoreAvgChart').width) } },
                     legend: { display: true, position: 'top' }
                 }
             },
@@ -641,21 +641,21 @@ function showPlanDetails(plan) {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 layout: { padding: { bottom: 15 } },
-                scales: { 
-                    y: { 
+                scales: {
+                    y: {
                         grace: '20%',
                         // 3. Y轴逆序排列
-                        reverse: true 
-                    } 
+                        reverse: true
+                    }
                 },
-                plugins: { 
-                    title: { display: true, text: '位次号', font: { size: getAdaptiveFontSize(document.getElementById('rankChart').width) } }, 
+                plugins: {
+                    title: { display: true, text: '位次号', font: { size: getAdaptiveFontSize(document.getElementById('rankChart').width) } },
                     legend: { display: false }
                 }
             },
             plugins: [dataLabelsPlugin]
         }));
-        
+
         // 图表三: 计划数
         activeCharts.push(new Chart(document.getElementById('countChart'), {
             type: 'bar',
@@ -671,11 +671,11 @@ function showPlanDetails(plan) {
                 layout: { padding: { bottom: 15 } },
                 scales: {
                     x: {
-                        grace: '15%' 
+                        grace: '15%'
                     }
                 },
-                plugins: { 
-                    title: { display: true, text: '计划数', font: { size: getAdaptiveFontSize(document.getElementById('countChart').width) } }, 
+                plugins: {
+                    title: { display: true, text: '计划数', font: { size: getAdaptiveFontSize(document.getElementById('countChart').width) } },
                     legend: { display: false }
                 }
             },
@@ -725,7 +725,7 @@ function showPlanDetails(plan) {
         const chartHeight = calculateChartHeight();
         // 动态计算柱状图最小宽度（按每个专业 35px 估算，防止文字重叠）
         const chartMinWidth = Math.max(100, labels.length * 35);
-        
+
         chartArea.innerHTML = `
             <h3 style="color: #E57373; margin-bottom: 5px;">${uniName} ${Y0}年各专业投档线</h3>
             ${statsHtml}
@@ -754,7 +754,7 @@ function showPlanDetails(plan) {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            footer: function(tooltipItems) {
+                            footer: function (tooltipItems) {
                                 const plan = sortedPlans[tooltipItems[0].dataIndex];
                                 if (!plan) return '';
                                 const rankInfo = plan['当年位次号'] ? `位次: ${plan['当年位次号']}` : '';
@@ -784,8 +784,8 @@ function showPlanDetails(plan) {
                             autoSkip: false,
                             maxRotation: 30,
                             minRotation: 30,
-                            font: { 
-                                size: document.getElementById('uniChart').width < 500 ? 10 : 11 
+                            font: {
+                                size: document.getElementById('uniChart').width < 500 ? 10 : 11
                             },
                             align: 'center',
                             padding: 0,
@@ -895,7 +895,7 @@ function showPlanDetails(plan) {
         }
     });
     // Use a timeout to ensure the other tabs might have initialized, then start checking
-        setTimeout(() => {
+    setTimeout(() => {
         updateCopyMajorButtonState();
         setInterval(updateCopyMajorButtonState, 500);
     }, 200);
@@ -953,19 +953,19 @@ function showPlanDetails(plan) {
             renderMajorCharts(JSON.parse(decodeURIComponent(atob(majorElement.dataset.plan))));
             return; // 动作完成，退出
         }
-        
+
         // 如果不是专业，再判断是否为树状视图的父节点（院校或省份）
         const treeLabel = target.closest('.tree-label');
         if (treeLabel) {
             const listItem = treeLabel.closest('li');
             listItem.querySelector('.nested')?.classList.toggle('active');
             treeLabel.classList.toggle('caret-down');
-            
+
             const nestedUl = listItem.querySelector('ul');
             const isUniversity = nestedUl && nestedUl.querySelector('li[data-plan]');
-            
-            if(isUniversity) {
-                 renderUniversityChart(treeLabel.textContent);
+
+            if (isUniversity) {
+                renderUniversityChart(treeLabel.textContent);
             }
         }
     });
@@ -1007,7 +1007,7 @@ function showPlanDetails(plan) {
             e.target.closest('li').querySelectorAll('ul input[type="checkbox"]').forEach(child => {
                 // 如果是勾选操作，跳过那些被隐藏的无效子项
                 if (isChecked && child.closest('li') && child.closest('li').style.display === 'none') {
-                    return; 
+                    return;
                 }
                 child.checked = isChecked;
                 if (child.closest('[data-plan]')) {
@@ -1034,7 +1034,7 @@ function showPlanDetails(plan) {
     };
     rangeLowInput.addEventListener('input', updateRangeFilterColor);
     rangeHighInput.addEventListener('input', updateRangeFilterColor);
-    
+
     rangeTypeSwitcher.addEventListener('change', (e) => {
         if (e.target.value === 'score') {
             rangeLowInput.placeholder = '低分';
@@ -1052,7 +1052,7 @@ function showPlanDetails(plan) {
         });
         cityFilterGroup.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    
+
     if (clearAllFiltersBtn) {
         clearAllFiltersBtn.addEventListener('click', () => {
             if (window.resetPlansFilters) window.resetPlansFilters();
@@ -1072,44 +1072,44 @@ function showPlanDetails(plan) {
             clearAllFiltersBtn.disabled = true;
         }
     }
-    
+
     populateFilters();
     updatePlanOutputUI();
     updateCopyMajorButtonState();
     updateIntendedCities();
 };
 
-window.resetPlansFilters = function() {
+window.resetPlansFilters = function () {
     const plansTab = document.getElementById('plans-tab');
     if (!plansTab) return;
-    
+
     plansTab.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
         cb.checked = false;
         cb.disabled = false;
         if (cb.closest('li')) cb.closest('li').style.display = '';
         else cb.parentElement.style.display = '';
     });
-    
+
     const rangeScore = plansTab.querySelector('#range-score');
     if (rangeScore) rangeScore.checked = true;
     const rangeLowInput = plansTab.querySelector('#range-low');
     const rangeHighInput = plansTab.querySelector('#range-high');
     if (rangeLowInput) { rangeLowInput.value = ''; rangeLowInput.placeholder = '低分'; }
     if (rangeHighInput) { rangeHighInput.value = ''; rangeHighInput.placeholder = '高分'; }
-    
+
     plansTab.querySelectorAll('.filter-group summary').forEach(summary => summary.classList.remove('filter-active'));
-    
+
     const uniSearch = plansTab.querySelector('#plan-uni-search');
     if (uniSearch) uniSearch.value = '';
     const majorSearch = plansTab.querySelector('#plan-major-search');
     if (majorSearch) majorSearch.value = '';
-    
+
     const clearAllFiltersBtn = plansTab.querySelector('#plan-clear-all-filters-button');
     if (clearAllFiltersBtn) {
         clearAllFiltersBtn.classList.add('disabled');
         clearAllFiltersBtn.disabled = true;
     }
-    
+
     const intendedCitiesList = plansTab.querySelector('#intended-cities-list');
     if (intendedCitiesList) intendedCitiesList.innerHTML = '<p style="color: #888; padding: 5px; margin:0;">您勾选的城市将按顺序在此显示。</p>';
     const clearCitiesBtn = plansTab.querySelector('#plan-clear-cities-button');
