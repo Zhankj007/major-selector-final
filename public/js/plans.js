@@ -102,10 +102,12 @@ window.initializePlansTab = function() {
     const Y1 = `${Y - 1}`;
     const Y2 = `${Y - 2}`;
     const Y3 = `${Y - 3}`;
+    const Y4 = `${Y - 4}`;
     const shortY0 = `${Y % 100}`;
     const shortY1 = `${(Y - 1) % 100}`;
     const shortY2 = `${(Y - 2) % 100}`;
     const shortY3 = `${(Y - 3) % 100}`;
+    const shortY4 = `${(Y - 4) % 100}`;
 
 
     // --- populateFilters and other functions (no changes here) ---
@@ -497,10 +499,10 @@ function showPlanDetails(plan) {
         activeCharts = [];
 
         const yearSlots = [
-            { key: '当年', label: `${shortY0}年` },
-            { key: '前1年', label: `${shortY1}年` },
+            { key: '前3年', label: `${shortY3}年` },
             { key: '前2年', label: `${shortY2}年` },
-            { key: '前3年', label: `${shortY3}年` }
+            { key: '前1年', label: `${shortY1}年` },
+            { key: '当年', label: `${shortY0}年` }
         ];
         const historicalData = yearSlots.map(slot => {
             const score = plan[`${slot.key}分数线`];
