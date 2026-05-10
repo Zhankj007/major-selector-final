@@ -1,24 +1,29 @@
 :root {
-    --primary-color: #007bff;
-    --border-color: #dee2e6;
-    --background-light: #f8f9fa;
-    --text-color: #212529;
-    --button-disabled-bg: #adb5bd;
-    --button-disabled-color: #f8f9fa;
-    --page-gutter: 5px; /* 定义全局边距 */
+    --primary-color: #1677ff; /* 智享蓝 - 现代化主色调 */
+    --border-color: #f0f0f0;  /* 非常淡的边框色，配合卡片设计 */
+    --bg-body: #f4f6f8;       /* 浅蓝灰底色，拉开卡片层次 */
+    --bg-card: #ffffff;
+    --text-color: #262626;
+    --text-muted: #8c8c8c;
+    --button-disabled-bg: #d9d9d9;
+    --button-disabled-color: #ffffff;
+    --page-gutter: 8px; /* 全局边距稍微加大，增加呼吸感 */
+    /* 现代卡片弥散阴影 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+    --shadow-md: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* --- 1. 基础页面和字体布局 --- */
 html, body {
     height: 100%;
     margin: 0;
-    overflow: hidden; /* 保持页面主体不滚动 */
+    overflow: hidden; 
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
     padding: var(--page-gutter);
-    background-color: #f0f2f5;
+    background-color: var(--bg-body);
     color: var(--text-color);
     font-size: 14px;
     box-sizing: border-box;
@@ -103,14 +108,15 @@ li {
 }
 
 .tab-content {
-    background-color: white;
+    background-color: var(--bg-card);
     padding: var(--page-gutter);
     border-radius: 0 8px 8px 8px;
-    border: 1px solid var(--border-color);
-    flex-grow: 1; /* 关键：填满剩余垂直空间 */
-    overflow: hidden; /* 隐藏内部超出的部分，让子元素自己处理滚动 */
+    border: none;
+    box-shadow: var(--shadow-sm); /* 卡片化关键阴影 */
+    flex-grow: 1; 
+    overflow: hidden; 
     display: flex;
-    margin-bottom: var(--page-gutter); /* 确保下方有5px边距 */
+    margin-bottom: var(--page-gutter); 
 }
 
 .tab-panel {
@@ -209,11 +215,13 @@ body.logged-out .right-panel {
 /* 左侧筛选结果滚动框 */
 .major-tree-container {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     padding: 10px;
     border-radius: 8px;
     overflow-y: auto;
-    flex-grow: 1; /* 关键：让它填满 .left-panel 的所有剩余空间 */
-    min-height: 0; /* 关键：确保滚动条能出现 */
+    flex-grow: 1; 
+    min-height: 0; 
     height: 100%;
     box-sizing: border-box;
 }
@@ -229,10 +237,12 @@ body.logged-out .major-tree-container {
 /* 右侧详情框 - 高校库和专业目录标签页共用 */
 .details-content {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     border-radius: 8px;
     padding: 10px;
     overflow-y: auto;
-    height: 75%; /* 高度占父容器(.right-panel)的75% */
+    height: 75%; 
     box-sizing: border-box;
     flex-shrink: 0;
 }
@@ -240,9 +250,11 @@ body.logged-out .major-tree-container {
 /* 右侧输出框 - 高校库和专业目录标签页共用 */
 .output-container {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     padding: 10px;
     border-radius: 8px;
-    height: 25%; /* 高度占父容器(.right-panel)的25% */
+    height: 25%; 
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -286,28 +298,32 @@ body.logged-out .output-container {
     height: 100%;
 }
 
-/* 右侧上中下三部分按40%:35%:25%高度比例 */
+/* 右侧上中下三部分高度比例 - 适配720P为33:42:25 */
 #plan-details-content {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     border-radius: 8px;
     padding-top: 5px;
     padding-right: 10px;
     padding-bottom: 10px;
     padding-left: 10px;
     overflow-y: auto;
-    height: 40%;
+    height: 33%;
     min-height: 0;
     box-sizing: border-box;
 }
 
 #plan-chart-area {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     border-radius: 8px;
     padding-top: 5px;
     padding-right: 15px;
     padding-bottom: 15px;
     padding-left: 15px;
-    height: 35%;
+    height: 42%;
     min-height: 0;
     box-sizing: border-box;
     display: flex;
@@ -316,6 +332,8 @@ body.logged-out .output-container {
 
 #plan-output-container {
     border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
     border-radius: 8px;
     padding-top: 5px;
     padding-right: 10px;
@@ -354,19 +372,17 @@ body.logged-out .output-container {
 .switcher label { padding: 6px 12px; font-size: 14px; cursor: pointer; transition: all 0.2s ease-in-out; color: var(--primary-color); user-select: none; white-space: nowrap; }
 .switcher input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; }
 .switcher label:not(:last-of-type) { border-right: 1px solid var(--primary-color); }
-.query-button { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.query-button:hover { background-color: #0056b3; }
+.query-button { padding: 6px 18px; font-size: 14px; background: linear-gradient(135deg, var(--primary-color), #4096ff); color: white; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(22, 119, 255, 0.2); white-space: nowrap; }
 .tree-label, .major-label, .uni-label { cursor: pointer; user-select: none; transition: background-color 0.2s; padding: 2px 4px; border-radius: 3px; }
-.tree-label:hover, .major-label:hover, .uni-label:hover { color: var(--primary-color); background-color: #e9f5ff; }
+.tree-label:hover, .major-label:hover, .uni-label:hover { color: var(--primary-color); background-color: #e6f4ff; }
 .caret::before { content: "+"; color: black; display: inline-block; margin-right: 8px; font-weight: bold; width: 14px; transition: transform 0.2s; }
 .caret-down::before { transform: rotate(45deg); }
 .nested { display: none; }
 .active { display: block; }
 .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0;}
 .output-header h3 { margin: 0; display: flex; align-items: center; }
-.output-button { padding: 6px 12px; font-size: 14px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.output-button:hover { background-color: #0056b3; }
-.query-button.disabled, .output-button.disabled { background-color: var(--button-disabled-bg); color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
+.output-button { padding: 6px 12px; font-size: 14px; background: linear-gradient(135deg, var(--primary-color), #4096ff); color: white; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(22, 119, 255, 0.2); white-space: nowrap; }
+.query-button.disabled, .output-button.disabled { background: var(--button-disabled-bg); box-shadow: none; color: var(--button-disabled-color); cursor: not-allowed; pointer-events: none; }
 textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); resize: none; }
 .details-content p { margin: 0 0 4px 0; line-height: 1.5; }
 .details-content h3 { margin-top: 5px; margin-bottom: 5px; font-size: 18px; color: var(--primary-color);}
@@ -438,10 +454,10 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
 
 /* 手机设备优化 */
 @media (max-width: 768px) {
-    body { padding: 5px; font-size: 13px; }
+    body { padding: 4px; font-size: 12px; }
     .description { display: none; } /* 在手机端隐藏描述文本 */
-    .toolbox-header h1 { font-size: 18px; }
-    .tab-button { padding: 6px 12px; font-size: 13px; }
+    .toolbox-header h1 { font-size: 16px; margin-top: 2px; }
+    .tab-button { padding: 6px 10px; font-size: 12px; }
     
     /* 确保招生计划标签页的所有容器在手机端都能正确显示 */
     #app-container-plans { flex-direction: column; }
@@ -449,45 +465,89 @@ textarea { width: 100%; box-sizing: border-box; flex-grow: 1; font-size: 13px; p
         display: flex !important;
         flex-direction: column;
         width: 100% !important;
-        margin-top: 10px;
+        margin-top: 8px;
         flex-grow: 1;
     }
     
-    /* 为右侧面板的三个主要容器设置明确的显示属性和高度 */
+    /* 为右侧面板的三个主要容器设置明确的显示属性和高度，解除硬性 max-height 限制 */
     #plan-details-content,
     #plan-chart-area,
     #plan-output-container {
         display: flex !important;
         flex-direction: column;
         height: auto !important;
-        min-height: 150px !important;
-        max-height: 300px;
+        min-height: 180px !important;
+        max-height: none;
     }
     
-    /* 为图表区域设置合适的最小高度 */
+    /* 为图表区域设置合适的最小高度，手机端进一步拔高以容纳底部滑动条和横坐标文字 */
     #plan-chart-area {
-        min-height: 200px !important;
+        min-height: 360px !important;
     }
-    .filter-controls { flex-wrap: wrap; gap: 8px; } /* 允许筛选控件自动换行 */
-    .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; } /* 允许工具栏内容自动换行并保持对齐 */
-    .header-controls { flex-wrap: wrap; align-items: center; gap: 10px; } /* 允许头部控件自动换行 */
-    .header-controls .search-container { flex-wrap: wrap; gap: 8px; } /* 允许搜索容器内的元素自动换行 */
-    .plan-interactive-controls { flex-wrap: wrap; gap: 8px; align-items: center; } /* 允许交互式控件自动换行 */
-    .button-column { flex-direction: row; flex-wrap: wrap; justify-content: center; } /* 改变按钮列布局为水平并允许换行 */
-    .button-column .query-button, .button-column .switcher, .button-column .output-button { width: auto; flex-shrink: 0; } /* 让按钮宽度自适应内容 */
-    .switcher { margin: 0 5px; } /* 调整switcher间距 */
-    .switcher label { padding: 6px 12px; font-size: 13px; } /* 确保在小屏幕上与查询按钮高度一致 */
-    .input-column input, .input-column textarea { padding: 6px 10px; font-size: 13px; }
-    .query-button, .output-button { padding: 6px 14px; font-size: 13px; }
-    .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 16px; }
-    /* 确保所有内容在小屏幕上正确显示 */
-     body.logged-out .left-panel, body.logged-out .right-panel,
-     body:not(.logged-out) .left-panel, body:not(.logged-out) .right-panel {
-         display: flex !important;
-         flex-direction: column;
-         width: 100% !important; /* 覆盖之前的固定百分比 */
-         height: auto !important;
-     }
+
+    /* 数据表格字体与内边距极度压缩 */
+    .plan-list-view .list-cell { padding: 5px 6px; font-size: 11px; }
+    #plan-details-content .detail-row, #plan-details-content .detail-item { font-size: 12px; line-height: 1.3; margin-bottom: 2px; }
+    #plan-details-content .detail-label, #plan-details-content .detail-value { font-size: 12px; }
+    
+    /* 解决宽表格在手机端的横向溢出问题 */
+    .major-tree-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    .filter-controls { flex-wrap: wrap; gap: 6px; } 
+    .controls-toolbar { flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; } 
+    .header-controls { flex-wrap: wrap; align-items: center; gap: 8px; } 
+    .header-controls .search-container { flex-wrap: wrap; gap: 6px; } 
+    .plan-interactive-controls { flex-wrap: wrap; gap: 6px; align-items: center; } 
+    .button-column { flex-direction: row; flex-wrap: wrap; justify-content: center; } 
+    .button-column .query-button, .button-column .switcher, .button-column .output-button { width: auto; flex-shrink: 0; } 
+    .switcher { margin: 0 4px; } 
+    .switcher label { padding: 5px 10px; font-size: 12px; } 
+    .input-column input, .input-column textarea { padding: 6px 8px; font-size: 12px; }
+    .query-button, .output-button { padding: 6px 12px; font-size: 12px; }
+    .details-content h3, .output-header h3, #plan-details-content h3, #plan-chart-area h3, #plan-output-container h3 { font-size: 15px; }
+    
+    /* 解决详情面板过度挤压换行的问题，强制应用样式 */
+    #plan-details-content .detail-multi-row { flex-direction: column !important; gap: 4px !important; }
+    #plan-details-content .detail-item { width: 100% !important; margin-right: 0 !important; margin-bottom: 2px !important; }
+    #plan-details-content .detail-label { width: 80px !important; flex-shrink: 0 !important; }
+    
+    /* 解决三个图表挤成一团的问题（改为可左右滑动的大图） */
+    #plan-chart-area .charts-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 10px;
+        justify-content: flex-start !important;
+    }
+    /* 仅针对专业对比的三图表设置固定宽度，避免影响学校单张大图 */
+    #plan-chart-area .charts-wrapper .chart-container {
+        flex: 0 0 280px !important;
+        min-width: 280px !important;
+    }
+    
+    /* 解决底部意向城市与意向计划被压扁（字变竖排）的问题，改为上下排列 */
+    #plan-output-container > div {
+        flex-direction: column !important;
+        gap: 10px !important;
+        height: auto !important;
+    }
+    #plan-output-container > div > div {
+        flex: none !important;
+        width: 100% !important;
+    }
+    #intended-cities-list { min-height: 60px; max-height: 120px; }
+    #plan-output-textarea { min-height: 120px; }
+    
+    /* 确保所有内容在小屏幕上正确显示，解除全屏高度锁定允许页面整体滚动 */
+    html, body { overflow-y: auto; height: auto; min-height: 100%; }
+    .tab-content { height: auto; min-height: 80vh; overflow: visible; }
+    body.logged-out .left-panel, body.logged-out .right-panel,
+    body:not(.logged-out) .left-panel, body:not(.logged-out) .right-panel {
+        display: flex !important;
+        flex-direction: column;
+        width: 100% !important; 
+        height: auto !important;
+        overflow: visible !important;
+    }
 }
 
 /* 选考科目要求表格样式 */

@@ -57,12 +57,12 @@
                     <tr id="ranking-thead-row">
                         <th>省份</th>
                         <th>院校</th>
-                        <th>理科排位 / 均值</th>
-                        <th>理科均分</th>
-                        <th>文科排位 / 均值</th>
-                        <th>文科均分</th>
-                        <th>总排位 / 均值</th>
-                        <th>总均分</th>
+                        <th class="col-sci">理科排位 / 均值</th>
+                        <th class="col-sci">理科均分</th>
+                        <th class="col-art">文科排位 / 均值</th>
+                        <th class="col-art">文科均分</th>
+                        <th class="col-total">总排位 / 均值</th>
+                        <th class="col-total">总均分</th>
                     </tr>
                 </thead>
                 <tbody id="ranking-tbody"></tbody>
@@ -102,6 +102,7 @@
             sortButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentSort = btn.dataset.sort;
+            panel.setAttribute('data-active-sort', currentSort);
             renderTable();
         });
     });
@@ -121,6 +122,7 @@
                 `<option value="${y}">${y}年</option>`
             ).join('');
             currentYear = availableYears[0]; // 默认最新年份
+            panel.setAttribute('data-active-sort', currentSort); // 初始化时设置排序状态
             await loadYearData(currentYear);
         } catch (err) {
             statsEl.textContent = '加载失败: ' + err.message;
@@ -240,28 +242,28 @@
         return `<tr>
             <td>${cur['省份']}</td>
             <td>${cur['院校']}</td>
-            <td>${isNoSci ? '<span style="color:#94a3b8;font-size:12px;">无理科专业计划</span>' :
+            <td class="col-sci">${isNoSci ? '<span style="color:#94a3b8;font-size:12px;">无理科专业计划</span>' :
                 `<span class="ranking-rank-label ranking-rank-sci">${sciRank}</span>
                  <span class="ranking-sub-info">位次均值: ${formatNum(sciPos)}</span>
                  ${prev ? buildDelta('位次', sciPos, prev['理科校投档位次号均值'], true) : ''}`}
             </td>
-            <td>${isNoSci ? '' : `<span class="ranking-score">${sciScore}</span>
+            <td class="col-sci">${isNoSci ? '' : `<span class="ranking-score">${sciScore}</span>
                  ${prev ? buildDelta('分', sciScore, prev['理科校投档线均分'], false) : ''}`}
             </td>
-            <td>${isNoArt ? '<span style="color:#94a3b8;font-size:12px;">无文科专业计划</span>' :
+            <td class="col-art">${isNoArt ? '<span style="color:#94a3b8;font-size:12px;">无文科专业计划</span>' :
                 `<span class="ranking-rank-label ranking-rank-art">${artRank}</span>
                  <span class="ranking-sub-info">位次均值: ${formatNum(artPos)}</span>
                  ${prev ? buildDelta('位次', artPos, prev['文科校投档位次号均值'], true) : ''}`}
             </td>
-            <td>${isNoArt ? '' : `<span class="ranking-score">${artScore}</span>
+            <td class="col-art">${isNoArt ? '' : `<span class="ranking-score">${artScore}</span>
                  ${prev ? buildDelta('分', artScore, prev['文科校投档线均分'], false) : ''}`}
             </td>
-            <td>
+            <td class="col-total">
                 <span class="ranking-rank-label ranking-rank-total">${totalRank}</span>
                 <span class="ranking-sub-info">位次均值: ${formatNum(totalPos)}</span>
                 ${prev ? buildDelta('位次', totalPos, prev['校投档位次号均值'], true) : ''}
             </td>
-            <td>
+            <td class="col-total">
                 <span class="ranking-score">${totalScore}</span>
                 ${prev ? buildDelta('分', totalScore, prev['校投档线均分'], false) : ''}
             </td>

@@ -31,9 +31,60 @@
 #ranking-tab { flex-direction: column; }
 #ranking-tab.active { display: flex; }
 @media (max-width: 768px) {
-    .ranking-toolbar { flex-direction: column; gap: 8px; }
     .ranking-header { flex-direction: column; align-items: flex-start; gap: 5px; }
     .ranking-header h2 { font-size: 15px; }
-    .ranking-filter-group input[type="text"], .ranking-filter-group select { min-width: 100%; }
-    .ranking-sort-group { flex-wrap: wrap; }
+    
+    .ranking-toolbar { flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 8px; }
+    
+    /* 1&2: 年份与省份并排，各占约一半 */
+    .ranking-filter-group:nth-child(1), .ranking-filter-group:nth-child(2) { flex: 1 1 45%; }
+    
+    /* 3: 搜索框占满全宽 */
+    .ranking-filter-group:nth-child(3) { flex: 1 1 100%; }
+    
+    /* 4: 对比选框靠右对齐 */
+    .ranking-filter-group:nth-child(4) { flex: 1 1 100%; align-items: flex-end; margin-top: -5px; }
+    
+    /* 5 是空白垫片，隐藏掉 */
+    .ranking-toolbar > div:nth-child(5) { display: none; }
+    
+    /* 6: 排序按钮容器占满全宽 */
+    .ranking-filter-group:nth-child(6) { flex: 1 1 100%; align-items: stretch; }
+    
+    .ranking-filter-group input[type="text"], .ranking-filter-group select { min-width: 0; width: 100%; box-sizing: border-box; padding: 6px; }
+    
+    .ranking-sort-group { flex-wrap: nowrap; justify-content: space-between; display: flex; width: 100%; }
+    .ranking-btn-sort { flex: 1; padding: 6px 2px; text-align: center; font-size: 12px; margin: 0 2px; white-space: nowrap; }
+    .ranking-btn-sort:first-child { margin-left: 0; }
+    .ranking-btn-sort:last-child { margin-right: 0; }
+    
+    /* 表格极度压缩与列宽定制 */
+    .ranking-table th, .ranking-table td { padding: 6px 4px; font-size: 11px; }
+    
+    /* 1. 省份列 */
+    .ranking-table th:nth-child(1), .ranking-table td:nth-child(1) { width: 30px; white-space: nowrap; }
+    
+    /* 2. 院校列 - 加宽但适度，促使其换两行 */
+    .ranking-table th:nth-child(2), .ranking-table td:nth-child(2) { 
+        min-width: 90px; 
+        max-width: 100px;
+        white-space: normal; /* 允许校名换行 */
+        word-break: break-all;
+    }
+    
+    /* 3-8. 其他所有排位、分数等数字列 - 极度压缩、禁止换行 */
+    .ranking-table th:nth-child(n+3), .ranking-table td:nth-child(n+3) { 
+        white-space: nowrap; 
+        text-align: center; 
+    }
+    
+    /* 动态隐藏排位列逻辑（仅在手机端生效） */
+    .ranking-table .col-sci, .ranking-table .col-art, .ranking-table .col-total { display: none; }
+    #ranking-tab[data-active-sort="理科排位"] .ranking-table .col-sci { display: table-cell; }
+    #ranking-tab[data-active-sort="文科排位"] .ranking-table .col-art { display: table-cell; }
+    #ranking-tab[data-active-sort="总排位"] .ranking-table .col-total { display: table-cell; }
+    
+    .ranking-rank-label { padding: 1px 4px; font-size: 11px; }
+    .ranking-score { font-size: 13px; }
+    .ranking-sub-info { font-size: 10px; }
 }

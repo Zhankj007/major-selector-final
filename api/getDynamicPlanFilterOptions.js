@@ -126,19 +126,32 @@ export default async function handler(request, response) {
             return q;
         };
 
-        // 并发执行 5 个查询，每个查询都排除自身的过滤条件
+        // 并发执行 5 个查询，每个查询都排除自身的过滤条件。为了突破服务器强制的1000条限制，我们使用循环分页拉取
+        const fetchAllData = async (queryBuilder) => {
+            let allData = [];
+            let from = 0;
+            const size = 1000;
+            while (true) {
+                const { data, error } = await queryBuilder.range(from, from + size - 1);
+                if (error) throw error;
+                if (!data || data.length === 0) break;
+                allData = allData.concat(data);
+                if (data.length < size) break;
+                from += size;
+            }
+            return { data: allData };
+        };
+
         const queries = [
-            applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '城市', cities), '办学性质', ownerships), '本专科', eduLevels), '当年选科要求', subjectReqs), // for planTypes (no planTypes filter)
-            applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '办学性质', ownerships), '本专科', eduLevels), '当年选科要求', subjectReqs), // for cities
-            applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '本专科', eduLevels), '当年选科要求', subjectReqs), // for ownerships
-            applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '办学性质', ownerships), '当年选科要求', subjectReqs), // for eduLevels
-            applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '办学性质', ownerships), '本专科', eduLevels)  // for subjectReqs
+            fetchAllData(applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '城市', cities), '办学性质', ownerships), '本专科', eduLevels), '当年选科要求', subjectReqs)), // for planTypes
+            fetchAllData(applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '办学性质', ownerships), '本专科', eduLevels), '当年选科要求', subjectReqs)), // for cities
+            fetchAllData(applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '本专科', eduLevels), '当年选科要求', subjectReqs)), // for ownerships
+            fetchAllData(applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '办学性质', ownerships), '当年选科要求', subjectReqs)), // for eduLevels
+            fetchAllData(applyFilter(applyFilter(applyFilter(applyFilter(buildBaseQuery(), '科类', planTypes), '城市', cities), '办学性质', ownerships), '本专科', eduLevels))  // for subjectReqs
         ];
 
         const results = await Promise.all(queries);
-        results.forEach((res, idx) => {
-            if (res.error) throw new Error(`数据库查询错误 (query ${idx}): ${res.error.message}`);
-        });
+        // 异常处理由 fetchAllData 抛出并在此被捕获，不需要再遍历 results.error
 
         const validPlanTypes = new Set(results[0].data.map(row => row.科类).filter(Boolean));
         const validCities = new Set(results[1].data.map(row => row.城市).filter(Boolean));

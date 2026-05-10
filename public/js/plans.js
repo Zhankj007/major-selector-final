@@ -532,14 +532,14 @@ function showPlanDetails(plan) {
             const wrapperMargin = 0; // 设置为0px，直接从容器底部开始
             // 减去标题高度和边距，确保图表不会溢出
             const availableHeight = chartAreaHeight - headerHeight - wrapperMargin;
-            // 设置一个合理的最大高度和最小高度
-            return Math.max(200, Math.min(availableHeight, 300));
+            // 移除硬编码的最大高度限制，让 4K 大屏能完全利用纵向空间
+            return Math.max(240, availableHeight - 10);
         };
 
-        // 设置图表容器样式
+        // 设置图表容器样式，增加底边距防止滚动条遮挡
         chartArea.innerHTML = `
             <h3 style="color: #28a745; margin-bottom: 12px;">${fullMajorName} 历年投档情况</h3>
-            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; min-height: 0;">
+            <div class="charts-wrapper" style="display: flex; gap: 20px; width: 100%; min-height: 0; padding-bottom: 25px;">
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="scoreAvgChart"></canvas></div>
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="rankChart"></canvas></div>
                 <div class="chart-container" style="flex: 1 1 0; min-width: 0; position: relative;"><canvas id="countChart"></canvas></div>
@@ -611,11 +611,12 @@ function showPlanDetails(plan) {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
+                layout: { padding: { bottom: 15 } },
                 scales: {
                     y: {
                         beginAtZero: false,
-                        suggestedMin: Math.floor(minScore / 10) * 10 - 10,
-                        grace: '5%' 
+                        suggestedMin: Math.floor(minScore / 10) * 10 - 15,
+                        grace: '15%' 
                     }
                 },
                 plugins: { 
@@ -639,9 +640,10 @@ function showPlanDetails(plan) {
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
+                layout: { padding: { bottom: 15 } },
                 scales: { 
                     y: { 
-                        grace: '10%',
+                        grace: '20%',
                         // 3. Y轴逆序排列
                         reverse: true 
                     } 
@@ -666,9 +668,10 @@ function showPlanDetails(plan) {
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                layout: { padding: { bottom: 15 } },
                 scales: {
                     x: {
-                        grace: 1 
+                        grace: '15%' 
                     }
                 },
                 plugins: { 
@@ -715,12 +718,22 @@ function showPlanDetails(plan) {
             const wrapperMargin = 15; // 预留一些边距
             // 减去标题高度、统计信息高度和边距
             const availableHeight = chartAreaHeight - headerHeight - statsHeight - wrapperMargin;
-            // 设置一个合理的最大高度和最小高度
-            return Math.max(300, Math.min(availableHeight, 450));
+            // 移除硬编码的最大高度限制，适应高分辨率大屏自适应
+            return Math.max(260, availableHeight - 10);
         };
 
         const chartHeight = calculateChartHeight();
-        chartArea.innerHTML = `<h3 style="color: #E57373; margin-bottom: 5px;">${uniName} ${Y0}年各专业投档线</h3>${statsHtml}<div class="chart-container" style="position: relative; height: ${chartHeight}px;"><canvas id="uniChart"></canvas></div>`;
+        // 动态计算柱状图最小宽度（按每个专业 35px 估算，防止文字重叠）
+        const chartMinWidth = Math.max(100, labels.length * 35);
+        
+        chartArea.innerHTML = `
+            <h3 style="color: #E57373; margin-bottom: 5px;">${uniName} ${Y0}年各专业投档线</h3>
+            ${statsHtml}
+            <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 25px;">
+                <div class="chart-container" style="position: relative; height: ${chartHeight}px; min-width: ${chartMinWidth}px;">
+                    <canvas id="uniChart"></canvas>
+                </div>
+            </div>`;
 
         activeCharts.push(new Chart(document.getElementById('uniChart'), {
             type: 'bar',
@@ -751,10 +764,12 @@ function showPlanDetails(plan) {
                         }
                     }
                 },
+                layout: { padding: { bottom: 25, top: 10 } },
                 scales: {
                     y: {
                         beginAtZero: false,
                         suggestedMin: Math.floor((uniStats['当年校最低专业分数'] || 500) / 10) * 10 - 20,
+                        grace: '15%',
                         // 恢复为Chart.js默认的横向标题
                         title: {
                             display: true,
