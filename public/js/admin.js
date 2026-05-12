@@ -58,18 +58,42 @@ function initializeAdminTab() {
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; display: flex; flex-direction: column; flex-grow: 1;">
                     <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">数据维护区 <span style="font-size: 12px; font-weight: normal; color: #666;">（仅在本地或服务端有环境时执行，用于更新底层数据结构）</span></h3>
                     
-                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; flex-shrink: 0; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; flex-shrink: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
                         <button id="btn-generate-static" class="query-button" title="执行前准备：请确保已经在 Supabase 数据库中更新了最新数据。&#10;功能：执行 generate_static_data.mjs，重新生成省份、城市、科类等静态 JSON 缓存文件。" style="border-radius: 4px;">1. 生成静态筛选数据</button>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px; border-left: 1px solid #ccc; padding-left: 20px;">
-                            <input type="file" id="ranking-file-input" accept=".xlsx, .xls" style="display: none;">
-                            <button id="btn-select-ranking-file" class="output-button" style="border-radius: 4px; background-color: #6c757d;" title="点击从本地电脑选择年度排行榜 Excel 文件">2. 选择排行榜数据源</button>
-                            <span id="ranking-file-name" style="font-size: 13px; color: #666; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">未选择文件</span>
-                            <button id="btn-convert-ranking" class="query-button disabled" disabled style="border-radius: 4px; margin-left: 10px;" title="请先选择数据源。&#10;功能：后台将首先检查文件格式，验证通过后自动生成对应年份的 JSON 排行榜数据。">3. 验证并转换排行榜</button>
+                    </div>
+
+                    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; flex-shrink: 0; margin-bottom: 20px;">
+                        <!-- 排行榜数据块 -->
+                        <div style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; flex: 1; min-width: 300px;">
+                            <h4 style="margin-top: 0; margin-bottom: 10px; color: #333; border-bottom: 2px solid #007bff; display: inline-block;">投档线排行榜更新</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="file" id="ranking-file-input" accept=".xlsx, .xls" style="display: none;">
+                                    <button id="btn-select-ranking-file" class="output-button" style="border-radius: 4px; background-color: #6c757d; font-size: 13px;">选择排行榜 Excel</button>
+                                    <span id="ranking-file-name" style="font-size: 12px; color: #666; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">未选择</span>
+                                </div>
+                                <button id="btn-convert-ranking" class="query-button disabled" disabled style="border-radius: 4px; width: 100%;" title="请先选择数据源。&#10;功能：后台将首先检查文件格式，验证通过后自动生成对应年份的 JSON 排行榜数据。">2. 验证并转换排行榜</button>
+                            </div>
+                        </div>
+
+                        <!-- 高校库维护块 -->
+                        <div style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; flex: 1; min-width: 300px;">
+                            <h4 style="margin-top: 0; margin-bottom: 10px; color: #333; border-bottom: 2px solid #28a745; display: inline-block;">全国高校库维护 (CSV)</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="file" id="uni-file-input" accept=".xlsx, .xls" style="display: none;">
+                                    <button id="btn-select-uni-file" class="output-button" style="border-radius: 4px; background-color: #6c757d; font-size: 13px;">选择高校库 Excel</button>
+                                    <span id="uni-file-name" style="font-size: 12px; color: #666; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">未选择</span>
+                                </div>
+                                <button id="btn-update-uni" class="query-button disabled" disabled style="border-radius: 4px; width: 100%; background-color: #28a745;" title="功能：解析本地 Excel 并在服务端合并更新 universities.csv，同时备份历史数据并智能保留历年推免率。">3. 校验并更新高校库</button>
+                            </div>
                         </div>
                     </div>
                     
-                    <div style="flex-shrink: 0; font-weight: bold; margin-bottom: 5px; color: #444;">实时运行日志：</div>
+                    <div style="flex-shrink: 0; font-weight: bold; margin-bottom: 5px; color: #444; display: flex; align-items: center; gap: 10px;">
+                        实时运行日志：
+                        <button id="clear-maintenance-log" style="font-size: 11px; padding: 2px 8px; cursor: pointer; background: none; border: 1px solid #ccc; border-radius: 3px;">清除日志</button>
+                    </div>
                     <div id="maintenance-log" style="flex-grow: 1; padding: 15px; background: #1e1e1e; color: #4af626; border-radius: 6px; font-family: Consolas, monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid #000; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">系统就绪，等待执行任务...</div>
                 </div>
             </div>
@@ -478,17 +502,98 @@ function initializeAdminTab() {
             
             btnConvertRanking.disabled = true;
             btnConvertRanking.classList.add('disabled');
+            const originalText = btnConvertRanking.textContent;
             btnConvertRanking.textContent = '验证并转换中...';
-            appendLog(`开始上传并处理数据源 ${selectedFileName} ...`);
+            appendLog(`开始上传并处理投档线排行榜数据源: ${selectedFileName} ...`);
             
             await runMaintenanceTask('convert_ranking', { 
                 filename: selectedFileName,
                 fileBase64: selectedFileBase64
             });
             
-            btnConvertRanking.textContent = '2. 生成投档线排行榜';
+            btnConvertRanking.textContent = originalText;
             btnConvertRanking.disabled = false;
             btnConvertRanking.classList.remove('disabled');
+        });
+    }
+
+    // --- 高校库更新逻辑 ---
+    const btnSelectUniFile = document.getElementById('btn-select-uni-file');
+    const uniFileInput = document.getElementById('uni-file-input');
+    const uniFileNameDisplay = document.getElementById('uni-file-name');
+    const btnUpdateUni = document.getElementById('btn-update-uni');
+    let selectedUniData = null;
+    let selectedUniFileName = '';
+
+    if (btnSelectUniFile && uniFileInput) {
+        btnSelectUniFile.addEventListener('click', () => uniFileInput.click());
+        uniFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            uniFileNameDisplay.textContent = file.name;
+            selectedUniFileName = file.name;
+            appendLog(`已选中文件: ${file.name}，正在本地解析数据...`);
+
+            try {
+                // 在前端使用 XLSX 库解析文件
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                selectedUniData = XLSX.utils.sheet_to_json(worksheet);
+                
+                appendLog(`本地解析完成，共发现 ${selectedUniData.length} 条高校记录。`, 'success');
+                btnUpdateUni.classList.remove('disabled');
+                btnUpdateUni.disabled = false;
+            } catch (error) {
+                appendLog(`本地解析失败: ${error.message}`, 'error');
+                selectedUniData = null;
+                btnUpdateUni.classList.add('disabled');
+                btnUpdateUni.disabled = true;
+            }
+        });
+    }
+
+    if (btnUpdateUni) {
+        btnUpdateUni.addEventListener('click', async () => {
+            if (!selectedUniData) return;
+            if (!confirm(`确定以此 Excel 表格为权威标准重新构建高校库吗？\n\n1. 记录数将重置为 Excel 中的 ${selectedUniData.length} 条。\n2. 脚本将自动识别并合并旧 CSV 中的历年推免率等历史数据。\n3. 服务端会自动备份原始 CSV。`)) return;
+
+            btnUpdateUni.disabled = true;
+            btnUpdateUni.classList.add('disabled');
+            const originalText = btnUpdateUni.textContent;
+            btnUpdateUni.textContent = '正在提交并合并数据...';
+            appendLog('正在向服务端提交数据并执行合并逻辑...');
+
+            try {
+                const response = await fetch('/api/update_universities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ universityData: selectedUniData })
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    appendLog(`更新失败: ${result.error || '未知错误'}`, 'error');
+                } else {
+                    appendLog(`高校库更新成功！最终结果: ${result.count} 条记录。`, 'success');
+                    if (result.backupFile) appendLog(`服务端已创建备份: ${result.backupFile}`, 'info');
+                }
+            } catch (error) {
+                appendLog(`请求出错: ${error.message}`, 'error');
+            } finally {
+                btnUpdateUni.textContent = originalText;
+                btnUpdateUni.disabled = false;
+                btnUpdateUni.classList.remove('disabled');
+            }
+        });
+    }
+
+    const clearLogBtn = document.getElementById('clear-maintenance-log');
+    if (clearLogBtn) {
+        clearLogBtn.addEventListener('click', () => {
+            maintenanceLog.innerHTML = '日志已清除，等待新任务...';
         });
     }
 

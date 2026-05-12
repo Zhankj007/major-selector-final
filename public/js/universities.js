@@ -237,7 +237,19 @@ window.initializeUniversitiesTab = function() {
         const currentLi = checkbox.closest("li");
         const isChecked = checkbox.checked;
         const affectedLis = currentLi.matches(".level-3-li, .level-2-li[data-details]") ? [currentLi] : Array.from(currentLi.querySelectorAll(".level-3-li, .level-2-li[data-details]"));
-        affectedLis.forEach(li => { const uniData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); const code = uniData[UNI_CODE_KEY]; if (isChecked && !selectedUniversities.has(code)) selectedUniversities.set(code, uniData); else if (!isChecked) selectedUniversities.delete(code); });
+        
+        affectedLis.forEach(li => { 
+            const uniData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); 
+            // 修复点：使用“编码+名称”作为 ID，解决编码为空时的冲突问题
+            const uniId = (uniData[UNI_CODE_KEY] || '') + '_' + uniData[UNI_NAME_KEY];
+            
+            if (isChecked && !selectedUniversities.has(uniId)) {
+                selectedUniversities.set(uniId, uniData); 
+            } else if (!isChecked) {
+                selectedUniversities.delete(uniId); 
+            }
+        });
+        
         cascadeUniCheckboxVisuals(checkbox);
         updateUniOutputUI();
     }
@@ -250,8 +262,14 @@ window.initializeUniversitiesTab = function() {
         clearButton.classList.toggle("disabled", count === 0);
     }
     function syncUniCheckboxesWithState() {
-        treeContainer.querySelectorAll("li[data-details]").forEach(li => { const uniData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); li.querySelector("input").checked = selectedUniversities.has(uniData[UNI_CODE_KEY]) });
-        treeContainer.querySelectorAll(".level-1-li, .level-2-li:not([data-details])").forEach(parentLi => { cascadeUniCheckboxVisuals(parentLi.querySelector(":scope > input[type=\"checkbox\"]")) });
+        treeContainer.querySelectorAll("li[data-details]").forEach(li => { 
+            const uniData = JSON.parse(decodeURIComponent(atob(li.dataset.details))); 
+            const uniId = (uniData[UNI_CODE_KEY] || '') + '_' + uniData[UNI_NAME_KEY];
+            li.querySelector("input").checked = selectedUniversities.has(uniId);
+        });
+        treeContainer.querySelectorAll(".level-1-li, .level-2-li:not([data-details])").forEach(parentLi => { 
+            cascadeUniCheckboxVisuals(parentLi.querySelector(":scope > input[type=\"checkbox\"]"));
+        });
     }
     function cascadeUniCheckboxVisuals(checkbox) {
         const currentLi = checkbox.closest("li"); const isChecked = checkbox.checked;
@@ -300,21 +318,21 @@ window.initializeUniversitiesTab = function() {
             if (d['校硕点']) 硕博点_parts.push(`${d['校硕点']}硕士点`);
             if (d['校博点']) 硕博点_parts.push(`${d['校博点']}博士点`);
             
-            // 动态获取所有格式为 "XX年推免率" 的字段，并按年份降序排列
-            const rates_parts = Object.keys(d)
-                .filter(key => /^\d{2}年推免率$/.test(key) && d[key])
-                .sort((a, b) => {
-                    const yearA = parseInt(a.match(/^(\d{2})年/)[1], 10);
-                    const yearB = parseInt(b.match(/^(\d{2})年/)[1], 10);
-                    return yearB - yearA; // 降序排列 (如 26年在前, 25年在后)
-                })
-                .map(key => {
-                    const year = key.match(/^(\d{2})年/)[1];
-                    return `${year}年 ${d[key]}`;
+            // 解析结构化字段的通用函数
+            const parseYearlyData = (fieldValue) => {
+                if (!fieldValue || typeof fieldValue !== 'string') return [];
+                return fieldValue.split(';').filter(Boolean).map(item => {
+                    const [year, val] = item.split(':');
+                    // 将 2025 转换为 25年 格式
+                    const shortYear = year.length === 4 ? year.substring(2) : year;
+                    return `${shortYear}年 ${val}`;
                 });
+            };
+
+            const rates_parts = parseYearlyData(d['推免率']);
+            const upgrade_parts = parseYearlyData(d['升本率']);
 
             const 升学比例_parts = [];
-            // **最终修复：使用您提供的正确字段名**
             if (d['国内升学比例']) 升学比例_parts.push(`国内 ${d['国内升学比例']}`);
             if (d['国外升学比例']) 升学比例_parts.push(`国外 ${d['国外升学比例']}`);
             
@@ -334,7 +352,8 @@ window.initializeUniversitiesTab = function() {
             html += renderRow('一流学科', d['一流学科']);
             if (rates_parts.length > 0) html += `<p><strong>历年推免率:</strong> <span>${rates_parts.join(' | ')}</span></p>`;
             if (升学比例_parts.length > 0) html += `<p><strong>升学比例:</strong> <span>${升学比例_parts.join(' | ')}</span></p>`;
-            if (d['23年升本率']) html += renderRow('23年升本率', d['23年升本率']);
+            if (upgrade_parts.length > 0) html += `<p><strong>历年升本率:</strong> <span>${upgrade_parts.join(' | ')}</span></p>`;
+            html += renderRow('就业落实率', d['就业落实率']);
             html += renderRow('招生章程', d['招生章程']);
             html += renderRow('学校招生信息', d['学校招生信息']);
             html += renderRow('校园VR', d['校园VR']);
