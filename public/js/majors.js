@@ -206,12 +206,24 @@ window.initializeMajorsTab = function() {
         handledKeys.add(MAJOR_NAME_KEY).add(MAJOR_CODE_KEY);
 
         const renderField = (key) => {
-            if (d[key]) {
-                let value = d[key];
-                if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                    value = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+            const value = d[key];
+            const isMedicalLimit = key === '体检限制';
+            
+            // 如果是体检限制，即使为空也要显示；其他字段为空则隐藏
+            if (value || isMedicalLimit) {
+                let displayValue = value || (isMedicalLimit ? '无特殊要求' : '---');
+                
+                // 处理链接
+                if (typeof displayValue === 'string' && (displayValue.startsWith('http://') || displayValue.startsWith('https://'))) {
+                    displayValue = `<a href="${displayValue}" target="_blank" rel="noopener noreferrer">${displayValue}</a>`;
                 }
-                detailsHtml += `<p><strong>${key}:</strong> <span>${value}</span></p>`;
+                
+                // 特殊样式处理：体检限制增加高亮
+                const style = isMedicalLimit 
+                    ? 'style="background: #fff1f0; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffa39e; color: #cf1322; font-weight: bold;"' 
+                    : '';
+                
+                detailsHtml += `<p><strong>${key}:</strong> <span ${style}>${displayValue}</span></p>`;
                 handledKeys.add(key);
             }
         };

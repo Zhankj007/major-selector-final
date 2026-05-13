@@ -1,12 +1,32 @@
-import path from 'path';
+// api/maintenance.js
+import { exec } from 'child_process';
 import fs from 'fs';
+import path from 'path';
 import Papa from 'papaparse';
 
-export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb',
+        },
+    },
+};
+
+export default async function handler(request, response) {
+    if (request.method !== 'POST') {
+        return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    const { action } = request.body;
+
+    if (action === 'update_universities') {
+        return handleUpdateUniversities(request, response);
+    } else {
+        return handleScriptExecution(request, response);
+    }
+}
+
+async function handleUpdateUniversities(req, res) {
     try {
         const { universityData } = req.body;
         if (!universityData || !Array.isArray(universityData)) {
@@ -18,12 +38,12 @@ export default async function handler(req, res) {
         const backupName = `universities_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
         const backupPath = path.join(dataDir, backupName);
 
-        // 1. 备份原文件
+        // 1. 备份
         if (fs.existsSync(csvPath)) {
             fs.copyFileSync(csvPath, backupPath);
         }
 
-        // 2. 读取现有数据（用于合并历史推免率/升本率）
+        // 2. 读取现有数据
         let existingData = [];
         if (fs.existsSync(csvPath)) {
             const csvText = fs.readFileSync(csvPath, 'utf-8');
@@ -31,7 +51,7 @@ export default async function handler(req, res) {
             existingData = parsed.data;
         }
 
-        // 3. 构建历史数据索引 (优先级：院校编码 > 院校名)
+        // 3. 索引
         const codeMap = new Map();
         const nameMap = new Map();
         existingData.forEach(row => {
@@ -41,7 +61,6 @@ export default async function handler(req, res) {
             else nameMap.set(name, row);
         });
 
-        // 4. 配置字段映射与合并逻辑 (同步 scripts/update_universities.mjs 的逻辑)
         const mapping = {
             '省份': '省份', '所在地': '城市', '院校名': '院校名', '主管部门': '主管部门',
             '院校编码': '院校编码', '院校水平': '院校水平', '院校来历': '院校来历',
@@ -60,60 +79,63 @@ export default async function handler(req, res) {
             { regex: /^(\d{2})升本率$/, target: '升本率' }
         ];
 
-        // 5. 核心合并逻辑 (以传入的 universityData 为准)
         const resultData = universityData.map(excelRow => {
             const code = String(excelRow['院校编码'] || '').trim();
             const name = String(excelRow['院校名'] || '').trim();
-            
-            let existingRow = null;
-            if (code && code !== 'undefined') existingRow = codeMap.get(code);
-            else existingRow = nameMap.get(name);
+            let existingRow = (code && code !== 'undefined') ? codeMap.get(code) : nameMap.get(name);
 
             const newRow = {};
-            // A. 基础映射
             for (const [exCol, csvCol] of Object.entries(mapping)) {
                 newRow[csvCol] = excelRow[exCol] ?? '';
             }
 
-            // B. 年度数据合并
             yearlyFields.forEach(fieldCfg => {
                 const targetCol = fieldCfg.target;
                 const dataMap = parseStructuredField(existingRow ? existingRow[targetCol] : '');
-                
                 Object.entries(excelRow).forEach(([colName, value]) => {
                     const match = colName.match(fieldCfg.regex);
-                    if (match && value) {
-                        const year = '20' + match[1];
-                        dataMap.set(year, String(value).trim());
-                    }
+                    if (match && value) dataMap.set('20' + match[1], String(value).trim());
                 });
                 newRow[targetCol] = serializeStructuredField(dataMap);
             });
-
             return newRow;
         });
 
-        // 6. 保存新 CSV
-        const csvOutput = Papa.unparse(resultData);
-        fs.writeFileSync(csvPath, csvOutput, 'utf-8');
-
-        res.status(200).json({ 
-            success: true, 
-            count: resultData.length, 
-            backupFile: backupName 
-        });
-
+        fs.writeFileSync(csvPath, Papa.unparse(resultData), 'utf-8');
+        res.status(200).json({ success: true, count: resultData.length, backupFile: backupName });
     } catch (error) {
-        console.error('API Error (update_universities):', error);
         res.status(500).json({ error: `服务器错误: ${error.message}` });
     }
+}
+
+function handleScriptExecution(request, response) {
+    const { action, filename, fileBase64 } = request.body;
+    const cwd = process.cwd();
+    let command = '';
+
+    if (action === 'generate_static_data') {
+        command = 'node generate_static_data.mjs';
+    } else if (action === 'convert_ranking') {
+        if (fileBase64) {
+            const targetDir = path.join(cwd, '_data', 'ranking');
+            if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+            fs.writeFileSync(path.join(targetDir, filename), Buffer.from(fileBase64.replace(/^data:.*?;base64,/, ""), 'base64'));
+        }
+        command = `node _data/ranking/convert.mjs ${filename}`;
+    } else {
+        return response.status(400).json({ error: '未知的操作类型' });
+    }
+
+    exec(command, { cwd }, (error, stdout, stderr) => {
+        if (error) return response.status(500).json({ error: error.message, stderr, stdout });
+        return response.status(200).json({ message: '执行成功', stdout, stderr });
+    });
 }
 
 function parseStructuredField(str) {
     const map = new Map();
     if (!str || typeof str !== 'string') return map;
-    const parts = str.split(';').filter(Boolean);
-    parts.forEach(p => {
+    str.split(';').filter(Boolean).forEach(p => {
         const [year, val] = p.split(':');
         if (year && val) map.set(year.trim(), val.trim());
     });
@@ -121,6 +143,5 @@ function parseStructuredField(str) {
 }
 
 function serializeStructuredField(map) {
-    const sortedKeys = Array.from(map.keys()).sort((a, b) => b - a);
-    return sortedKeys.map(year => `${year}:${map.get(year)}`).join(';');
+    return Array.from(map.keys()).sort((a, b) => b - a).map(year => `${year}:${map.get(year)}`).join(';');
 }

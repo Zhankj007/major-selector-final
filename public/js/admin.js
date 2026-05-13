@@ -425,7 +425,7 @@ function initializeAdminTab() {
 
     async function runMaintenanceTask(action, payload = {}) {
         try {
-            const response = await fetch('/api/run_maintenance_script', {
+            const response = await fetch('/api/maintenance', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action, ...payload })
@@ -567,10 +567,10 @@ function initializeAdminTab() {
             appendLog('正在向服务端提交数据并执行合并逻辑...');
 
             try {
-                const response = await fetch('/api/update_universities', {
+                const response = await fetch('/api/maintenance', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ universityData: selectedUniData })
+                    body: JSON.stringify({ action: 'update_universities', universityData: selectedUniData })
                 });
                 const result = await response.json();
 

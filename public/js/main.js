@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
             displayUserProfile(data.user.id).catch(e => console.error('用户信息加载失败:', e));
 
             // 异步通知后台记录登录日志（完全不阻塞）
-            fetch('/api/record_login', {
+            fetch('/api/auth?action=record_login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: data.user.id, email: data.user.email })
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         try {
-            const response = await fetch('/api/register', {
+            const response = await fetch('/api/auth?action=register', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, username, phone, unit_name }),
             });
