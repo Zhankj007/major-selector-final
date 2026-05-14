@@ -337,13 +337,23 @@ window.initializePlansTab = function () {
         for (const province in hierarchy) {
             html += `<li><input type="checkbox"><span class="caret tree-label">${province}</span><ul class="nested">`;
             for (const uniName in hierarchy[province]) {
-                html += `<li><input type="checkbox"><span class="caret tree-label">${uniName}</span><ul class="nested">`;
-                hierarchy[province][uniName].forEach(plan => {
+                const uniPlans = hierarchy[province][uniName];
+                // 计算该院校下所有专业的计划数总和
+                const totalSlots = uniPlans.reduce((sum, p) => sum + (parseInt(p['当年计划数'], 10) || 0), 0);
+                const uniLabel = `${uniName} <span style="color: #666; font-size: 0.9em; font-weight: normal; margin-left: 8px;">[共计: <span style="color: #cf1322; font-weight: bold;">${totalSlots}</span> 人]</span>`;
+                
+                html += `<li><input type="checkbox"><span class="caret tree-label">${uniLabel}</span><ul class="nested">`;
+                uniPlans.forEach(plan => {
                     const id = `${plan.院校代码}-${plan.专业代码}`;
                     const fee = plan.学费 ? `${plan.学费}元` : 'N/A';
+                    const slots = plan['当年计划数'] ? `${plan['当年计划数']}人` : '0人';
                     const score = plan['当年分数线'] ? `${plan['当年分数线']}分` : 'N/A';
                     const rank = plan['当年位次号'] ? `${plan['当年位次号']}位` : 'N/A';
-                    const details = `【${fee}|${plan['当年选科要求'] || 'N/A'}|${score}|${rank}】`;
+                    const subject = plan['当年选科要求'] || '不限';
+                    
+                    // 调整顺序并增加颜色：【选科|学费|计划数|分数线|位次】
+                    const details = `【${subject}|${fee}|<span style="color:#007bff;font-weight:500;">${slots}</span>|<span style="color:#e67e22;font-weight:500;">${score}</span>|<span style="color:#27ae60;font-weight:500;">${rank}</span>】`;
+                    
                     const planData = btoa(encodeURIComponent(JSON.stringify(plan)));
                     html += `<li data-plan="${planData}"><input type="checkbox" value="${id}" ${selectedPlans.has(id) ? 'checked' : ''}><span class="major-label">${plan.专业} ${details}</span></li>`;
                 });
@@ -363,7 +373,9 @@ window.initializePlansTab = function () {
             <div class="list-cell col-select">选择</div><div class="list-cell col-uni-major">院校专业</div>
             <div class="list-cell">省份</div><div class="list-cell">城市</div>
             <div class="list-cell">学费</div><div class="list-cell">选科要求</div>
-            <div class="list-cell">分数线</div><div class="list-cell">位次号</div>
+            <div class="list-cell" style="color:#007bff;">计划数</div>
+            <div class="list-cell" style="color:#e67e22;">分数线</div>
+            <div class="list-cell" style="color:#27ae60;">位次号</div>
             <div class="list-cell col-notes">专业简注</div>
         </div></div>`;
         html += '<div class="list-body">';
@@ -375,7 +387,9 @@ window.initializePlansTab = function () {
                 <div class="list-cell col-uni-major major-label">${plan.院校 || ''}#${plan.专业 || ''}</div>
                 <div class="list-cell">${plan.省份 || ''}</div><div class="list-cell">${plan.城市 || ''}</div>
                 <div class="list-cell">${plan.学费 || ''}</div><div class="list-cell">${plan['当年选科要求'] || ''}</div>
-                <div class="list-cell">${plan['当年分数线'] || ''}</div><div class="list-cell">${plan['当年位次号'] || ''}</div>
+                <div class="list-cell" style="color:#007bff;font-weight:500;">${plan['当年计划数'] || ''}</div>
+                <div class="list-cell" style="color:#e67e22;font-weight:500;">${plan['当年分数线'] || ''}</div>
+                <div class="list-cell" style="color:#27ae60;font-weight:500;">${plan['当年位次号'] || ''}</div>
                 <div class="list-cell col-notes">${plan.专业简注 || ''}</div>
             </div>`;
         });
