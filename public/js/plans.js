@@ -54,12 +54,12 @@ window.initializePlansTab = function () {
                 <div id="plan-chart-area" class="plan-chart-section"><h3>图表展示</h3><div class="content-placeholder"><p>在此根据查询结果生成图表。</p></div></div>
                 <div id="plan-output-container" class="output-container">
                     <div style="display: flex; gap: 15px; height: 100%;">
-                        <div style="flex: 2; display: flex; flex-direction: column;">
+                        <div style="flex: 2.5; display: flex; flex-direction: column;">
                             <div class="output-header"><h3>意向城市</h3><div class="button-group"><button id="plan-clear-cities-button" class="output-button">清空</button></div></div>
                             <div id="intended-cities-list" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; overflow-y: auto; background-color: white; font-size: 13px; flex-grow: 1; line-height: 1.6;">
                             </div>
                         </div>
-                        <div style="flex: 8; display: flex; flex-direction: column;">
+                        <div style="flex: 7.5; display: flex; flex-direction: column;">
                             <div class="output-header"><h3>意向计划</h3><div class="button-group" style="display: flex; gap: 4px;"><button id="plan-copy-button" class="output-button">复制</button><button id="plan-clear-button" class="output-button">清空</button></div></div>
                             <textarea id="plan-output-textarea" readonly placeholder="您勾选的专业将按选择顺序在此显示..."></textarea>
                         </div>
@@ -335,14 +335,17 @@ window.initializePlansTab = function () {
         }, {});
         let html = '<ul id="result-tree">';
         for (const province in hierarchy) {
-            html += `<li><input type="checkbox"><span class="caret tree-label">${province}</span><ul class="nested">`;
+            let provinceTotal = 0;
+            let provinceHtml = '';
+            
             for (const uniName in hierarchy[province]) {
                 const uniPlans = hierarchy[province][uniName];
-                // 计算该院校下所有专业的计划数总和
                 const totalSlots = uniPlans.reduce((sum, p) => sum + (parseInt(p['当年计划数'], 10) || 0), 0);
+                provinceTotal += totalSlots;
+                
                 const uniLabel = `${uniName} <span style="color: #666; font-size: 0.9em; font-weight: normal; margin-left: 8px;">[共计: <span style="color: #cf1322; font-weight: bold;">${totalSlots}</span> 人]</span>`;
                 
-                html += `<li><input type="checkbox"><span class="caret tree-label">${uniLabel}</span><ul class="nested">`;
+                provinceHtml += `<li><input type="checkbox"><span class="caret tree-label">${uniLabel}</span><ul class="nested">`;
                 uniPlans.forEach(plan => {
                     const id = `${plan.院校代码}-${plan.专业代码}`;
                     const fee = plan.学费 ? `${plan.学费}元` : 'N/A';
@@ -351,14 +354,18 @@ window.initializePlansTab = function () {
                     const rank = plan['当年位次号'] ? `${plan['当年位次号']}位` : 'N/A';
                     const subject = plan['当年选科要求'] || '不限';
                     
-                    // 调整顺序并增加颜色：【选科|学费|计划数|分数线|位次】
-                    const details = `【${subject}|${fee}|<span style="color:#007bff;font-weight:500;">${slots}</span>|<span style="color:#e67e22;font-weight:500;">${score}</span>|<span style="color:#27ae60;font-weight:500;">${rank}</span>】`;
+                    // 调整顺序并增加颜色及空格：【选科 | 学费 | 计划数 | 分数线 | 位次】
+                    const details = `【${subject} | ${fee} | <span style="color:#007bff;font-weight:500;">${slots}</span> | <span style="color:#e67e22;font-weight:500;">${score}</span> | <span style="color:#27ae60;font-weight:500;">${rank}</span>】`;
                     
                     const planData = btoa(encodeURIComponent(JSON.stringify(plan)));
-                    html += `<li data-plan="${planData}"><input type="checkbox" value="${id}" ${selectedPlans.has(id) ? 'checked' : ''}><span class="major-label">${plan.专业} ${details}</span></li>`;
+                    provinceHtml += `<li data-plan="${planData}"><input type="checkbox" value="${id}" ${selectedPlans.has(id) ? 'checked' : ''}><span class="major-label">${plan.专业} ${details}</span></li>`;
                 });
-                html += `</ul></li>`;
+                provinceHtml += `</ul></li>`;
             }
+            
+            const provinceLabel = `${province} <span style="color: #666; font-size: 0.9em; font-weight: normal; margin-left: 8px;">[合计: <span style="color: #007bff; font-weight: bold;">${provinceTotal}</span> 人]</span>`;
+            html += `<li><input type="checkbox"><span class="caret tree-label">${provinceLabel}</span><ul class="nested">`;
+            html += provinceHtml;
             html += `</ul></li>`;
         }
         html += '</ul>';
@@ -432,28 +439,37 @@ window.initializePlansTab = function () {
         };
 
         // --- 字段预处理 ---
-        // 1. 【已修正】标题直接使用<院校>#<专业>
         const planTitle = `${plan.院校 || ''} # ${plan.专业 || ''}`;
-        const categoryBatch = [plan.科类, plan.批次].filter(Boolean).join('/');
         const cityTier = plan.城市评级 ? `(${plan.城市评级})` : '';
         const location = [plan.省份, plan.城市].filter(Boolean).join('/') + cityTier;
         const studyFee = [plan.学制 ? `${plan.学制}年` : null, plan.学费 ? `${plan.学费}元` : null].filter(Boolean).join(' / ');
+        const isUndergrad = plan.本专科 === '本科';
+
+        // 本科专属：硕博点、推免率、升学率
         const masterInfo = (plan.硕士点 || plan.硕士专业) ? `<strong>硕</strong>:${plan.硕士点 || '---'}+${plan.硕士专业 || '---'}` : '';
         const doctorInfo = (plan.博士点 || plan.博士专业) ? `<strong>博</strong>:${plan.博士点 || '---'}+${plan.博士专业 || '---'}` : '';
         const degreePointInfo = [masterInfo, doctorInfo].filter(Boolean).join(' / ');
-        // 2. 按"**年份**-X%"格式处理推免率（动态年份）
         const tuitionRates = [
             plan['当年推免率'] ? `<strong>${shortY0}年</strong>-${plan['当年推免率']}` : null,
             plan['前1年推免率'] ? `<strong>${shortY1}年</strong>-${plan['前1年推免率']}` : null,
             plan['前2年推免率'] ? `<strong>${shortY2}年</strong>-${plan['前2年推免率']}` : null
         ].filter(Boolean).join(' | ');
-
         const promotionRate = [
             plan.国内升学比率 ? `国内${plan.国内升学比率}` : null,
             plan.国外升学比率 ? `国外${plan.国外升学比率}` : null
         ].filter(Boolean).join(' / ');
 
-        // --- 构建HTML  (采用混合渲染) ---
+        // 体检限制：高亮处理
+        const medicalLimitValue = plan.专业限制 || '';
+        const medicalLimitDisplay = medicalLimitValue
+            ? `<span style="background: #fff1f0; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffa39e; color: #cf1322; font-weight: bold;">${medicalLimitValue}</span>`
+            : '<span style="color: #52c41a; font-weight: 500;">无特殊要求</span>';
+
+        // 二段计划数
+        const secondBatchCount = plan['当年二段计划数'];
+        const secondBatchDisplay = (secondBatchCount && secondBatchCount > 0) ? `${secondBatchCount}人` : null;
+
+        // --- 构建HTML ---
         let html = `
         <style>
             .plan-details-content .detail-row, .plan-details-content .detail-smart-row { margin-bottom: 8px; line-height: 1.6; }
@@ -461,49 +477,66 @@ window.initializePlansTab = function () {
             .plan-details-content .detail-label, .plan-details-content .detail-value, .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { font-size: 14px; font-weight: normal; }
             .plan-details-content .detail-label { font-weight: 600; }
             .plan-details-content .detail-smart-row a, .plan-details-content .detail-smart-row .detail-value { word-break: break-all; }
+            .plan-details-content .section-divider { border: none; border-top: 1px dashed #e8e8e8; margin: 10px 0; }
+            .plan-details-content .section-title { font-size: 13px; color: #888; margin: 6px 0 4px; font-weight: 600; }
         </style>
         <h3 style="color: #007bff;">${planTitle} 计划详情</h3>
         ${renderRow(renderItem('专业简注', `<span style="color: #ff4d4f; font-weight: 500;">${plan.专业简注}</span>`))}
+
         ${renderRow(
-            renderItem('科类/批次', categoryBatch),
-            renderItem('省份/城市', location)
+            renderItem('省份/城市', location),
+            renderItem('学制/学费', studyFee),
+            renderItem('选科要求', plan['当年选科要求'] ? `<span style="color: #1890ff; font-weight: 600;">${plan['当年选科要求']}</span>` : null)
         )}
         ${renderRow(
-            renderItem('学制/学费', studyFee),
-            renderItem('本/专科', plan.本专科),
             renderItem(`${shortY0}年新招`, plan['当年新招']),
-            renderItem('选科要求', plan['当年选科要求'])
+            secondBatchDisplay ? renderItem(`${shortY0}年二段计划`, secondBatchDisplay) : ''
         )}
         ${renderRow(renderItem('院校水平', plan.院校水平或来历))}
         ${renderRow(
             renderItem('办学性质', plan.办学性质),
             renderItem('院校类型', plan.院校类型),
+            renderItem('主管部门', plan.主管部门),
             renderItem('软科排名', plan.软科校排名)
-        )}
+        )}`;
+
+        // 本科：硕博点、第四轮评估、推免率、升学率
+        if (isUndergrad) {
+            html += `
         ${renderRow(renderItem('硕/博点', degreePointInfo))}
         ${renderRow(
             renderItem('第四轮评估', plan.第四轮学科评估),
             renderItem('推免率', tuitionRates)
         )}
+        ${renderRow(renderItem('升学率', promotionRate))}`;
+        }
+        // 专科：专升本率
+        else {
+            html += `
+        ${renderRow(renderItem(`${shortY2}年专升本率`, plan['前2年专升本比率']))}`;
+        }
+
+        html += `
+        <hr class="section-divider">
+        ${renderRow(renderItem('体检限制', medicalLimitDisplay))}
         ${renderRow(
-            renderItem('升学率', promotionRate),
-            renderItem(`${shortY2}年专升本率`, plan['前2年专升本比率']),
             renderItem('专业排名', plan['专业排名/总数']),
             renderItem('软科专业排名', plan.软科专业排名)
         )}
-
         ${renderRow(renderItem('专业水平', plan.专业水平))}
+        ${renderRow(renderItem('行业领域特色', plan.行业领域特色))}
         ${renderRow(renderItem('培养目标', plan.培养目标))}
         ${renderRow(renderItem('主要课程', plan.主要课程))}
         ${renderRow(renderItem('就业方向', plan.就业方向))}
 
-        ${renderSmartField('招生章程', plan.招生章程)}
-        ${renderSmartField('学校招生信息', plan.学校招生信息)}
-        ${renderSmartField('校园VR', plan.校园VR)}
-        ${renderSmartField('院校百科', plan.院校百科)}
-        ${renderSmartField('就业质量', plan.就业质量)}
+        ${renderRow(renderItem('招生章程', plan.招生章程 ? `<a href="${plan.招生章程}" target="_blank" rel="noopener noreferrer">${plan.招生章程}</a>` : null))}
+        ${renderRow(renderItem('学校招生信息', plan.学校招生信息 ? `<a href="${plan.学校招生信息}" target="_blank" rel="noopener noreferrer">${plan.学校招生信息}</a>` : null))}
+        ${renderRow(renderItem('校园VR', plan.校园VR ? `<a href="${plan.校园VR}" target="_blank" rel="noopener noreferrer">${plan.校园VR}</a>` : null))}
+        ${renderRow(renderItem('院校百科', plan.院校百科 ? `<a href="${plan.院校百科}" target="_blank" rel="noopener noreferrer">${plan.院校百科}</a>` : null))}
+        ${renderRow(renderItem('就业质量', plan.就业质量 ? `<a href="${plan.就业质量}" target="_blank" rel="noopener noreferrer">${plan.就业质量}</a>` : null))}
     `;
         detailsContent.innerHTML = html;
+        detailsContent.style.overflowY = 'auto';
     }
 
     // --- 【新增】图表功能相关代码 (V3 - 根据新需求重构) ---
@@ -857,9 +890,12 @@ window.initializePlansTab = function () {
     function updatePlanOutputUI() {
         const text = Array.from(selectedPlans.values()).map(plan => {
             const fee = plan.学费 ? `${plan.学费}元` : 'N/A';
+            const slots = plan['当年计划数'] ? `${plan['当年计划数']}人` : '0人';
             const score = plan['当年分数线'] ? `${plan['当年分数线']}分` : 'N/A';
             const rank = plan['当年位次号'] ? `${plan['当年位次号']}位` : 'N/A';
-            const details = `【${fee}|${plan['当年选科要求'] || 'N/A'}|${score}|${rank}】`;
+            const subject = plan['当年选科要求'] || '不限';
+            // 同步左侧格式：【选科 | 学费 | 计划数 | 分数线 | 位次】
+            const details = `【${subject} | ${fee} | ${slots} | ${score} | ${rank}】`;
             return `${plan.院校} ${plan.专业} ${details}`;
         }).join('\n');
         planOutputTextarea.value = text;
@@ -979,7 +1015,9 @@ window.initializePlansTab = function () {
             const isUniversity = nestedUl && nestedUl.querySelector('li[data-plan]');
 
             if (isUniversity) {
-                renderUniversityChart(treeLabel.textContent);
+                // 使用正则剔除标题中的合计信息，只保留真实的院校名称
+                const pureUniName = treeLabel.textContent.replace(/\s\[(共计|合计):.*?人\]$/, "").trim();
+                renderUniversityChart(pureUniName);
             }
         }
     });
